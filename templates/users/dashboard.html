@@ -1,0 +1,46 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Dashboard - GenEX{% endblock %}
+
+{% block content %}
+<h2>Dashboard</h2>
+
+<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+    <h3>Welcome back, {{ user.first_name|default:user.username }}!</h3>
+    <p><strong>User Type:</strong> {{ user.get_user_type_display }}</p>
+    {% if user.level %}
+        <p><strong>Level:</strong> {{ user.get_level_display }}</p>
+    {% endif %}
+    {% if user.student_class %}
+        <p><strong>Class:</strong> {{ user.student_class }}</p>
+    {% endif %}
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Member Since:</strong> {{ user.date_joined|date:"F d, Y" }}</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h4>Courses</h4>
+        <p>Access your enrolled courses and learning materials.</p>
+        <a href="/courses/" class="btn">View Courses</a>
+    </div>
+    
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h4>Exercises</h4>
+        <p>Practice with interactive exercises and assignments.</p>
+        <a href="/exercises/" class="btn">View Exercises</a>
+    </div>
+    
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h4>Quizzes</h4>
+        <p>Test your knowledge with quizzes and assessments.</p>
+        <a href="/quizzes/" class="btn">Take Quizzes</a>
+    </div>
+    
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h4>AI Tutor</h4>
+        <p>Get personalized help from our AI chat tutor.</p>
+        <a href="/chat/" class="btn">Chat with AI</a>
+    </div>
+</div>
+{% endblock %}

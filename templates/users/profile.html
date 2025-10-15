@@ -1,0 +1,60 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Profile - GenEX{% endblock %}
+
+{% block content %}
+<h2>User Profile</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" value="{{ user.username }}" disabled>
+        <small>Username cannot be changed</small>
+    </div>
+    
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="{{ user.email }}">
+    </div>
+    
+    <div class="form-group">
+        <label for="first_name">First Name:</label>
+        <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}">
+    </div>
+    
+    <div class="form-group">
+        <label for="last_name">Last Name:</label>
+        <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}">
+    </div>
+    
+    <div class="form-group">
+        <label for="user_type">User Type:</label>
+        <input type="text" id="user_type" value="{{ user.get_user_type_display }}" disabled>
+        <small>Contact admin to change user type</small>
+    </div>
+    
+    <div class="form-group">
+        <label for="level">Level:</label>
+        <select id="level" name="level">
+            <option value="">Select Level</option>
+            <option value="weak" {% if user.level == 'weak' %}selected{% endif %}>Weak</option>
+            <option value="medium" {% if user.level == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="advanced" {% if user.level == 'advanced' %}selected{% endif %}>Advanced</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="student_class">Class:</label>
+        <input type="text" id="student_class" name="student_class" value="{{ user.student_class }}" placeholder="e.g., Grade 10A">
+    </div>
+    
+    <button type="submit" class="btn">Update Profile</button>
+</form>
+
+<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+    <p><strong>Account Information:</strong></p>
+    <p>Member since: {{ user.date_joined|date:"F d, Y" }}</p>
+    <p>Last login: {{ user.last_login|date:"F d, Y H:i" }}</p>
+</div>
+{% endblock %}
