@@ -1,0 +1,309 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Accueil - GENEX{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, #dc3545 0%, #000 100%);
+        color: #fff;
+        padding: 100px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="rgba(255,255,255,0.05)" width="1200" height="600"/></svg>');
+        opacity: 0.1;
+    }
+    
+    .hero-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-content h1 {
+        font-size: 56px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        line-height: 1.2;
+    }
+    
+    .hero-content .year {
+        background-color: #fff;
+        color: #dc3545;
+        padding: 5px 15px;
+        border-radius: 5px;
+        font-weight: 700;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+    
+    .hero-content p {
+        font-size: 20px;
+        margin-bottom: 30px;
+        max-width: 600px;
+    }
+    
+    .hero-buttons {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-white {
+        background-color: #fff;
+        color: #dc3545;
+        padding: 15px 40px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: all 0.3s;
+        display: inline-block;
+    }
+    
+    .btn-white:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    /* Features Section */
+    .features-section {
+        padding: 80px 20px;
+        background-color: #f8f9fa;
+    }
+    
+    .section-title {
+        text-align: center;
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 50px;
+        color: #000;
+    }
+    
+    .section-title span {
+        color: #dc3545;
+    }
+    
+    .features-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+    }
+    
+    .feature-card {
+        background: #fff;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s;
+        border-top: 4px solid #dc3545;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(220, 53, 69, 0.15);
+    }
+    
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        font-size: 32px;
+        color: #fff;
+    }
+    
+    .feature-card h3 {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #000;
+    }
+    
+    .feature-card p {
+        color: #666;
+        line-height: 1.8;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+        background: #000;
+        color: #fff;
+        padding: 80px 20px;
+        text-align: center;
+    }
+    
+    .cta-section h2 {
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+    
+    .cta-section p {
+        font-size: 20px;
+        margin-bottom: 30px;
+        color: #ccc;
+    }
+    
+    /* Stats Section */
+    .stats-section {
+        padding: 80px 20px;
+        background: #dc3545;
+        color: #fff;
+    }
+    
+    .stats-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 40px;
+        text-align: center;
+    }
+    
+    .stat-item h3 {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+    
+    .stat-item p {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-content h1 {
+            font-size: 36px;
+        }
+        
+        .section-title {
+            font-size: 32px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <div class="year">2025/2026</div>
+        <h1>CHOISISSEZ VOTRE AVENIR ACADÉMIQUE !</h1>
+        <p>Développez vos compétences avec nos programmes innovants et notre technologie d'évaluation vocale IA de pointe.</p>
+        <div class="hero-buttons">
+            {% if user.is_authenticated %}
+                <a href="{% url 'main:dashboard' %}" class="btn-white">Mon Dashboard</a>
+                <a href="{% url 'voice_eval:voice-eval-home' %}" class="btn-outline-red">Évaluation Vocale</a>
+            {% else %}
+                <a href="{% url 'main:signup' %}" class="btn-white">Inscription Gratuite</a>
+                <a href="{% url 'main:about' %}" class="btn-outline-red">En Savoir Plus</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <h3>1000+</h3>
+            <p>Étudiants Inscrits</p>
+        </div>
+        <div class="stat-item">
+            <h3>50+</h3>
+            <p>Programmes de Formation</p>
+        </div>
+        <div class="stat-item">
+            <h3>98%</h3>
+            <p>Taux de Satisfaction</p>
+        </div>
+        <div class="stat-item">
+            <h3>24/7</h3>
+            <p>Support Disponible</p>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <h2 class="section-title">Pourquoi Choisir <span>GENEX</span> ?</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-microphone-alt"></i>
+            </div>
+            <h3>Évaluation Vocale IA</h3>
+            <p>Système d'évaluation vocale alimenté par l'IA pour améliorer votre prononciation et vos compétences orales en temps réel.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h3>Programmes Certifiés</h3>
+            <p>Accédez à des formations certifiées et reconnues pour développer vos compétences professionnelles.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3>Communauté Active</h3>
+            <p>Rejoignez une communauté d'apprenants motivés et partagez vos expériences d'apprentissage.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Suivi de Progrès</h3>
+            <p>Suivez votre évolution avec des tableaux de bord détaillés et des analyses de performance.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-laptop-code"></i>
+            </div>
+            <h3>Apprentissage Interactif</h3>
+            <p>Des cours interactifs avec des quiz, exercices pratiques et projets concrets.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-certificate"></i>
+            </div>
+            <h3>Certificats Reconnus</h3>
+            <p>Obtenez des certificats valorisés par les employeurs pour booster votre carrière.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <h2>Prêt à Commencer Votre Formation ?</h2>
+    <p>Rejoignez des milliers d'étudiants qui apprennent déjà sur GENEX</p>
+    {% if not user.is_authenticated %}
+        <a href="{% url 'main:signup' %}" class="btn-red" style="font-size: 18px; padding: 15px 50px;">Créer un Compte Gratuit</a>
+    {% endif %}
+</section>
+{% endblock %}

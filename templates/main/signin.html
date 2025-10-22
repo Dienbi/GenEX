@@ -1,0 +1,180 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Sign In - GenEX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 450px;
+        margin: 60px auto;
+        padding: 40px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .auth-container h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+        color: #2c3e50;
+        text-align: center;
+    }
+    
+    .auth-container p {
+        text-align: center;
+        color: #7f8c8d;
+        margin-bottom: 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+    
+    .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        font-size: 14px;
+    }
+    
+    .remember-me {
+        display: flex;
+        align-items: center;
+        color: #555;
+    }
+    
+    .remember-me input {
+        margin-right: 8px;
+    }
+    
+    .forgot-password {
+        color: #3498db;
+        text-decoration: none;
+    }
+    
+    .forgot-password:hover {
+        text-decoration: underline;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 15px;
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .submit-btn:hover {
+        background-color: #2980b9;
+    }
+    
+    .auth-links {
+        text-align: center;
+        margin-top: 20px;
+        color: #7f8c8d;
+    }
+    
+    .auth-links a {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .auth-links a:hover {
+        text-decoration: underline;
+    }
+    
+    .divider {
+        text-align: center;
+        margin: 30px 0;
+        color: #7f8c8d;
+        position: relative;
+    }
+    
+    .divider::before,
+    .divider::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 40%;
+        height: 1px;
+        background-color: #ddd;
+    }
+    
+    .divider::before {
+        left: 0;
+    }
+    
+    .divider::after {
+        right: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>Welcome Back</h1>
+    <p>Sign in to continue your learning journey</p>
+    
+    <form method="post" action="{% url 'main:signin' %}">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="username">Username or Email</label>
+            <input type="text" id="username" name="username" required 
+                   placeholder="Enter your username or email" value="{{ request.POST.username|default:'' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required 
+                   placeholder="Enter your password">
+        </div>
+        
+        <div class="form-options">
+            <label class="remember-me">
+                <input type="checkbox" name="remember_me">
+                Remember me
+            </label>
+            <a href="{% url 'main:forgot_password' %}" class="forgot-password">Forgot Password?</a>
+        </div>
+        
+        <button type="submit" class="submit-btn">Sign In</button>
+    </form>
+    
+    <div class="divider">OR</div>
+    
+    <div class="auth-links">
+        Don't have an account? <a href="{% url 'main:signup' %}">Sign Up</a>
+    </div>
+</div>
+{% endblock %}

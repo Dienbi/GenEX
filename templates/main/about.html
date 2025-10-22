@@ -1,0 +1,208 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}À propos - GENEX{% endblock %}
+{% block nav_about %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #000 0%, #dc3545 100%);
+        color: #fff;
+        padding: 80px 20px;
+        text-align: center;
+    }
+    
+    .page-header h1 {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 15px;
+    }
+    
+    .page-header p {
+        font-size: 18px;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .about-content {
+        max-width: 1200px;
+        margin: 80px auto;
+        padding: 0 20px;
+    }
+    
+    .about-section {
+        margin-bottom: 60px;
+    }
+    
+    .about-section h2 {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #000;
+    }
+    
+    .about-section h2 span {
+        color: #dc3545;
+    }
+    
+    .about-section p {
+        font-size: 17px;
+        line-height: 1.8;
+        color: #555;
+        margin-bottom: 20px;
+    }
+    
+    .mission-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        margin-top: 40px;
+    }
+    
+    .mission-card {
+        background: #fff;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: all 0.3s;
+        border-top: 4px solid #dc3545;
+    }
+    
+    .mission-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(220, 53, 69, 0.15);
+    }
+    
+    .mission-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 36px;
+        color: #fff;
+    }
+    
+    .mission-card h3 {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #000;
+    }
+    
+    .mission-card p {
+        color: #666;
+        line-height: 1.7;
+    }
+    
+    .cta-banner {
+        background: linear-gradient(135deg, #dc3545 0%, #000 100%);
+        color: #fff;
+        padding: 60px 20px;
+        border-radius: 15px;
+        text-align: center;
+        margin-top: 60px;
+    }
+    
+    .cta-banner h2 {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+    
+    .cta-banner p {
+        font-size: 18px;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header">
+    <h1>À Propos de GENEX</h1>
+    <p>Une plateforme d'apprentissage innovante propulsée par l'intelligence artificielle</p>
+</section>
+
+<!-- About Content -->
+<div class="about-content">
+    <div class="about-section">
+        <h2>Notre <span>Histoire</span></h2>
+        <p>
+            GENEX est née de la vision de révolutionner l'éducation en combinant les dernières 
+            technologies d'intelligence artificielle avec des méthodes pédagogiques éprouvées. 
+            Notre plateforme offre une expérience d'apprentissage personnalisée et interactive 
+            qui s'adapte aux besoins uniques de chaque étudiant.
+        </p>
+        <p>
+            Fondée avec la mission de rendre l'éducation de qualité accessible à tous, nous avons 
+            développé des outils innovants comme notre système d'évaluation vocale IA qui aide les 
+            étudiants à améliorer leurs compétences en communication de manière significative.
+        </p>
+    </div>
+    
+    <div class="about-section">
+        <h2>Ce Qui Nous <span>Distingue</span></h2>
+        <p>
+            Contrairement aux plateformes d'apprentissage traditionnelles, GENEX utilise des 
+            algorithmes d'IA sophistiqués pour analyser vos performances, identifier vos points 
+            d'amélioration et adapter le contenu d'apprentissage à votre rythme et style personnel.
+        </p>
+        <p>
+            Notre système d'évaluation vocale ne se contente pas de transcrire ce que vous dites - 
+            il évalue la prononciation, la fluidité, la grammaire et la compréhension pour vous 
+            fournir des retours détaillés et actionnables qui accélèrent votre progression.
+        </p>
+    </div>
+    
+    <!-- Mission Grid -->
+    <div class="about-section">
+        <h2>Nos <span>Valeurs</span></h2>
+        <div class="mission-grid">
+            <div class="mission-card">
+                <div class="mission-icon">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <h3>Excellence</h3>
+                <p>Nous nous engageons à offrir la meilleure qualité d'enseignement avec des contenus constamment mis à jour.</p>
+            </div>
+            
+            <div class="mission-card">
+                <div class="mission-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h3>Innovation</h3>
+                <p>Nous intégrons les dernières avancées en IA pour créer des expériences d'apprentissage révolutionnaires.</p>
+            </div>
+            
+            <div class="mission-card">
+                <div class="mission-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3>Accessibilité</h3>
+                <p>L'éducation de qualité doit être accessible à tous, partout et à tout moment.</p>
+            </div>
+            
+            <div class="mission-card">
+                <div class="mission-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h3>Passion</h3>
+                <p>Nous croyons fermement au pouvoir transformateur de l'éducation pour changer des vies.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA Banner -->
+    <div class="cta-banner">
+        <h2>Rejoignez Notre Communauté</h2>
+        <p>Faites partie d'une communauté d'apprenants qui transforment leur avenir avec GENEX</p>
+        <a href="{% url 'main:signup' %}" class="btn-white">Commencer Maintenant</a>
+    </div>
+</div>
+{% endblock %}
