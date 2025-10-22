@@ -90,8 +90,8 @@ def signin(request):
             login(request, user)
             messages.success(request, f'Welcome back, {user.username}!')
             
-            # Redirect to next page if specified, otherwise dashboard
-            next_page = request.GET.get('next', 'main:dashboard')
+            # Redirect to next page if specified, otherwise home page
+            next_page = request.GET.get('next', 'main:home')
             return redirect(next_page)
         else:
             messages.error(request, 'Invalid username or password!')
