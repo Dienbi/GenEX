@@ -1,67 +1,173 @@
-{% extends 'users/base.html' %}
+{% extends 'main/base.html' %}
 
-{% block title %}Voice Evaluation - GenEX{% endblock %}
+{% block title %}Évaluation Vocale - GENEX{% endblock %}
+{% block nav_voice %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .voice-hero {
+        background: linear-gradient(135deg, #dc3545 0%, #000 100%);
+        color: #fff;
+        padding: 60px 20px;
+        border-radius: 15px;
+        margin-bottom: 40px;
+    }
+    
+    .voice-hero h2 {
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: 15px;
+    }
+    
+    .voice-hero p {
+        font-size: 18px;
+        margin-bottom: 25px;
+        opacity: 0.95;
+    }
+    
+    .eval-grid {
+        display: grid;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .eval-card {
+        background: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        border-left: 5px solid #dc3545;
+        transition: all 0.3s;
+    }
+    
+    .eval-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 25px rgba(220, 53, 69, 0.15);
+    }
+    
+    .eval-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .eval-header h4 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #000;
+    }
+    
+    .eval-score {
+        font-size: 32px;
+        font-weight: 800;
+        color: #dc3545;
+    }
+    
+    .eval-meta {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 2px dashed #ddd;
+    }
+    
+    .empty-state i {
+        font-size: 64px;
+        color: #dc3545;
+        margin-bottom: 20px;
+    }
+    
+    .how-it-works {
+        background: #f8f9fa;
+        padding: 40px;
+        border-radius: 10px;
+        margin-top: 40px;
+    }
+    
+    .how-it-works h4 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #000;
+    }
+    
+    .how-it-works ol {
+        line-height: 2;
+        color: #555;
+    }
+    
+    .how-it-works strong {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2>Voice Evaluation</h2>
+<div class="container">
+    <div class="voice-hero">
+        <h2>🎤 Évaluation Vocale IA</h2>
+        <p>Enregistrez ou téléchargez votre voix pour obtenir un retour instantané sur vos compétences en communication!</p>
+        <a href="{% url 'voice_eval:voice-eval-record' %}" class="btn-white">Commencer l'Évaluation</a>
+    </div>
 
-<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px;">
-    <h3 style="margin-top: 0;">🎤 Evaluate Your Speaking Skills</h3>
-    <p>Record or upload your voice to get instant feedback on your communication skills!</p>
-    <a href="{% url 'voice_eval:voice-eval-record' %}" class="btn" style="background: white; color: #667eea;">Start Evaluation</a>
-</div>
-
-<h3>Your Recent Evaluations</h3>
+    <h3 style="font-size: 28px; font-weight: 700; margin-bottom: 20px; color: #000;">Vos Évaluations Récentes</h3>
 
 {% if evaluations %}
-<div style="display: grid; gap: 15px;">
+<div class="eval-grid">
     {% for eval in evaluations %}
-    <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid {% if eval.total_score >= 80 %}#28a745{% elif eval.total_score >= 60 %}#ffc107{% else %}#dc3545{% endif %};">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="eval-card">
+        <div class="eval-header">
             <div>
-                <h4 style="margin: 0 0 10px 0;">
-                    {{ eval.language|upper }} - {{ eval.created_at|date:"M d, Y H:i" }}
-                </h4>
+                <h4>{{ eval.language|upper }} - {{ eval.created_at|date:"d/m/Y à H:i" }}</h4>
                 {% if eval.theme %}
-                <p style="margin: 0 0 10px 0; color: #666;">Theme: {{ eval.theme }}</p>
+                <p class="eval-meta"><strong>Thème:</strong> {{ eval.theme }}</p>
                 {% endif %}
-                <p style="margin: 0;">
-                    <strong>Level:</strong> {{ eval.get_estimated_level_display|default:"Processing..." }}
-                    | <strong>Duration:</strong> {{ eval.duration|floatformat:1 }}s
+                <p class="eval-meta">
+                    <strong>Niveau:</strong> {{ eval.get_estimated_level_display|default:"En cours..." }}
+                    | <strong>Durée:</strong> {{ eval.duration|floatformat:1 }}s
                 </p>
             </div>
             <div style="text-align: right;">
-                <div style="font-size: 32px; font-weight: bold; color: {% if eval.total_score >= 80 %}#28a745{% elif eval.total_score >= 60 %}#ffc107{% else %}#dc3545{% endif %};">
-                    {{ eval.total_score|floatformat:0 }}
-                </div>
-                <div style="font-size: 14px; color: #666;">Total Score</div>
-                <a href="{% url 'voice_eval:voice-eval-detail' eval.id %}" style="margin-top: 10px; display: inline-block;">View Details</a>
+                <div class="eval-score">{{ eval.total_score|floatformat:0 }}</div>
+                <div style="font-size: 12px; color: #666;">Score Total</div>
+                <a href="{% url 'voice_eval:voice-eval-detail' eval.id %}" class="btn-outline-red" style="margin-top: 10px; padding: 8px 20px; font-size: 14px;">Voir Détails</a>
             </div>
         </div>
         
         {% if eval.processing_status != 'completed' %}
-        <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 4px;">
-            Status: {{ eval.get_processing_status_display }}
+        <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 5px; color: #856404;">
+            <strong>Statut:</strong> {{ eval.get_processing_status_display }}
         </div>
         {% endif %}
     </div>
     {% endfor %}
 </div>
 {% else %}
-<div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px;">
-    <p style="font-size: 18px; color: #666;">No evaluations yet. Start your first evaluation!</p>
-    <a href="{% url 'voice_eval:voice-eval-record' %}" class="btn">Record Now</a>
+<div class="empty-state">
+    <i class="fas fa-microphone-alt"></i>
+    <p style="font-size: 20px; color: #666; margin-bottom: 20px;">Aucune évaluation pour le moment</p>
+    <p style="color: #999; margin-bottom: 25px;">Commencez votre première évaluation vocale dès maintenant!</p>
+    <a href="{% url 'voice_eval:voice-eval-record' %}" class="btn-red">Enregistrer Maintenant</a>
 </div>
 {% endif %}
 
-<div style="margin-top: 40px; padding: 20px; background: #e7f3ff; border-radius: 8px;">
-    <h4>How It Works:</h4>
-    <ol style="line-height: 1.8;">
-        <li><strong>Record or Upload:</strong> Speak for 30-180 seconds on any topic</li>
-        <li><strong>AI Analysis:</strong> Our AI evaluates your verbal and paraverbal communication</li>
-        <li><strong>Get Feedback:</strong> Receive detailed scores and personalized recommendations</li>
-        <li><strong>Track Progress:</strong> Monitor your improvement over time</li>
+<div class="how-it-works">
+    <h4>Comment Ça Marche:</h4>
+    <ol style="line-height: 1.8; font-size: 16px;">
+        <li><strong>Enregistrer ou Télécharger:</strong> Parlez pendant 30-180 secondes sur n'importe quel sujet</li>
+        <li><strong>Analyse IA:</strong> Notre IA évalue votre communication verbale et paraverbale</li>
+        <li><strong>Obtenir des Retours:</strong> Recevez des scores détaillés et des recommandations personnalisées</li>
+        <li><strong>Suivre vos Progrès:</strong> Surveillez votre amélioration au fil du temps</li>
     </ol>
-    <p><strong>Supported Languages:</strong> English, French</p>
+    <p style="margin-top: 20px;"><strong>Langues Supportées:</strong> Anglais, Français</p>
+</div>
 </div>
 {% endblock %}

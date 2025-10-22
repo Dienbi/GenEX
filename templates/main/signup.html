@@ -1,29 +1,40 @@
-{% extends 'main/base.html' %}
+﻿{% extends 'main/base.html' %}
 {% load static %}
 
-{% block title %}Sign Up - GenEX{% endblock %}
+{% block title %}Inscription - GENEX{% endblock %}
 
 {% block extra_css %}
 <style>
+    .auth-page {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
     .auth-container {
         max-width: 500px;
-        margin: 60px auto;
-        padding: 40px;
+        width: 100%;
         background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        padding: 50px;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        border-top: 5px solid #dc3545;
     }
     
     .auth-container h1 {
         font-size: 32px;
+        font-weight: 800;
         margin-bottom: 10px;
-        color: #2c3e50;
+        color: #000;
         text-align: center;
     }
     
     .auth-container p {
         text-align: center;
-        color: #7f8c8d;
+        color: #666;
         margin-bottom: 30px;
     }
     
@@ -34,54 +45,54 @@
     .form-group label {
         display: block;
         margin-bottom: 8px;
-        color: #2c3e50;
+        color: #000;
         font-weight: 600;
+        font-size: 14px;
     }
     
     .form-group input {
         width: 100%;
         padding: 12px 15px;
-        border: 2px solid #ddd;
-        border-radius: 5px;
-        font-size: 16px;
-        transition: border-color 0.3s;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: all 0.3s;
         box-sizing: border-box;
     }
     
     .form-group input:focus {
         outline: none;
-        border-color: #3498db;
-    }
-    
-    .form-group input.error {
-        border-color: #e74c3c;
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
     }
     
     .submit-btn {
         width: 100%;
         padding: 15px;
-        background-color: #3498db;
+        background: linear-gradient(135deg, #dc3545, #c82333);
         color: #fff;
         border: none;
-        border-radius: 5px;
-        font-size: 18px;
-        font-weight: 600;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 700;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: all 0.3s;
+        margin-top: 10px;
     }
     
     .submit-btn:hover {
-        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(220, 53, 69, 0.3);
     }
     
     .auth-links {
         text-align: center;
-        margin-top: 20px;
-        color: #7f8c8d;
+        margin-top: 25px;
+        color: #666;
     }
     
     .auth-links a {
-        color: #3498db;
+        color: #dc3545;
         text-decoration: none;
         font-weight: 600;
     }
@@ -91,65 +102,67 @@
     }
     
     .password-requirements {
-        font-size: 14px;
-        color: #7f8c8d;
+        font-size: 13px;
+        color: #999;
         margin-top: 5px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <h1>Create Your Account</h1>
-    <p>Join GenEX and start your learning journey today</p>
-    
-    <form method="post" action="{% url 'main:signup' %}">
-        {% csrf_token %}
+<div class="auth-page">
+    <div class="auth-container">
+        <h1>Créer un Compte</h1>
+        <p>Rejoignez GENEX et commencez votre parcours d'apprentissage</p>
         
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required 
-                   placeholder="Choose a username" value="{{ request.POST.username|default:'' }}">
-        </div>
-        
-        <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" required 
-                   placeholder="your.email@example.com" value="{{ request.POST.email|default:'' }}">
-        </div>
-        
-        <div class="form-group">
-            <label for="first_name">First Name</label>
-            <input type="text" id="first_name" name="first_name" 
-                   placeholder="Your first name" value="{{ request.POST.first_name|default:'' }}">
-        </div>
-        
-        <div class="form-group">
-            <label for="last_name">Last Name</label>
-            <input type="text" id="last_name" name="last_name" 
-                   placeholder="Your last name" value="{{ request.POST.last_name|default:'' }}">
-        </div>
-        
-        <div class="form-group">
-            <label for="password1">Password</label>
-            <input type="password" id="password1" name="password1" required 
-                   placeholder="Create a strong password">
-            <div class="password-requirements">
-                At least 8 characters with a mix of letters and numbers
+        <form method="post" action="{% url 'main:signup' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur</label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="Choisissez un nom d'utilisateur" value="{{ request.POST.username|default:'' }}">
             </div>
-        </div>
+            
+            <div class="form-group">
+                <label for="email">Adresse Email</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="votre.email@exemple.com" value="{{ request.POST.email|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="first_name">Prénom</label>
+                <input type="text" id="first_name" name="first_name" 
+                       placeholder="Votre prénom" value="{{ request.POST.first_name|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="last_name">Nom</label>
+                <input type="text" id="last_name" name="last_name" 
+                       placeholder="Votre nom" value="{{ request.POST.last_name|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="password1">Mot de Passe</label>
+                <input type="password" id="password1" name="password1" required 
+                       placeholder="Créez un mot de passe fort">
+                <div class="password-requirements">
+                    Au moins 8 caractères avec lettres et chiffres
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password2">Confirmer le Mot de Passe</label>
+                <input type="password" id="password2" name="password2" required 
+                       placeholder="Ressaisissez votre mot de passe">
+            </div>
+            
+            <button type="submit" class="submit-btn">Créer mon Compte</button>
+        </form>
         
-        <div class="form-group">
-            <label for="password2">Confirm Password</label>
-            <input type="password" id="password2" name="password2" required 
-                   placeholder="Re-enter your password">
+        <div class="auth-links">
+            Vous avez déjà un compte ? <a href="{% url 'main:signin' %}">Se Connecter</a>
         </div>
-        
-        <button type="submit" class="submit-btn">Create Account</button>
-    </form>
-    
-    <div class="auth-links">
-        Already have an account? <a href="{% url 'main:signin' %}">Sign In</a>
     </div>
 </div>
 {% endblock %}

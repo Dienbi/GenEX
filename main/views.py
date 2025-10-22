@@ -25,20 +25,21 @@ def signup(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
-        password = request.POST.get('password')
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
-        user_type = request.POST.get('user_type', 'student')
         
         # Validation
-        if not username or not email or not password:
-            messages.error(request, 'All fields are required!')
+        if not username or not email or not password1:
+            messages.error(request, 'Username, email, and password are required!')
             return render(request, 'main/signup.html')
         
-        if password != password2:
+        if password1 != password2:
             messages.error(request, 'Passwords do not match!')
             return render(request, 'main/signup.html')
         
-        if len(password) < 6:
+        if len(password1) < 6:
             messages.error(request, 'Password must be at least 6 characters!')
             return render(request, 'main/signup.html')
         
@@ -50,13 +51,15 @@ def signup(request):
             messages.error(request, 'Email already exists!')
             return render(request, 'main/signup.html')
         
-        # Create user
+        # Create user (default role is student for all signups)
         try:
             user = User.objects.create_user(
                 username=username,
                 email=email,
-                password=password,
-                user_type=user_type
+                password=password1,
+                user_type='student',
+                first_name=first_name,
+                last_name=last_name
             )
             
             messages.success(request, 'Account created successfully! Please login.')
