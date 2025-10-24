@@ -115,7 +115,7 @@
     <div class="voice-hero">
         <h2>🎤 Évaluation Vocale IA</h2>
         <p>Enregistrez ou téléchargez votre voix pour obtenir un retour instantané sur vos compétences en communication!</p>
-        <a href="{% url 'voice_eval:voice-eval-record' %}" class="btn-white">Commencer l'Évaluation</a>
+        <a href="{% url 'voice_eval:record' %}" class="btn-white">Commencer l'Évaluation</a>
     </div>
 
     <h3 style="font-size: 28px; font-weight: 700; margin-bottom: 20px; color: #000;">Vos Évaluations Récentes</h3>
@@ -138,7 +138,7 @@
             <div style="text-align: right;">
                 <div class="eval-score">{{ eval.total_score|floatformat:0 }}</div>
                 <div style="font-size: 12px; color: #666;">Score Total</div>
-                <a href="{% url 'voice_eval:voice-eval-detail' eval.id %}" class="btn-outline-red" style="margin-top: 10px; padding: 8px 20px; font-size: 14px;">Voir Détails</a>
+                <a href="{% url 'voice_eval:detail' eval.id %}" class="btn-outline-red" style="margin-top: 10px; padding: 8px 20px; font-size: 14px;">Voir Détails</a>
             </div>
         </div>
         
@@ -155,7 +155,7 @@
     <i class="fas fa-microphone-alt"></i>
     <p style="font-size: 20px; color: #666; margin-bottom: 20px;">Aucune évaluation pour le moment</p>
     <p style="color: #999; margin-bottom: 25px;">Commencez votre première évaluation vocale dès maintenant!</p>
-    <a href="{% url 'voice_eval:voice-eval-record' %}" class="btn-red">Enregistrer Maintenant</a>
+    <a href="{% url 'voice_eval:record' %}" class="btn-red">Enregistrer Maintenant</a>
 </div>
 {% endif %}
 

@@ -3,6 +3,7 @@
 ## What We Built
 
 A complete AI-powered voice evaluation system that:
+
 - ✅ Transcribes audio using OpenAI Whisper
 - ✅ Analyzes verbal communication (fluency, vocabulary, structure)
 - ✅ Analyzes paraverbal features (pitch, pace, energy) using librosa
@@ -13,22 +14,26 @@ A complete AI-powered voice evaluation system that:
 ## Issues Fixed
 
 ### 1. **Python 3.10 Compatibility Issue** ✅ FIXED
+
 - **Problem**: `transformers` library v4.57.0 uses Python 3.10+ syntax (`int | None`)
 - **Solution**: Downgraded to compatible versions:
   - `transformers==4.40.2`
   - `sentence-transformers==2.7.0`
 
 ### 2. **Django Migration Issue** ✅ FIXED
+
 - **Problem**: Migration referenced deleted `default_dict`/`default_list` functions
 - **Solution**: Updated migration to use `dict` and `list` directly
 
 ### 3. **Type Hints Compatibility** ✅ FIXED
+
 - **Problem**: Django 4.2 uses newer type hints incompatible with Python 3.9
 - **Solution**: Added `from __future__ import annotations` to all modules
 
 ## Current Status
 
 ### ✅ Working
+
 - Django server runs without errors
 - Models and migrations applied successfully
 - API endpoints configured
@@ -42,6 +47,7 @@ A complete AI-powered voice evaluation system that:
 **The system needs FFmpeg to process audio files.**
 
 #### Quick Install (Recommended):
+
 ```powershell
 # 1. Install Chocolatey (if not installed)
 # Open PowerShell as Administrator:
@@ -59,12 +65,14 @@ See `INSTALL_FFMPEG.md` for detailed instructions.
 ## How to Use
 
 1. **Start the server**:
+
    ```powershell
    .\venv\Scripts\Activate.ps1
    python manage.py runserver
    ```
 
 2. **Access the application**:
+
    - Voice Evaluation Home: http://127.0.0.1:8000/voice/
    - Record Audio: http://127.0.0.1:8000/voice/record/
    - Admin Panel: http://127.0.0.1:8000/admin/
@@ -87,7 +95,7 @@ See `INSTALL_FFMPEG.md` for detailed instructions.
 ## Technology Stack
 
 - **Backend**: Django 4.2.25, Django REST Framework 3.16.1
-- **AI/ML**: 
+- **AI/ML**:
   - OpenAI Whisper (speech-to-text)
   - sentence-transformers 2.7.0 (embeddings)
   - transformers 4.40.2 (NLP models)
@@ -111,20 +119,24 @@ See `INSTALL_FFMPEG.md` for detailed instructions.
 ## Troubleshooting
 
 ### "The system cannot find the file specified" error
+
 - **Cause**: FFmpeg not installed
 - **Solution**: Install FFmpeg (see INSTALL_FFMPEG.md)
 
 ### Import errors with transformers/sentence-transformers
+
 - **Cause**: Library versions incompatible with Python 3.9
 - **Solution**: Already fixed! Versions are pinned in requirements.txt
 
 ### Migration errors
+
 - **Cause**: Outdated migration files
 - **Solution**: Already fixed! Migration files updated
 
 ## Files Created/Modified
 
 ### New Files:
+
 - `voice_eval/models.py` - Database models
 - `voice_eval/ai_service.py` - AI processing pipeline (700+ lines)
 - `voice_eval/views.py` - API and web views
@@ -136,6 +148,7 @@ See `INSTALL_FFMPEG.md` for detailed instructions.
 - `VOICE_EVAL_*.md` - Documentation files
 
 ### Modified Files:
+
 - `requirements.txt` - Added AI dependencies with version constraints
 - `GenEX/settings.py` - Added MEDIA settings
 - `GenEX/urls.py` - Added voice_eval routes

@@ -1,0 +1,211 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Applications Recommandées - GENEX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recommendations-page {
+        padding: 60px 0;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+        color: #fff;
+        padding: 50px;
+        border-radius: 15px;
+        margin-bottom: 40px;
+        text-align: center;
+    }
+    
+    .page-header h1 {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 15px;
+    }
+    
+    .apps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .app-card {
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+        border-top: 4px solid #dc3545;
+    }
+    
+    .app-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(220, 53, 69, 0.2);
+    }
+    
+    .app-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    
+    .app-name {
+        font-size: 24px;
+        font-weight: 800;
+        color: #000;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    
+    .app-description {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .app-recommended {
+        background: #d1ecf1;
+        color: #0c5460;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+    
+    .app-link {
+        display: block;
+        text-align: center;
+        padding: 12px;
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 700;
+        transition: all 0.3s;
+    }
+    
+    .app-link:hover {
+        background: linear-gradient(135deg, #c82333, #bd2130);
+        transform: scale(1.02);
+    }
+    
+    .info-section {
+        background: #fff;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 40px;
+    }
+    
+    .tip-box {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .tip-box i {
+        color: #ffc107;
+        margin-right: 10px;
+    }
+    
+    .btn-back {
+        display: inline-block;
+        padding: 15px 40px;
+        background: #fff;
+        color: #dc3545;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 700;
+        border: 2px solid #dc3545;
+        transition: all 0.3s;
+    }
+    
+    .btn-back:hover {
+        background: #dc3545;
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="recommendations-page">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-mobile-alt"></i> Applications Recommandées</h1>
+            <p>Améliorez vos compétences linguistiques avec ces applications de qualité</p>
+            <p style="font-size: 18px; margin-top: 15px;">
+                Recommandé pour votre niveau: <strong>{{ level }}</strong>
+            </p>
+        </div>
+        
+        <div class="info-section">
+            <h2 style="margin-bottom: 20px; color: #000;">
+                <i class="fas fa-lightbulb"></i> Pourquoi Utiliser Ces Applications ?
+            </h2>
+            <div class="tip-box">
+                <p><i class="fas fa-star"></i>
+                    <strong>Pratique régulière:</strong> 15-30 minutes par jour suffisent pour voir des progrès significatifs.
+                </p>
+            </div>
+            <div class="tip-box">
+                <p><i class="fas fa-star"></i>
+                    <strong>Variété d'approches:</strong> Chaque application a sa méthode unique - combinez-les pour de meilleurs résultats.
+                </p>
+            </div>
+            <div class="tip-box">
+                <p><i class="fas fa-star"></i>
+                    <strong>Suivi des progrès:</strong> La plupart offrent des statistiques pour mesurer votre amélioration.
+                </p>
+            </div>
+        </div>
+        
+        <h2 style="margin-bottom: 30px; color: #000; text-align: center;">
+            <i class="fas fa-rocket"></i> Nos Recommandations Pour Vous
+        </h2>
+        
+        <div class="apps-grid">
+            {% for app in recommendations %}
+            <div class="app-card">
+                <div class="app-icon">{{ app.icon }}</div>
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <span class="app-recommended">
+                        <i class="fas fa-check"></i> Recommandé pour {{ level }}
+                    </span>
+                </div>
+                <h3 class="app-name">{{ app.name }}</h3>
+                <p class="app-description">{{ app.description }}</p>
+                <a href="{{ app.url }}" target="_blank" class="app-link">
+                    <i class="fas fa-external-link-alt"></i> Visiter le Site
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="info-section">
+            <h2 style="margin-bottom: 20px; color: #000;">
+                <i class="fas fa-question-circle"></i> Conseils d'Utilisation
+            </h2>
+            <ul style="line-height: 2; color: #666;">
+                <li><strong>Commencez par une application:</strong> Testez pendant 1-2 semaines avant d'en ajouter d'autres.</li>
+                <li><strong>Fixez un objectif quotidien:</strong> Même 10 minutes par jour font la différence.</li>
+                <li><strong>Pratiquez à haute voix:</strong> La prononciation s'améliore avec la pratique orale.</li>
+                <li><strong>Restez régulier:</strong> La constance est plus importante que la durée des sessions.</li>
+                <li><strong>Combinez avec GenEx:</strong> Utilisez ces apps entre vos évaluations sur notre plateforme.</li>
+            </ul>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{% url 'voice_eval:detail' evaluation.id %}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Retour aux Résultats
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

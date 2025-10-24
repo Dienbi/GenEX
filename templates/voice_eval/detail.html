@@ -178,7 +178,61 @@
         background: #dc3545;
         color: #fff;
     }
+    
+    .btn-achievement,
+    .btn-improvement {
+        display: block;
+        padding: 25px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        text-decoration: none;
+        color: white;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    
+    .btn-achievement:hover,
+    .btn-improvement:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    .btn-achievement i,
+    .btn-improvement i {
+        font-size: 32px;
+        display: block;
+        margin-bottom: 15px;
+    }
+    
+    .btn-achievement span,
+    .btn-improvement span {
+        display: block;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    
+    .btn-achievement small,
+    .btn-improvement small {
+        display: block;
+        font-size: 13px;
+        opacity: 0.9;
+    }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function shareLinkedIn() {
+    const url = window.location.origin;
+    const text = `Je viens d'obtenir un score de {{ evaluation.total_score|floatformat:0 }}% (niveau {{ evaluation.estimated_level }}) en évaluation linguistique sur GenEx ! 🎓`;
+    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+    window.open(linkedinUrl, '_blank', 'width=600,height=600');
+}
+</script>
 {% endblock %}
 
 {% block content %}
@@ -250,11 +304,73 @@
             </ul>
         </div>
         
+        {% if evaluation.total_score >= 70 %}
+        <!-- High Score Section -->
+        <div class="achievement-section" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 40px; border-radius: 15px; margin-top: 40px;">
+            <h2 style="color: white; margin-bottom: 20px;">
+                <i class="fas fa-trophy"></i> Félicitations ! Excellent Score
+            </h2>
+            <p style="font-size: 18px; margin-bottom: 30px;">
+                Votre score exceptionnel vous qualifie pour obtenir une certification professionnelle !
+            </p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <a href="{% url 'voice_eval:generate-certificate' evaluation.id %}" class="btn-achievement">
+                    <i class="fas fa-certificate"></i>
+                    <span>Télécharger mon Certificat PDF</span>
+                    <small>Certificat officiel GenEx avec QR code</small>
+                </a>
+                
+                <a href="{% url 'voice_eval:certificate-map' evaluation.id %}" class="btn-achievement">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Centres d'Examen</span>
+                    <small>Trouvez des centres de certification près de chez vous</small>
+                </a>
+                
+                <a href="#" onclick="shareLinkedIn(); return false;" class="btn-achievement">
+                    <i class="fab fa-linkedin"></i>
+                    <span>Partager sur LinkedIn</span>
+                    <small>Montrez vos compétences à votre réseau</small>
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <!-- Low Score Section -->
+        <div class="improvement-section" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 40px; border-radius: 15px; margin-top: 40px;">
+            <h2 style="color: white; margin-bottom: 20px;">
+                <i class="fas fa-graduation-cap"></i> Continuez à Progresser !
+            </h2>
+            <p style="font-size: 18px; margin-bottom: 30px;">
+                Améliorez vos compétences avec nos outils d'entraînement personnalisés.
+            </p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <a href="{% url 'voice_eval:pronunciation-practice-eval' evaluation.id %}" class="btn-improvement">
+                    <i class="fas fa-microphone-alt"></i>
+                    <span>Entraînement Prononciation</span>
+                    <small>Comparaison en temps réel mot par mot</small>
+                </a>
+                
+                <a href="{% url 'voice_eval:sound-practice' %}?language={{ evaluation.language }}" class="btn-improvement">
+                    <i class="fas fa-volume-up"></i>
+                    <span>Exercices de Sons</span>
+                    <small>Pratiquez les sons difficiles</small>
+                </a>
+                
+                <a href="{% url 'voice_eval:app-recommendations' evaluation.id %}" class="btn-improvement">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>Applications Recommandées</span>
+                    <small>Duolingo, Babbel et plus</small>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
         <div class="actions">
-            <a href="{% url 'voice_eval:voice-eval-record' %}" class="btn-primary">
+            <a href="{% url 'voice_eval:record' %}" class="btn-primary">
                 <i class="fas fa-microphone"></i> Nouvelle Évaluation
             </a>
-            <a href="{% url 'voice_eval:voice-eval-home' %}" class="btn-secondary">
+            <a href="{% url 'voice_eval:home' %}" class="btn-secondary">
                 <i class="fas fa-list"></i> Mes Évaluations
             </a>
         </div>

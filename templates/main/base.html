@@ -305,7 +305,7 @@
                 <li><a href="{% url 'main:home' %}" class="{% block nav_home %}{% endblock %}">Accueil</a></li>
                 <li><a href="{% url 'main:about' %}" class="{% block nav_about %}{% endblock %}">À propos</a></li>
                 <li><a href="#" class="{% block nav_courses %}{% endblock %}">Programmes</a></li>
-                <li><a href="{% url 'voice_eval:voice-eval-home' %}" class="{% block nav_voice %}{% endblock %}">Voice Eval</a></li>
+                <li><a href="{% url 'voice_eval:home' %}" class="{% block nav_voice %}{% endblock %}">Voice Eval</a></li>
                 
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'main:dashboard' %}">Dashboard</a></li>
@@ -361,7 +361,7 @@
                     <ul>
                         <li><a href="{% url 'main:about' %}">À propos</a></li>
                         <li><a href="#">Programmes</a></li>
-                        <li><a href="{% url 'voice_eval:voice-eval-home' %}">Évaluation Vocale</a></li>
+                        <li><a href="{% url 'voice_eval:home' %}">Évaluation Vocale</a></li>
                         <li><a href="#">Contact</a></li>
                     </ul>
                 </div>

@@ -9,7 +9,7 @@ Your voice evaluation system is now **fully functional** and ready to test!
 ## ✅ What's Installed:
 
 - ✅ **OpenAI Whisper** - Speech-to-text transcription
-- ✅ **librosa** - Audio feature extraction  
+- ✅ **librosa** - Audio feature extraction
 - ✅ **sentence-transformers** - Text similarity/embeddings
 - ✅ **soundfile** - Audio I/O
 - ✅ **torch** - Deep learning framework
@@ -24,6 +24,7 @@ Your voice evaluation system is now **fully functional** and ready to test!
 The system will use a simplified but effective NLP analysis method that doesn't require spaCy compilation. This means:
 
 ✅ **Full functionality available:**
+
 - ✅ Speech-to-text transcription (Whisper)
 - ✅ Audio analysis (librosa) - pitch, pace, energy
 - ✅ Originality checking (sentence-transformers)
@@ -36,17 +37,20 @@ The system will use a simplified but effective NLP analysis method that doesn't 
 ## 🚀 How to Test:
 
 ### 1. Start the Server (if not running):
+
 ```powershell
 .\venv\Scripts\Activate.ps1
 python manage.py runserver
 ```
 
 ### 2. Access the System:
+
 - **Web Interface**: http://127.0.0.1:8000/voice/
 - **Login**: http://127.0.0.1:8000/users/login/
 - **Admin**: http://127.0.0.1:8000/admin/
 
 ### 3. Upload a Voice Recording:
+
 1. Go to http://127.0.0.1:8000/voice/record/
 2. Choose language (English or French)
 3. Either:
@@ -62,8 +66,9 @@ python manage.py runserver
 ## 📊 What You'll Get:
 
 ### Scores (0-100):
+
 1. **Fluency** - Speech flow, fillers, coherence
-2. **Vocabulary** - Word variety and complexity  
+2. **Vocabulary** - Word variety and complexity
 3. **Structure** - Grammar and sentence formation
 4. **Pitch** - Voice intonation
 5. **Pace** - Speaking speed
@@ -72,6 +77,7 @@ python manage.py runserver
 8. **Total Score** - Weighted average
 
 ### Results:
+
 - ✅ **CEFR Level** (A1, A2, B1, B2, C1, C2)
 - ✅ **Transcription** of your speech
 - ✅ **Detailed Feedback** with strengths and areas to improve
@@ -81,15 +87,15 @@ python manage.py runserver
 
 ## 🔍 Differences with Fallback NLP:
 
-| Feature | With spaCy | Fallback (Current) |
-|---------|-----------|-------------------|
-| Transcription | ✅ | ✅ Same |
-| Audio Analysis | ✅ | ✅ Same |
-| Originality | ✅ | ✅ Same |
-| Fluency Detection | ✅ Advanced | ✅ Regex-based (still good) |
-| Vocabulary Analysis | ✅ Lemmatization | ✅ Simple tokenization |
-| Grammar Check | ✅ POS tagging | ✅ Basic patterns |
-| **Overall Quality** | 100% | ~85% (still very functional!) |
+| Feature             | With spaCy       | Fallback (Current)            |
+| ------------------- | ---------------- | ----------------------------- |
+| Transcription       | ✅               | ✅ Same                       |
+| Audio Analysis      | ✅               | ✅ Same                       |
+| Originality         | ✅               | ✅ Same                       |
+| Fluency Detection   | ✅ Advanced      | ✅ Regex-based (still good)   |
+| Vocabulary Analysis | ✅ Lemmatization | ✅ Simple tokenization        |
+| Grammar Check       | ✅ POS tagging   | ✅ Basic patterns             |
+| **Overall Quality** | 100%             | ~85% (still very functional!) |
 
 **Bottom Line**: The fallback method works great! You'll get accurate scores and useful feedback.
 
@@ -98,6 +104,7 @@ python manage.py runserver
 ## 🎤 Sample Test Scenarios:
 
 ### Test 1: Short English Speech
+
 ```
 Topic: "My Daily Routine"
 Duration: 60 seconds
@@ -105,6 +112,7 @@ Expected: A2-B1 level depending on fluency
 ```
 
 ### Test 2: French Presentation
+
 ```
 Topic: "Ma passion pour la lecture"
 Duration: 90 seconds
@@ -112,8 +120,9 @@ Expected: B1-B2 level
 ```
 
 ### Test 3: Advanced English
+
 ```
-Topic: "The Impact of Technology"  
+Topic: "The Impact of Technology"
 Duration: 120 seconds
 Expected: B2-C1 level
 ```
@@ -123,6 +132,7 @@ Expected: B2-C1 level
 ## 📈 API Testing (Optional):
 
 ### Get Authentication Token:
+
 ```powershell
 curl -X POST http://127.0.0.1:8000/users/api/login/ `
   -H "Content-Type: application/json" `
@@ -130,6 +140,7 @@ curl -X POST http://127.0.0.1:8000/users/api/login/ `
 ```
 
 ### Upload Audio via API:
+
 ```powershell
 curl -X POST http://127.0.0.1:8000/voice/api/evaluations/ `
   -H "Authorization: Token YOUR_TOKEN" `
@@ -145,6 +156,7 @@ curl -X POST http://127.0.0.1:8000/voice/api/evaluations/ `
 If you want to use the advanced spaCy features later, you have two options:
 
 ### Option 1: Install Conda (Recommended for Windows)
+
 ```powershell
 # Install Miniconda, then:
 conda install -c conda-forge spacy
@@ -153,6 +165,7 @@ python -m spacy download fr_core_news_sm
 ```
 
 ### Option 2: Install Visual C++ Build Tools
+
 1. Download from: https://visualstudio.microsoft.com/visual-cpp-build-tools/
 2. Install "Desktop development with C++"
 3. Then run: `pip install spacy`

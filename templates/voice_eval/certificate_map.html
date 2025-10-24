@@ -1,0 +1,160 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Centres d'Examen - GENEX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .map-page {
+        padding: 60px 0;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #dc3545 0%, #000 100%);
+        color: #fff;
+        padding: 50px;
+        border-radius: 15px;
+        margin-bottom: 40px;
+        text-align: center;
+    }
+    
+    .page-header h1 {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 15px;
+    }
+    
+    .map-container {
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 40px;
+    }
+    
+    .map-wrapper {
+        width: 100%;
+        height: 600px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .centers-list {
+        background: #fff;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .center-card {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+        border-left: 4px solid #dc3545;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+    }
+    
+    .center-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.2);
+    }
+    
+    .center-card h3 {
+        color: #dc3545;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+    
+    .center-info {
+        color: #666;
+        line-height: 1.8;
+    }
+    
+    .center-info i {
+        color: #dc3545;
+        width: 20px;
+        margin-right: 10px;
+    }
+    
+    .btn-back {
+        display: inline-block;
+        padding: 15px 40px;
+        background: #fff;
+        color: #dc3545;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 700;
+        border: 2px solid #dc3545;
+        transition: all 0.3s;
+        margin-top: 30px;
+    }
+    
+    .btn-back:hover {
+        background: #dc3545;
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="map-page">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-map-marked-alt"></i> Centres d'Examen de Certification</h1>
+            <p>Trouvez les centres officiels près de chez vous pour passer votre certification professionnelle</p>
+            <p style="font-size: 18px; margin-top: 15px;">
+                Score obtenu: <strong>{{ evaluation.total_score|floatformat:0 }}%</strong> | 
+                Niveau: <strong>{{ evaluation.estimated_level }}</strong>
+            </p>
+        </div>
+        
+        <div class="map-container">
+            <h2 style="margin-bottom: 20px; color: #000;">
+                <i class="fas fa-globe"></i> Carte Interactive
+            </h2>
+            <div class="map-wrapper">
+                {{ map_html|safe }}
+            </div>
+        </div>
+        
+        <div class="centers-list">
+            <h2 style="margin-bottom: 30px; color: #000;">
+                <i class="fas fa-building"></i> Liste des Centres ({{ centers|length }})
+            </h2>
+            
+            {% for center in centers %}
+            <div class="center-card">
+                <h3>{{ center.name }}</h3>
+                <div class="center-info">
+                    <p><i class="fas fa-map-marker-alt"></i>{{ center.address }}</p>
+                    <p><i class="fas fa-city"></i>{{ center.city }}, {{ center.country }}</p>
+                    {% if center.phone %}
+                    <p><i class="fas fa-phone"></i>{{ center.phone }}</p>
+                    {% endif %}
+                    {% if center.email %}
+                    <p><i class="fas fa-envelope"></i>{{ center.email }}</p>
+                    {% endif %}
+                    {% if center.website %}
+                    <p><i class="fas fa-globe"></i><a href="{{ center.website }}" target="_blank">Site Web</a></p>
+                    {% endif %}
+                    <p><i class="fas fa-language"></i>Langues: {{ center.languages|join:", " }}</p>
+                    <p><i class="fas fa-certificate"></i>Certifications: {{ center.certifications|join:", " }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <p style="text-align: center; color: #999; padding: 40px;">
+                Aucun centre trouvé pour le moment. Revenez bientôt !
+            </p>
+            {% endfor %}
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{% url 'voice_eval:detail' evaluation.id %}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Retour aux Résultats
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

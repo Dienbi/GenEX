@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import VoiceEvaluation, ReferenceText, VoiceEvaluationHistory
+from .models import (
+    VoiceEvaluation, ReferenceText, VoiceEvaluationHistory,
+    Certificate, PronunciationPractice, TestingCenter
+)
 
 
 @admin.register(VoiceEvaluation)
@@ -54,3 +57,28 @@ class VoiceEvaluationHistoryAdmin(admin.ModelAdmin):
     list_filter = ('previous_level', 'new_level', 'created_at')
     search_fields = ('user__username',)
     readonly_fields = ('created_at',)
+
+
+@admin.register(Certificate)
+class CertificateAdmin(admin.ModelAdmin):
+    list_display = ('user', 'certificate_id', 'level', 'score', 'issued_date')
+    list_filter = ('level', 'language', 'issued_date')
+    search_fields = ('user__username', 'certificate_id')
+    readonly_fields = ('certificate_id', 'issued_date')
+
+
+@admin.register(PronunciationPractice)
+class PronunciationPracticeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'accuracy_score', 'matched_words', 'total_words', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('user__username', 'expected_text', 'spoken_text')
+    readonly_fields = ('comparison_data', 'accuracy_score', 'matched_words', 'total_words', 'created_at')
+
+
+@admin.register(TestingCenter)
+class TestingCenterAdmin(admin.ModelAdmin):
+    list_display = ('name', 'city', 'country', 'is_active')
+    list_filter = ('country', 'city', 'is_active')
+    search_fields = ('name', 'city', 'country', 'address')
+    list_editable = ('is_active',)
+

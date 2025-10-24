@@ -19,3 +19,14 @@ scipy>=1.11.0
 # Other Dependencies
 torch>=2.0.0
 transformers>=4.34.0,<4.41.0  # Version 4.41+ requires Python 3.10+ due to PEP 604 type hints
+
+# PDF Generation and QR Codes
+reportlab>=4.0.0
+qrcode>=7.4.0
+Pillow>=10.0.0
+
+# Real-time Speech Recognition
+vosk>=0.3.45
+
+# Geographic Maps
+folium>=0.14.0

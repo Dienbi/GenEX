@@ -126,8 +126,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'assets',
-    BASE_DIR / 'Doc',
+    # BASE_DIR / 'assets',  # Uncomment if you create this directory
+    # BASE_DIR / 'Doc',     # Uncomment if you create this directory
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
@@ -159,3 +159,7 @@ REST_FRAMEWORK = {
 LOGIN_REDIRECT_URL = '/users/dashboard/'
 LOGOUT_REDIRECT_URL = '/users/login/'
 LOGIN_URL = '/users/login/'
+
+# Site URL for QR codes and certificates
+SITE_URL = 'http://127.0.0.1:8000'
+

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -10,7 +10,7 @@ from django.core.files.base import ContentFile
 import os
 import sys
 
-from .models import VoiceEvaluation, ReferenceText, VoiceEvaluationHistory
+from .models import VoiceEvaluation, ReferenceText, VoiceEvaluationHistory, Certificate, PronunciationPractice, TestingCenter
 
 # Force unbuffered output
 sys.stdout.reconfigure(line_buffering=True)
@@ -20,9 +20,15 @@ from .serializers import (
     VoiceEvaluationCreateSerializer,
     VoiceEvaluationDetailSerializer,
     ReferenceTextSerializer,
-    VoiceEvaluationHistorySerializer
+    VoiceEvaluationHistorySerializer,
+    CertificateSerializer,
+    PronunciationPracticeSerializer,
+    TestingCenterSerializer
 )
 from .ai_service import voice_service
+from .certificate_service import certificate_generator
+from .pronunciation_service import pronunciation_service
+from .map_service import map_service
 
 
 class VoiceEvaluationViewSet(viewsets.ModelViewSet):
@@ -325,10 +331,11 @@ def voice_eval_home(request):
 @login_required
 def voice_eval_detail(request, pk):
     """Detail page for a specific evaluation"""
+    from django.http import Http404
+    
     try:
         evaluation = VoiceEvaluation.objects.get(pk=pk, user=request.user)
     except VoiceEvaluation.DoesNotExist:
-        from django.http import Http404
         raise Http404("Evaluation not found")
     
     context = {
@@ -353,3 +360,293 @@ def get_supported_languages(request):
             {'code': 'fr', 'name': 'French'}
         ]
     })
+
+
+# Certificate views
+@login_required
+def generate_certificate_view(request, evaluation_id):
+    """Generate certificate for high-scoring evaluation"""
+    from django.http import Http404, HttpResponse
+    from django.contrib import messages
+    from django.core.files.base import ContentFile
+    
+    try:
+        evaluation = VoiceEvaluation.objects.get(pk=evaluation_id, user=request.user)
+    except VoiceEvaluation.DoesNotExist:
+        raise Http404("Evaluation not found")
+    
+    # Check if score qualifies for certificate (70+)
+    if evaluation.total_score < 70:
+        messages.error(request, 'Certificate is only available for scores of 70 or higher.')
+        return redirect('voice_eval:detail', pk=evaluation_id)
+    
+    # Check if certificate already exists
+    try:
+        certificate = Certificate.objects.get(evaluation=evaluation)
+        # If certificate exists but no PDF file, regenerate it
+        if not certificate.pdf_file:
+            try:
+                pdf_buffer = certificate_generator.generate_certificate(
+                    request.user,
+                    evaluation,
+                    certificate.certificate_id
+                )
+                filename = f'certificate_{certificate.certificate_id}.pdf'
+                pdf_content = pdf_buffer.read()
+                
+                if len(pdf_content) == 0:
+                    raise Exception("PDF generation produced empty file")
+                
+                certificate.pdf_file.save(filename, ContentFile(pdf_content), save=True)
+                print(f"Certificate regenerated: {certificate.pdf_file.name}, Size: {len(pdf_content)} bytes")
+            except Exception as e:
+                print(f"Error regenerating certificate: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                raise Http404(f"Error generating certificate: {str(e)}")
+    except Certificate.DoesNotExist:
+        # Generate new certificate
+        certificate = Certificate.objects.create(
+            user=request.user,
+            evaluation=evaluation,
+            language=evaluation.language,
+            level=evaluation.estimated_level,
+            score=evaluation.total_score
+        )
+        
+        # Generate PDF
+        try:
+            pdf_buffer = certificate_generator.generate_certificate(
+                request.user,
+                evaluation,
+                certificate.certificate_id
+            )
+            
+            # Save PDF
+            filename = f'certificate_{certificate.certificate_id}.pdf'
+            pdf_content = pdf_buffer.read()
+            
+            if len(pdf_content) == 0:
+                raise Exception("PDF generation produced empty file")
+            
+            certificate.pdf_file.save(filename, ContentFile(pdf_content), save=True)
+            print(f"Certificate saved: {certificate.pdf_file.name}, Size: {len(pdf_content)} bytes")
+        except Exception as e:
+            print(f"Error generating certificate: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise Http404(f"Error generating certificate: {str(e)}")
+    
+    # Return PDF response
+    if certificate.pdf_file and certificate.pdf_file.name:
+        try:
+            pdf_file = certificate.pdf_file.open('rb')
+            response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="GenEx_Certificate_{request.user.username}.pdf"'
+            pdf_file.close()
+            return response
+        except Exception as e:
+            raise Http404(f"Error reading certificate file: {str(e)}")
+    else:
+        raise Http404("Certificate file not found")
+
+
+@login_required
+def certificate_map_view(request, evaluation_id):
+    """Show map of testing centers for certificate"""
+    from django.http import Http404
+    from django.contrib import messages
+    
+    try:
+        evaluation = VoiceEvaluation.objects.get(pk=evaluation_id, user=request.user)
+    except VoiceEvaluation.DoesNotExist:
+        raise Http404("Evaluation not found")
+    
+    # Check if score qualifies
+    if evaluation.total_score < 70:
+        messages.error(request, 'Testing centers are only available for scores of 70 or higher.')
+        return redirect('voice_eval:detail', pk=evaluation_id)
+    
+    # Get testing centers for this language
+    # Filter in Python since SQLite doesn't support JSONField contains
+    all_centers = TestingCenter.objects.filter(is_active=True)
+    centers_list = [c for c in all_centers if evaluation.language in c.languages]
+    
+    # Generate map (pass list, not QuerySet)
+    map_html = map_service.generate_map(centers_list)
+    
+    context = {
+        'evaluation': evaluation,
+        'map_html': map_html,
+        'centers': centers_list
+    }
+    return render(request, 'voice_eval/certificate_map.html', context)
+
+
+# Pronunciation practice views
+@login_required
+def pronunciation_practice_view(request, evaluation_id=None):
+    """Pronunciation practice interface"""
+    evaluation = None
+    if evaluation_id:
+        try:
+            evaluation = VoiceEvaluation.objects.get(pk=evaluation_id, user=request.user)
+        except VoiceEvaluation.DoesNotExist:
+            pass
+    
+    # Get practice texts
+    language = evaluation.language if evaluation else 'en'
+    difficulty = 'easy' if not evaluation or evaluation.total_score < 50 else \
+                 'medium' if evaluation.total_score < 70 else 'hard'
+    
+    practice_texts = pronunciation_service.get_practice_texts(language, difficulty)
+    
+    # Get user's practice history
+    recent_practices = PronunciationPractice.objects.filter(
+        user=request.user
+    ).order_by('-created_at')[:5]
+    
+    context = {
+        'evaluation': evaluation,
+        'practice_texts': practice_texts,
+        'recent_practices': recent_practices,
+        'language': language,
+        'difficulty': difficulty
+    }
+    return render(request, 'voice_eval/pronunciation_practice.html', context)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def process_pronunciation_api(request):
+    """Process pronunciation practice submission"""
+    expected_text = request.data.get('expected_text')
+    audio_file = request.FILES.get('audio_file')
+    evaluation_id = request.data.get('evaluation_id')
+    language = request.data.get('language', 'en')
+    
+    if not expected_text or not audio_file:
+        return Response(
+            {'error': 'Expected text and audio file are required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Save audio file temporarily
+    import tempfile
+    import os
+    
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
+        for chunk in audio_file.chunks():
+            temp_file.write(chunk)
+        temp_path = temp_file.name
+    
+    try:
+        # Transcribe audio
+        transcription_result = pronunciation_service.transcribe_audio(temp_path, language)
+        
+        if not transcription_result['success']:
+            return Response(
+                {'error': transcription_result.get('error', 'Transcription failed')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        spoken_text = transcription_result['text']
+        
+        # Compare texts
+        comparison_result = pronunciation_service.compare_texts(expected_text, spoken_text)
+        
+        # Create pronunciation practice record
+        practice = PronunciationPractice.objects.create(
+            user=request.user,
+            evaluation_id=evaluation_id if evaluation_id else None,
+            expected_text=expected_text,
+            spoken_text=spoken_text,
+            comparison_data=comparison_result,
+            accuracy_score=comparison_result['accuracy_score'],
+            matched_words=comparison_result['matched_words'],
+            total_words=comparison_result['total_words']
+        )
+        
+        # Save audio file
+        from django.core.files.base import ContentFile
+        with open(temp_path, 'rb') as f:
+            practice.audio_file.save(f'practice_{practice.id}.wav', ContentFile(f.read()))
+        
+        return Response({
+            'success': True,
+            'practice_id': practice.id,
+            'spoken_text': spoken_text,
+            'comparison': comparison_result['comparison'],
+            'accuracy_score': comparison_result['accuracy_score'],
+            'matched_words': comparison_result['matched_words'],
+            'total_words': comparison_result['total_words']
+        })
+        
+    finally:
+        # Clean up temp file
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+
+@login_required
+def app_recommendations_view(request, evaluation_id):
+    """Show recommended apps for improvement"""
+    from django.http import Http404
+    
+    try:
+        evaluation = VoiceEvaluation.objects.get(pk=evaluation_id, user=request.user)
+    except VoiceEvaluation.DoesNotExist:
+        raise Http404("Evaluation not found")
+    
+    # Get recommendations
+    level = evaluation.estimated_level or 'B1'
+    language = evaluation.language
+    recommendations = pronunciation_service.get_app_recommendations(level, language)
+    
+    context = {
+        'evaluation': evaluation,
+        'recommendations': recommendations,
+        'level': level
+    }
+    return render(request, 'voice_eval/app_recommendations.html', context)
+
+
+@login_required
+def sound_practice_view(request):
+    """Sound practice exercises"""
+    language = request.GET.get('language', 'en')
+    
+    # Sound practice exercises
+    exercises = {
+        'en': [
+            {'sound': 'TH /θ/', 'words': ['think', 'thank', 'through', 'thought'], 
+             'sentence': 'I think three things through thoroughly.'},
+            {'sound': 'R /r/', 'words': ['red', 'run', 'river', 'right'], 
+             'sentence': 'The red rabbit ran rapidly around the river.'},
+            {'sound': 'L /l/', 'words': ['light', 'leave', 'little', 'love'], 
+             'sentence': 'Little Lucy loves the lovely light.'},
+            {'sound': 'V /v/', 'words': ['very', 'voice', 'value', 'view'], 
+             'sentence': 'The very valuable vase has a beautiful view.'},
+            {'sound': 'W /w/', 'words': ['we', 'will', 'why', 'way'], 
+             'sentence': 'Why will we wait when we know the way?'}
+        ],
+        'fr': [
+            {'sound': 'R /ʁ/', 'words': ['rouge', 'rue', 'rire', 'roi'], 
+             'sentence': 'Le roi rouge rit dans la rue.'},
+            {'sound': 'U /y/', 'words': ['tu', 'rue', 'sûr', 'pur'], 
+             'sentence': 'Tu es sûr de trouver la rue pure.'},
+            {'sound': 'ON /ɔ̃/', 'words': ['bon', 'mon', 'son', 'pont'], 
+             'sentence': 'Mon bon son sur le pont.'},
+            {'sound': 'AN /ɑ̃/', 'words': ['dans', 'grand', 'blanc', 'chant'], 
+             'sentence': 'Dans le grand chant blanc.'},
+            {'sound': 'OI /wa/', 'words': ['moi', 'toi', 'roi', 'voix'], 
+             'sentence': 'Moi et toi avec le roi et sa voix.'}
+        ]
+    }
+    
+    context = {
+        'exercises': exercises.get(language, exercises['en']),
+        'language': language
+    }
+    return render(request, 'voice_eval/sound_practice.html', context)
+
