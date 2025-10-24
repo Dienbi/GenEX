@@ -28,6 +28,7 @@ urlpatterns = [
     path('quizzes/', include('quizzes.urls')),
     path('chat/', include('chat_tutor.urls')),
     path('voice/', include('voice_eval.urls')),
+    path('chatbot/', include('chatbot.urls')),
 ]
 
 # Serve media and static files in development
