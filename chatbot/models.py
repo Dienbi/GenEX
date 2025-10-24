@@ -1,0 +1,57 @@
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+
+class ChatSession(models.Model):
+    """Représente une session de chat entre un utilisateur et le chatbot"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='chat_sessions')
+    title = models.CharField(max_length=200, default="Nouvelle conversation")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+
+class ChatMessage(models.Model):
+    """Représente un message dans une conversation"""
+    MESSAGE_TYPES = [
+        ('user', 'Utilisateur'),
+        ('assistant', 'Assistant'),
+    ]
+
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
+    message_type = models.CharField(max_length=10, choices=MESSAGE_TYPES)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    # Métadonnées pour l'analyse
+    subject_detected = models.CharField(max_length=100, blank=True, null=True)  # mathématiques, physique, etc.
+    response_time = models.FloatField(null=True, blank=True)  # temps de réponse en secondes
+
+    class Meta:
+        ordering = ['timestamp']
+
+    def __str__(self):
+        return f"{self.session.title} - {self.message_type}: {self.content[:50]}..."
+
+
+class EducationalSubject(models.Model):
+    """Sujets éducatifs supportés par le chatbot"""
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    keywords = models.TextField(help_text="Mots-clés séparés par des virgules")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def keyword_list(self):
+        return [keyword.strip() for keyword in self.keywords.split(',') if keyword.strip()]
