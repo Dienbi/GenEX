@@ -1,0 +1,383 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Quiz Results - GenEX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .results-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .results-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        padding: 50px 40px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .results-header h1 {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+
+    .results-header p {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+
+    .score-display {
+        background: #fff;
+        border-radius: 15px;
+        padding: 40px;
+        text-align: center;
+        margin-bottom: 40px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .score-circle {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        margin: 0 auto 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .score-circle.excellent {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .score-circle.good {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .score-circle.average {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .score-circle.poor {
+        background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
+    }
+
+    .score-percentage {
+        font-size: 56px;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1;
+    }
+
+    .score-label {
+        font-size: 18px;
+        color: #fff;
+        opacity: 0.9;
+        margin-top: 10px;
+    }
+
+    .score-details {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-top: 30px;
+    }
+
+    .score-stat {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .stat-value.correct {
+        color: #27ae60;
+    }
+
+    .stat-value.incorrect {
+        color: #e74c3c;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 5px;
+    }
+
+    .performance-message {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-top: 20px;
+    }
+
+    .section-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 25px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #667eea;
+    }
+
+    .question-review {
+        background: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        border-left: 5px solid #95a5a6;
+    }
+
+    .question-review.correct {
+        border-left-color: #27ae60;
+    }
+
+    .question-review.incorrect {
+        border-left-color: #e74c3c;
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .question-number-badge {
+        background: #667eea;
+        color: #fff;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .answer-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .answer-status.correct {
+        color: #27ae60;
+    }
+
+    .answer-status.incorrect {
+        color: #e74c3c;
+    }
+
+    .answer-status i {
+        font-size: 20px;
+    }
+
+    .review-question {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+
+    .answer-comparison {
+        display: grid;
+        gap: 15px;
+    }
+
+    .answer-row {
+        padding: 12px 15px;
+        border-radius: 8px;
+        font-size: 15px;
+    }
+
+    .your-answer {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+    }
+
+    .your-answer.correct-answer-row {
+        background: #d4edda;
+        border: 2px solid #28a745;
+    }
+
+    .your-answer.incorrect-answer-row {
+        background: #f8d7da;
+        border: 2px solid #dc3545;
+    }
+
+    .correct-answer-display {
+        background: #d4edda;
+        border: 2px solid #28a745;
+    }
+
+    .answer-label {
+        font-weight: 700;
+        margin-right: 10px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 40px;
+    }
+
+    .btn-action {
+        padding: 15px 40px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 16px;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+        background: #fff;
+        color: #667eea;
+        border: 2px solid #667eea;
+    }
+
+    .btn-secondary:hover {
+        background: #667eea;
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <!-- Header -->
+    <div class="results-header">
+        <h1><i class="fas fa-trophy"></i> Quiz Completed!</h1>
+        <p>{{ attempt.quiz.title }}</p>
+    </div>
+
+    <!-- Score Display -->
+    <div class="score-display">
+        <div class="score-circle {% if attempt.percentage >= 80 %}excellent{% elif attempt.percentage >= 60 %}good{% elif attempt.percentage >= 40 %}average{% else %}poor{% endif %}">
+            <div>
+                <div class="score-percentage">{{ attempt.percentage|floatformat:0 }}%</div>
+                <div class="score-label">Score</div>
+            </div>
+        </div>
+
+        <div class="performance-message">
+            {% if attempt.percentage >= 80 %}
+                🎉 Excellent Work!
+            {% elif attempt.percentage >= 60 %}
+                👍 Good Job!
+            {% elif attempt.percentage >= 40 %}
+                📚 Keep Practicing!
+            {% else %}
+                💪 Don't Give Up!
+            {% endif %}
+        </div>
+
+        <div class="score-details">
+            <div class="score-stat">
+                <div class="stat-value correct">{{ attempt.score }}</div>
+                <div class="stat-label">Correct</div>
+            </div>
+            <div class="score-stat">
+                <div class="stat-value incorrect">{{ attempt.total_questions|add:"-"|add:attempt.score }}</div>
+                <div class="stat-label">Incorrect</div>
+            </div>
+            <div class="score-stat">
+                <div class="stat-value">{{ attempt.total_questions }}</div>
+                <div class="stat-label">Total</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Review -->
+    <h2 class="section-title"><i class="fas fa-list-check"></i> Detailed Review</h2>
+    
+    {% for item in questions_with_results %}
+    <div class="question-review {% if item.is_correct %}correct{% else %}incorrect{% endif %}">
+        <div class="review-header">
+            <span class="question-number-badge">Question {{ forloop.counter }}</span>
+            <span class="answer-status {% if item.is_correct %}correct{% else %}incorrect{% endif %}">
+                {% if item.is_correct %}
+                    <i class="fas fa-check-circle"></i> Correct
+                {% else %}
+                    <i class="fas fa-times-circle"></i> Incorrect
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="review-question">
+            {{ item.question.question_text }}
+        </div>
+
+        <div class="answer-comparison">
+            {% if item.user_answer %}
+            <div class="answer-row your-answer {% if item.is_correct %}correct-answer-row{% else %}incorrect-answer-row{% endif %}">
+                <span class="answer-label">Your Answer:</span>
+                <strong>{{ item.user_answer }}</strong> - 
+                {% if item.user_answer == 'A' %}{{ item.question.option_a }}
+                {% elif item.user_answer == 'B' %}{{ item.question.option_b }}
+                {% elif item.user_answer == 'C' %}{{ item.question.option_c }}
+                {% elif item.user_answer == 'D' %}{{ item.question.option_d }}
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="answer-row your-answer incorrect-answer-row">
+                <span class="answer-label">Your Answer:</span> <em>Not answered</em>
+            </div>
+            {% endif %}
+
+            {% if not item.is_correct %}
+            <div class="answer-row correct-answer-display">
+                <span class="answer-label">Correct Answer:</span>
+                <strong>{{ item.question.correct_answer }}</strong> - 
+                {% if item.question.correct_answer == 'A' %}{{ item.question.option_a }}
+                {% elif item.question.correct_answer == 'B' %}{{ item.question.option_b }}
+                {% elif item.question.correct_answer == 'C' %}{{ item.question.option_c }}
+                {% elif item.question.correct_answer == 'D' %}{{ item.question.option_d }}
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <a href="{% url 'quizzes:home' %}" class="btn-action btn-secondary">
+            <i class="fas fa-home"></i> Back to Quiz Hub
+        </a>
+        <a href="{% url 'quizzes:take_quiz' attempt.quiz.id %}" class="btn-action btn-primary">
+            <i class="fas fa-redo"></i> Retake Quiz
+        </a>
+        <a href="{% url 'quizzes:generate' %}" class="btn-action btn-primary">
+            <i class="fas fa-plus"></i> Generate New Quiz
+        </a>
+    </div>
+</div>
+{% endblock %}
+
