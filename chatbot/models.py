@@ -55,3 +55,31 @@ class EducationalSubject(models.Model):
     @property
     def keyword_list(self):
         return [keyword.strip() for keyword in self.keywords.split(',') if keyword.strip()]
+
+
+class UploadedFile(models.Model):
+    """Représente un fichier uploadé par l'utilisateur"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='uploaded_files')
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='uploaded_files', null=True, blank=True)
+    file = models.FileField(upload_to='chatbot_files/')
+    filename = models.CharField(max_length=255)
+    file_type = models.CharField(max_length=10, choices=[
+        ('pdf', 'PDF'),
+        ('excel', 'Excel'),
+        ('other', 'Other')
+    ])
+    file_size = models.IntegerField()  # Taille en bytes
+    content_text = models.TextField(blank=True)  # Contenu extrait du fichier
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.filename} ({self.file_type})"
+    
+    def get_file_size_display(self):
+        """Retourne la taille du fichier formatée"""
+        size = self.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024.0:
+                return f"{size:.1f} {unit}"
+            size /= 1024.0
+        return f"{size:.1f} TB"

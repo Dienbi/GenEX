@@ -26,6 +26,9 @@ regex>=2021.8.3
 # PDF and Document Generation
 reportlab>=4.0.0
 qrcode>=7.0
+PyPDF2
+openpyxl
+pandas
 
 # Maps and Visualization
 folium>=0.14.0

@@ -43,9 +43,20 @@
             <div class="input-group input-group-sm">
                 <input type="text" class="form-control" id="chatbot-message-input" 
                        placeholder="Votre question..." onkeypress="handleChatbotKeyPress(event)">
+                <button class="btn btn-success" type="button" id="chatbot-voice-btn" onclick="toggleWidgetVoiceInput()" title="Parler">
+                    <i class="fas fa-microphone"></i>
+                </button>
                 <button class="btn btn-primary" type="button" id="chatbot-send-btn" onclick="sendChatbotMessage()">
                     <i class="fas fa-paper-plane"></i>
                 </button>
+            </div>
+            <div class="widget-voice-status" id="widget-voice-status" style="display: none;">
+                <div class="widget-voice-indicator">
+                    <div class="widget-voice-wave"></div>
+                    <div class="widget-voice-wave"></div>
+                    <div class="widget-voice-wave"></div>
+                </div>
+                <span class="widget-voice-text">Écoute...</span>
             </div>
         </div>
     </div>
@@ -288,6 +299,58 @@
     font-size: 0.85em;
 }
 
+/* Styles pour l'assistant vocal du widget */
+.widget-voice-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    border: 1px solid #dc3545;
+}
+
+.widget-voice-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.widget-voice-wave {
+    width: 3px;
+    height: 15px;
+    background: #dc3545;
+    border-radius: 1px;
+    animation: widgetVoiceWave 1s ease-in-out infinite;
+}
+
+.widget-voice-wave:nth-child(1) { animation-delay: 0s; }
+.widget-voice-wave:nth-child(2) { animation-delay: 0.2s; }
+.widget-voice-wave:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes widgetVoiceWave {
+    0%, 100% { height: 8px; }
+    50% { height: 20px; }
+}
+
+.widget-voice-text {
+    color: #dc3545;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+#chatbot-voice-btn.listening {
+    background: #dc3545 !important;
+    animation: widgetPulse 1.5s infinite;
+}
+
+@keyframes widgetPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .chatbot-window {
@@ -305,6 +368,151 @@
 <script>
 let chatbotSessionId = null;
 let isChatbotLoading = false;
+let isWidgetListening = false;
+let widgetRecognition = null;
+let widgetVoiceRetryCount = 0;
+let maxWidgetVoiceRetries = 2;
+let widgetVoiceTimeout = null;
+
+// Initialiser la reconnaissance vocale du widget
+function initializeWidgetVoiceRecognition() {
+    console.log('🎤 Initialisation de la reconnaissance vocale du widget...');
+    
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        console.warn('❌ Reconnaissance vocale non supportée dans le widget');
+        const voiceBtn = document.getElementById('chatbot-voice-btn');
+        if (voiceBtn) {
+            voiceBtn.disabled = true;
+            voiceBtn.title = 'Reconnaissance vocale non supportée';
+            voiceBtn.style.opacity = '0.5';
+        }
+        return;
+    }
+    
+    try {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        widgetRecognition = new SpeechRecognition();
+        
+        widgetRecognition.continuous = false;
+        widgetRecognition.interimResults = false;
+        widgetRecognition.lang = 'fr-FR';
+        widgetRecognition.maxAlternatives = 1;
+        
+        widgetRecognition.onstart = function() {
+            console.log('🎤 Widget: Reconnaissance vocale démarrée');
+            isWidgetListening = true;
+            updateWidgetVoiceUI(true);
+        };
+        
+        widgetRecognition.onresult = function(event) {
+            console.log('🎯 Widget: Résultat reçu:', event);
+            
+            let finalTranscript = '';
+            let interimTranscript = '';
+            
+            // Traiter tous les résultats
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                    console.log('📝 Widget: Texte final reconnu:', transcript);
+                } else {
+                    interimTranscript += transcript;
+                    console.log('🔄 Widget: Texte intermédiaire:', transcript);
+                }
+            }
+            
+            const input = document.getElementById('chatbot-message-input');
+            if (finalTranscript) {
+                if (input) {
+                    input.value = finalTranscript;
+                }
+                console.log('✅ Widget: Texte final appliqué:', finalTranscript);
+                
+                // Envoyer directement le message au chatbot
+                setTimeout(() => {
+                    console.log('🚀 Widget: Envoi automatique du message vocal...');
+                    sendChatbotMessage();
+                }, 500);
+                
+                stopWidgetVoiceInput();
+            } else if (interimTranscript) {
+                if (input) {
+                    input.value = interimTranscript;
+                }
+                console.log('🔄 Widget: Texte intermédiaire affiché:', interimTranscript);
+            }
+        };
+        
+        widgetRecognition.onerror = function(event) {
+            console.error('❌ Widget: Erreur de reconnaissance:', event.error);
+            stopWidgetVoiceInput();
+        };
+        
+        widgetRecognition.onend = function() {
+            console.log('🏁 Widget: Reconnaissance vocale terminée');
+            isWidgetListening = false;
+            updateWidgetVoiceUI(false);
+        };
+        
+        console.log('✅ Widget: Reconnaissance vocale initialisée');
+        
+    } catch (error) {
+        console.error('❌ Widget: Erreur d\'initialisation:', error);
+        const voiceBtn = document.getElementById('chatbot-voice-btn');
+        if (voiceBtn) {
+            voiceBtn.disabled = true;
+            voiceBtn.title = 'Erreur d\'initialisation';
+        }
+    }
+}
+
+// Basculer l'input vocal du widget
+function toggleWidgetVoiceInput() {
+    if (isWidgetListening) {
+        stopWidgetVoiceInput();
+    } else {
+        startWidgetVoiceInput();
+    }
+}
+
+// Démarrer l'écoute vocale du widget
+function startWidgetVoiceInput() {
+    if (widgetRecognition && !isWidgetListening) {
+        try {
+            widgetRecognition.start();
+        } catch (error) {
+            console.error('Erreur widget vocal:', error);
+        }
+    }
+}
+
+// Arrêter l'écoute vocale du widget
+function stopWidgetVoiceInput() {
+    if (widgetRecognition && isWidgetListening) {
+        widgetRecognition.stop();
+    }
+}
+
+// Mettre à jour l'interface vocale du widget
+function updateWidgetVoiceUI(listening) {
+    const voiceBtn = document.getElementById('chatbot-voice-btn');
+    const voiceStatus = document.getElementById('widget-voice-status');
+    const voiceIcon = voiceBtn.querySelector('i');
+    
+    if (listening) {
+        voiceBtn.classList.add('listening');
+        voiceIcon.className = 'fas fa-microphone-slash';
+        voiceBtn.title = 'Arrêter l\'écoute';
+        voiceStatus.style.display = 'flex';
+    } else {
+        voiceBtn.classList.remove('listening');
+        voiceIcon.className = 'fas fa-microphone';
+        voiceBtn.title = 'Parler';
+        voiceStatus.style.display = 'none';
+    }
+}
 
 function toggleChatbot() {
     const window = document.getElementById('chatbot-window');
@@ -314,6 +522,11 @@ function toggleChatbot() {
         window.style.display = 'flex';
         notification.style.display = 'none';
         document.getElementById('chatbot-message-input').focus();
+        
+        // Initialiser la reconnaissance vocale quand le widget s'ouvre
+        if (!widgetRecognition) {
+            initializeWidgetVoiceRecognition();
+        }
     } else {
         window.style.display = 'none';
     }

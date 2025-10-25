@@ -1,15 +1,20 @@
 import json
 import time
+import os
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import ChatSession, ChatMessage, EducationalSubject
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from .models import ChatSession, ChatMessage, EducationalSubject, UploadedFile
 from .services import GroqChatService
+from .file_processor import FileProcessor
+from .pdf_generator import PDFGenerator
 import logging
 
 logger = logging.getLogger(__name__)
@@ -117,6 +122,27 @@ class ChatAPIView(LoginRequiredMixin, View):
         messages = ChatMessage.objects.filter(session=session).order_by('timestamp')
         history = []
         
+        # Récupérer les fichiers uploadés dans cette session
+        uploaded_files = UploadedFile.objects.filter(session=session).order_by('uploaded_at')
+        logger.info(f"🔍 Session {session.id}: {uploaded_files.count()} fichiers trouvés")
+        
+        file_context = ""
+        if uploaded_files.exists():
+            file_context = "\n\n=== FICHIERS UPLOADÉS DANS CETTE SESSION ===\n"
+            for file in uploaded_files:
+                logger.info(f"📎 Fichier trouvé: {file.filename} - Contenu: {len(file.content_text)} caractères")
+                file_context += f"\n📎 {file.filename} ({file.file_type.upper()}):\n{file.content_text[:2000]}{'...' if len(file.content_text) > 2000 else ''}\n"
+            file_context += "\n=== FIN DES FICHIERS ===\n"
+            
+            # Ajouter le contexte des fichiers au début de l'historique
+            history.append({
+                "role": "system",
+                "content": f"Tu as accès aux fichiers uploadés dans cette session. Voici leur contenu:{file_context}\n\nUtilise ce contenu pour répondre aux questions de l'utilisateur."
+            })
+            logger.info(f"📝 Contexte des fichiers ajouté: {len(file_context)} caractères")
+        else:
+            logger.warning(f"⚠️ Aucun fichier trouvé pour la session {session.id}")
+        
         for msg in messages:
             role = "user" if msg.message_type == "user" else "assistant"
             history.append({
@@ -124,6 +150,7 @@ class ChatAPIView(LoginRequiredMixin, View):
                 "content": msg.content
             })
         
+        logger.info(f"📚 Historique complet: {len(history)} messages")
         return history
 
 
@@ -168,3 +195,120 @@ class ChatSessionAPIView(LoginRequiredMixin, View):
 def chatbot_widget(request):
     """Widget du chatbot pour la navbar"""
     return render(request, 'chatbot/widget.html')
+
+
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
+def upload_file(request):
+    """Upload et traitement d'un fichier"""
+    try:
+        if 'file' not in request.FILES:
+            return JsonResponse({'error': 'Aucun fichier fourni'}, status=400)
+        
+        file = request.FILES['file']
+        session_id = request.POST.get('session_id')
+        
+        # Vérifier que la session existe
+        session = None
+        if session_id:
+            session = get_object_or_404(ChatSession, id=session_id, user=request.user)
+        
+        # Traiter le fichier
+        try:
+            content, file_type, file_size = FileProcessor.process_file(file)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+        
+        # Sauvegarder le fichier
+        uploaded_file = UploadedFile.objects.create(
+            user=request.user,
+            session=session,
+            file=file,
+            filename=file.name,
+            file_type=file_type,
+            file_size=file_size,
+            content_text=content
+        )
+        
+        logger.info(f"💾 Fichier sauvegardé: {file.name} - Session: {session.id if session else 'None'} - Contenu: {len(content)} caractères")
+        
+        # Upload silencieux - aucun message créé
+        if session:
+            # Pas de message automatique - upload silencieux
+            return JsonResponse({
+                'success': True,
+                'file_id': uploaded_file.id,
+                'filename': file.name,
+                'file_type': file_type,
+                'file_size': uploaded_file.get_file_size_display(),
+                'file_content': content  # Inclure le contenu pour référence
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'file_id': uploaded_file.id,
+            'filename': file.name,
+            'file_type': file_type,
+            'file_size': uploaded_file.get_file_size_display()
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de l'upload: {e}")
+        return JsonResponse({'error': 'Erreur lors du traitement du fichier'}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_uploaded_files(request, session_id):
+    """Récupérer les fichiers uploadés pour une session"""
+    session = get_object_or_404(ChatSession, id=session_id, user=request.user)
+    files = UploadedFile.objects.filter(session=session).order_by('-uploaded_at')
+    
+    files_data = []
+    for file in files:
+        files_data.append({
+            'id': file.id,
+            'filename': file.filename,
+            'file_type': file.file_type,
+            'file_size': file.get_file_size_display(),
+            'uploaded_at': file.uploaded_at.isoformat(),
+            'url': file.file.url if file.file else None
+        })
+    
+    return JsonResponse({'files': files_data})
+
+
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
+def generate_pdf(request):
+    """Génère et télécharge un PDF basé sur le contenu fourni"""
+    try:
+        data = json.loads(request.body)
+        content = data.get('content', '')
+        title = data.get('title', 'Document généré')
+        filename = data.get('filename', 'document.pdf')
+        pdf_type = data.get('type', 'normal')  # 'normal' ou 'educational'
+        
+        if not content:
+            return JsonResponse({'error': 'Contenu requis pour générer le PDF'}, status=400)
+        
+        # Générer le PDF selon le type
+        if pdf_type == 'educational':
+            topic = data.get('topic', 'Sujet éducatif')
+            level = data.get('level', 'intermédiaire')
+            pdf_content = PDFGenerator.generate_educational_pdf(topic, content, level)
+        else:
+            pdf_content = PDFGenerator.generate_pdf(content, title, filename)
+        
+        # Créer la réponse avec le PDF
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Content-Length'] = len(pdf_content)
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la génération du PDF: {e}")
+        return JsonResponse({'error': 'Erreur lors de la génération du PDF'}, status=500)
