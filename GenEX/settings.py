@@ -166,13 +166,8 @@ LOGIN_URL = '/users/login/'
 # Site URL for QR codes and certificates
 SITE_URL = 'http://127.0.0.1:8000'
 
-<<<<<<< HEAD
 # OpenAI API Configuration
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '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')
 
-=======
-
 # Gemini AI Configuration
-import os
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
->>>>>>> 1a91141b5966e9faa5905924286eec496742dadb
