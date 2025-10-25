@@ -311,6 +311,9 @@
                 <li><a href="{% url 'voice_eval:home' %}" class="{% block nav_voice %}{% endblock %}">Voice Eval</a></li>
                 
                 {% if user.is_authenticated %}
+                    <li><a href="{% url 'quizzes:home' %}" class="{% block nav_quizzes %}{% endblock %}">
+                        <i class="fas fa-brain"></i> Quizzes IA
+                    </a></li>
                     <li><a href="{% url 'chatbot:chat' %}" class="{% block nav_chatbot %}{% endblock %}">
                         <i class="fas fa-robot"></i> Assistant IA
                     </a></li>

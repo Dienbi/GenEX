@@ -1,0 +1,276 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Generate Quiz - GenEX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .generate-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .generate-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        padding: 40px;
+        border-radius: 10px;
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .generate-header h1 {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+
+    .generate-header p {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+
+    .form-card {
+        background: #fff;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .form-group label i {
+        margin-right: 8px;
+        color: #667eea;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 15px;
+        font-family: 'Montserrat', sans-serif;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    textarea.form-control {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .help-text {
+        font-size: 14px;
+        color: #7f8c8d;
+        margin-top: 8px;
+    }
+
+    .example-prompts {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+    }
+
+    .example-prompts h4 {
+        font-size: 16px;
+        color: #2c3e50;
+        margin-bottom: 15px;
+    }
+
+    .example-prompts ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .example-prompts li {
+        padding: 8px 0;
+        color: #555;
+        font-size: 14px;
+    }
+
+    .example-prompts li i {
+        color: #667eea;
+        margin-right: 10px;
+    }
+
+    .btn-container {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn-generate {
+        flex: 1;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-generate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-generate:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-cancel {
+        background: #fff;
+        color: #667eea;
+        padding: 15px 30px;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .btn-cancel:hover {
+        background: #667eea;
+        color: #fff;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .loading-spinner.active {
+        display: block;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+        color: #667eea;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="generate-container">
+    <div class="generate-header">
+        <h1><i class="fas fa-wand-magic-sparkles"></i> Generate AI Quiz</h1>
+        <p>Describe what you want to learn and let AI create a custom quiz for you</p>
+    </div>
+
+    <div class="form-card">
+        <form method="POST" id="quizGenerateForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="subject">
+                    <i class="fas fa-book"></i> Subject/Topic
+                </label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="subject" 
+                    name="subject" 
+                    placeholder="e.g., Python Programming, World History, Biology"
+                    required
+                >
+                <p class="help-text">Enter the main subject or topic for your quiz</p>
+            </div>
+
+            <div class="example-prompts">
+                <h4><i class="fas fa-lightbulb"></i> Example Prompts:</h4>
+                <ul>
+                    <li><i class="fas fa-check"></i> "Create questions about Python functions and classes for intermediate level"</li>
+                    <li><i class="fas fa-check"></i> "Generate a quiz on World War II with focus on European theater"</li>
+                    <li><i class="fas fa-check"></i> "Test my knowledge of photosynthesis and cellular respiration"</li>
+                    <li><i class="fas fa-check"></i> "Quiz me on JavaScript ES6 features like arrow functions and promises"</li>
+                </ul>
+            </div>
+
+            <div class="form-group">
+                <label for="user_prompt">
+                    <i class="fas fa-pen"></i> Detailed Description
+                </label>
+                <textarea 
+                    class="form-control" 
+                    id="user_prompt" 
+                    name="user_prompt" 
+                    placeholder="Describe in detail what you want the quiz to cover. Be specific about topics, difficulty level, and any special requirements..."
+                    required
+                ></textarea>
+                <p class="help-text">The more detailed your description, the better the AI can tailor the quiz to your needs</p>
+            </div>
+
+            <div class="btn-container">
+                <a href="{% url 'quizzes:home' %}" class="btn-cancel">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn-generate" id="submitBtn">
+                    <i class="fas fa-magic"></i> Generate Quiz
+                </button>
+            </div>
+        </form>
+
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner"></div>
+            <p class="loading-text">
+                <i class="fas fa-robot"></i> AI is generating your quiz... This may take 10-20 seconds
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('quizGenerateForm').addEventListener('submit', function() {
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('loadingSpinner').classList.add('active');
+        document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+    });
+</script>
+{% endblock %}
+

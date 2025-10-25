@@ -1,0 +1,386 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ quiz.title }} - GenEX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .quiz-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .quiz-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+
+    .quiz-header h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .quiz-meta {
+        display: flex;
+        gap: 20px;
+        font-size: 15px;
+        opacity: 0.9;
+    }
+
+    .quiz-meta span i {
+        margin-right: 8px;
+    }
+
+    .quiz-instructions {
+        background: #fff3cd;
+        border-left: 5px solid #ffc107;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .quiz-instructions h3 {
+        color: #856404;
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+
+    .quiz-instructions ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #856404;
+    }
+
+    .quiz-instructions li {
+        margin-bottom: 8px;
+    }
+
+    .question-card {
+        background: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 25px;
+        transition: all 0.3s;
+    }
+
+    .question-card:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .question-number {
+        display: inline-block;
+        background: #667eea;
+        color: #fff;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .question-text {
+        font-size: 20px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 25px;
+        line-height: 1.6;
+    }
+
+    .options-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .option-item {
+        margin-bottom: 12px;
+    }
+
+    .option-label {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 16px;
+    }
+
+    .option-label:hover {
+        background: #e8eaf6;
+        border-color: #667eea;
+    }
+
+    .option-input {
+        margin-right: 15px;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #667eea;
+    }
+
+    .option-input:checked + .option-text {
+        font-weight: 700;
+        color: #667eea;
+    }
+
+    input[type="radio"]:checked ~ .option-label {
+        background: #e8eaf6;
+        border-color: #667eea;
+    }
+
+    .option-letter {
+        display: inline-block;
+        width: 35px;
+        height: 35px;
+        background: #667eea;
+        color: #fff;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 35px;
+        font-weight: 700;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+
+    .option-text {
+        flex: 1;
+        color: #2c3e50;
+    }
+
+    input[type="radio"]:checked + label .option-letter {
+        background: #764ba2;
+    }
+
+    input[type="radio"]:checked + label {
+        background: #e8eaf6;
+        border-color: #667eea;
+    }
+
+    input[type="radio"]:checked + label .option-text {
+        font-weight: 700;
+        color: #667eea;
+    }
+
+    .submit-section {
+        background: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        padding: 18px 50px;
+        border: none;
+        border-radius: 8px;
+        font-size: 20px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .progress-tracker {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .progress-text {
+        font-size: 16px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .progress-bar-container {
+        background: #e0e0e0;
+        border-radius: 20px;
+        height: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <!-- Header -->
+    <div class="quiz-header">
+        <h1>{{ quiz.title }}</h1>
+        <div class="quiz-meta">
+            <span><i class="fas fa-tag"></i> {{ quiz.subject }}</span>
+            <span><i class="fas fa-question-circle"></i> {{ questions.count }} Questions</span>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="quiz-instructions">
+        <h3><i class="fas fa-info-circle"></i> Instructions</h3>
+        <ul>
+            <li>This quiz contains <strong>{{ questions.count }}</strong> multiple choice questions</li>
+            <li>Each question has <strong>4 options</strong>, but only <strong>one correct answer</strong></li>
+            <li>Select your answer for each question before submitting</li>
+            <li>You can scroll through all questions before submitting</li>
+            <li>Your score will be shown immediately after submission</li>
+        </ul>
+    </div>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-text">
+            <span id="answeredCount">0</span> of {{ questions.count }} questions answered
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </div>
+
+    <!-- Quiz Form -->
+    <form method="POST" action="{% url 'quizzes:submit_quiz' quiz.id %}" id="quizForm">
+        {% csrf_token %}
+        
+        <!-- Questions -->
+        {% for question in questions %}
+        <div class="question-card">
+            <span class="question-number">Question {{ forloop.counter }}</span>
+            <div class="question-text">{{ question.question_text }}</div>
+            
+            <ul class="options-list">
+                <li class="option-item">
+                    <input 
+                        type="radio" 
+                        id="q{{ question.id }}_a" 
+                        name="question_{{ question.id }}" 
+                        value="A"
+                        class="option-input"
+                        style="display: none;"
+                        onchange="updateProgress()"
+                    >
+                    <label for="q{{ question.id }}_a" class="option-label">
+                        <span class="option-letter">A</span>
+                        <span class="option-text">{{ question.option_a }}</span>
+                    </label>
+                </li>
+                
+                <li class="option-item">
+                    <input 
+                        type="radio" 
+                        id="q{{ question.id }}_b" 
+                        name="question_{{ question.id }}" 
+                        value="B"
+                        class="option-input"
+                        style="display: none;"
+                        onchange="updateProgress()"
+                    >
+                    <label for="q{{ question.id }}_b" class="option-label">
+                        <span class="option-letter">B</span>
+                        <span class="option-text">{{ question.option_b }}</span>
+                    </label>
+                </li>
+                
+                <li class="option-item">
+                    <input 
+                        type="radio" 
+                        id="q{{ question.id }}_c" 
+                        name="question_{{ question.id }}" 
+                        value="C"
+                        class="option-input"
+                        style="display: none;"
+                        onchange="updateProgress()"
+                    >
+                    <label for="q{{ question.id }}_c" class="option-label">
+                        <span class="option-letter">C</span>
+                        <span class="option-text">{{ question.option_c }}</span>
+                    </label>
+                </li>
+                
+                <li class="option-item">
+                    <input 
+                        type="radio" 
+                        id="q{{ question.id }}_d" 
+                        name="question_{{ question.id }}" 
+                        value="D"
+                        class="option-input"
+                        style="display: none;"
+                        onchange="updateProgress()"
+                    >
+                    <label for="q{{ question.id }}_d" class="option-label">
+                        <span class="option-letter">D</span>
+                        <span class="option-text">{{ question.option_d }}</span>
+                    </label>
+                </li>
+            </ul>
+        </div>
+        {% endfor %}
+
+        <!-- Submit Section -->
+        <div class="submit-section">
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-check-circle"></i> Submit Quiz
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const totalQuestions = {{ questions.count }};
+
+    function updateProgress() {
+        const form = document.getElementById('quizForm');
+        const radios = form.querySelectorAll('input[type="radio"]:checked');
+        const uniqueQuestions = new Set();
+        
+        radios.forEach(radio => {
+            uniqueQuestions.add(radio.name);
+        });
+        
+        const answeredCount = uniqueQuestions.size;
+        const percentage = (answeredCount / totalQuestions) * 100;
+        
+        document.getElementById('answeredCount').textContent = answeredCount;
+        document.getElementById('progressBar').style.width = percentage + '%';
+    }
+
+    // Confirm before leaving if quiz is not submitted
+    let formSubmitted = false;
+    document.getElementById('quizForm').addEventListener('submit', function() {
+        formSubmitted = true;
+    });
+
+    window.addEventListener('beforeunload', function(e) {
+        if (!formSubmitted) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Initialize progress
+    updateProgress();
+</script>
+{% endblock %}
+

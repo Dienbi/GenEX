@@ -412,13 +412,13 @@
 
         color: #ddd;            </div>
 
-    }            <h3>Take a Quiz</h3>
+    }            <h3>AI Quiz Generator</h3>
 
-</style>            <p>Test your knowledge with interactive quizzes designed to reinforce your learning.</p>
+</style>            <p>Generate custom quizzes on any topic using AI and test your knowledge instantly.</p>
 
-{% endblock %}            <a href="#" class="card-link">
+{% endblock %}            <a href="{% url 'quizzes:home' %}" class="card-link">
 
-                Browse Quizzes <i class="fa fa-arrow-right"></i>
+                Generate Quiz <i class="fa fa-arrow-right"></i>
 
 {% block content %}            </a>
 
