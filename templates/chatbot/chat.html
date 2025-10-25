@@ -1128,6 +1128,9 @@
         position: relative;
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
     
     .session-item::before {
@@ -1162,6 +1165,62 @@
     
     .session-item.active::before {
         transform: scaleX(1);
+    }
+    
+    /* Styles pour les actions des sessions */
+    .session-content {
+        flex: 1;
+        cursor: pointer;
+    }
+    
+    .session-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .session-item:hover .session-actions {
+        opacity: 1;
+    }
+    
+    .delete-session-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+    
+    .delete-session-btn:hover {
+        background: #c82333;
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+    
+    .delete-session-btn:active {
+        transform: scale(0.95);
+    }
+    
+    /* Animation de suppression */
+    @keyframes slideOutRight {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
     }
     
     .session-title {
@@ -1665,6 +1724,15 @@
         background: #3182ce;
         color: white;
     }
+    
+    [data-theme="dark"] .delete-session-btn {
+        background: #dc3545;
+        color: white;
+    }
+    
+    [data-theme="dark"] .delete-session-btn:hover {
+        background: #c82333;
+    }
 
     [data-theme="dark"] .theme-toggle {
         background: #2d3748;
@@ -1810,6 +1878,15 @@
             background: #3182ce;
             color: white;
         }
+        
+        [data-theme="auto"] .delete-session-btn {
+            background: #dc3545;
+            color: white;
+        }
+        
+        [data-theme="auto"] .delete-session-btn:hover {
+            background: #c82333;
+        }
     }
 </style>
 {% endblock %}
@@ -1850,12 +1927,19 @@
                     
                     <div class="sessions-container" id="sessions-list">
                         {% for session in sessions %}
-                        <div class="session-item" data-session-id="{{ session.id }}" onclick="loadSession({{ session.id }})">
-                            <div class="session-title">{{ session.title }}</div>
-                            <div class="session-timestamp">{{ session.created_at|date:"d/m/Y H:i" }}</div>
-                            {% if session.messages.last.subject %}
-                                <span class="subject-badge">{{ session.messages.last.subject.name }}</span>
-                            {% endif %}
+                        <div class="session-item" data-session-id="{{ session.id }}">
+                            <div class="session-content" onclick="loadSession({{ session.id }})">
+                                <div class="session-title">{{ session.title }}</div>
+                                <div class="session-timestamp">{{ session.created_at|date:"d/m/Y H:i" }}</div>
+                                {% if session.messages.last.subject %}
+                                    <span class="subject-badge">{{ session.messages.last.subject.name }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="session-actions">
+                                <button class="delete-session-btn" onclick="deleteSession({{ session.id }}, event)" title="Supprimer cette conversation">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                         {% empty %}
                         <div class="empty-state">
@@ -3167,6 +3251,62 @@ function createNewSession() {
     messagesContainer.innerHTML = '';
     
     addMessage('assistant', 'Bonjour ! Je suis votre assistant éducatif. Comment puis-je vous aider aujourd\'hui ?');
+}
+
+function deleteSession(sessionId, event) {
+    // Empêcher la propagation de l'événement pour éviter de charger la session
+    event.stopPropagation();
+    
+    // Demander confirmation à l'utilisateur
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action est irréversible.')) {
+        return;
+    }
+    
+    // Afficher un indicateur de chargement
+    const deleteBtn = event.target.closest('.delete-session-btn');
+    const originalContent = deleteBtn.innerHTML;
+    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    deleteBtn.disabled = true;
+    
+    // Envoyer la requête de suppression
+    fetch(`/chatbot/api/session/${sessionId}/delete/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Supprimer l'élément de la liste
+            const sessionElement = document.querySelector(`[data-session-id="${sessionId}"]`);
+            if (sessionElement) {
+                sessionElement.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => {
+                    sessionElement.remove();
+                }, 300);
+            }
+            
+            // Si c'était la session active, créer une nouvelle session
+            if (currentSessionId === sessionId) {
+                createNewSession();
+            }
+            
+            // Afficher un message de succès
+            showNotification('Conversation supprimée avec succès', 'success');
+        } else {
+            throw new Error(data.error || 'Erreur lors de la suppression');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur lors de la suppression:', error);
+        showNotification('Erreur lors de la suppression de la conversation', 'error');
+        
+        // Restaurer le bouton
+        deleteBtn.innerHTML = originalContent;
+        deleteBtn.disabled = false;
+    });
 }
 
 function updateSessionList() {
