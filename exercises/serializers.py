@@ -200,7 +200,7 @@ class AIExerciseGenerationSerializer(serializers.ModelSerializer):
 
 class ExerciseGenerationRequestSerializer(serializers.Serializer):
     """Sérialiseur pour les requêtes de génération d'exercices"""
-    category = serializers.PrimaryKeyRelatedField(queryset=ExerciseCategory.objects.all())
+    subject = serializers.CharField(max_length=200, help_text="Matière ou cours pour lequel générer des exercices")
     difficulty = serializers.PrimaryKeyRelatedField(queryset=DifficultyLevel.objects.all())
     exercise_type = serializers.PrimaryKeyRelatedField(queryset=ExerciseType.objects.all())
     count = serializers.IntegerField(min_value=1, max_value=10, default=1)

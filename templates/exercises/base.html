@@ -443,15 +443,22 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Catégorie</label>
-                                <select class="form-select" name="category" required>
-                                    <option value="">Sélectionner une catégorie</option>
-                                </select>
+                                <label class="form-label">
+                                    <i class="fas fa-book me-2"></i>Matière / Cours
+                                </label>
+                                <input type="text" class="form-control" name="subject" required 
+                                       placeholder="Ex: Mathématiques, Physique, Histoire, Programmation...">
+                                <div class="form-text">
+                                    <i class="fas fa-lightbulb me-1"></i>
+                                    Écrivez le nom de la matière ou du cours pour lequel vous voulez des exercices
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Difficulté</label>
+                                <label class="form-label">
+                                    <i class="fas fa-chart-line me-2"></i>Difficulté
+                                </label>
                                 <select class="form-select" name="difficulty" required>
                                     <option value="">Sélectionner un niveau</option>
                                 </select>
@@ -904,7 +911,7 @@ function setupEventListeners() {
             const formData = new FormData(form);
             
             const data = {
-                category: parseInt(formData.get('category')),
+                subject: formData.get('subject'),
                 difficulty: parseInt(formData.get('difficulty')),
                 exercise_type: parseInt(formData.get('exercise_type')),
                 count: parseInt(formData.get('count')),

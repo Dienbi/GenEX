@@ -45,7 +45,7 @@ class ExerciseAIService:
     def generate_exercises(
         self,
         user: User,
-        category: ExerciseCategory,
+        subject: str,
         difficulty: DifficultyLevel,
         exercise_type: ExerciseType,
         count: int = 1,
@@ -77,9 +77,12 @@ class ExerciseAIService:
         
         try:
             # Créer l'enregistrement de génération
+            # Trouver ou créer une catégorie basée sur le sujet
+            category = self._get_or_create_category_for_subject(subject)
+            
             generation = AIExerciseGeneration.objects.create(
                 user=user,
-                prompt=custom_prompt or self._build_default_prompt(category, difficulty, exercise_type),
+                prompt=custom_prompt or self._build_default_prompt(subject, difficulty, exercise_type),
                 category=category,
                 difficulty=difficulty,
                 exercise_type=exercise_type,
@@ -88,7 +91,7 @@ class ExerciseAIService:
             
             # Construire le prompt complet
             full_prompt = self._build_generation_prompt(
-                category, difficulty, exercise_type, count, 
+                subject, difficulty, exercise_type, count, 
                 custom_prompt, user_level, specific_topics
             )
             
@@ -138,19 +141,19 @@ class ExerciseAIService:
                 'exercises': []
             }
     
-    def _build_default_prompt(self, category, difficulty, exercise_type):
+    def _build_default_prompt(self, subject, difficulty, exercise_type):
         """Construit un prompt par défaut basé sur les paramètres"""
-        return f"Génère des exercices de {category.name} de type {exercise_type.name} de niveau {difficulty.name}"
+        return f"Génère des exercices de {subject} de type {exercise_type.name} de niveau {difficulty.name}"
     
     def _build_generation_prompt(
-        self, category, difficulty, exercise_type, count, 
+        self, subject, difficulty, exercise_type, count, 
         custom_prompt, user_level, specific_topics
     ):
         """Construit le prompt complet pour la génération"""
         
         # Template de base
         base_template = f"""
-Tu es un expert en éducation universitaire. Génère {count} exercice(s) de {category.name} 
+Tu es un expert en éducation universitaire. Génère {count} exercice(s) de {subject} 
 de type {exercise_type.name} avec un niveau de difficulté {difficulty.name} (niveau {difficulty.level}/5).
 
 Format de réponse requis (JSON strict):
@@ -475,6 +478,34 @@ Format de réponse requis (JSON strict):
                 'error': f'Erreur lors de la génération de test: {str(e)}',
                 'exercises': []
             }
+    
+    def _get_or_create_category_for_subject(self, subject: str) -> ExerciseCategory:
+        """Trouve ou crée une catégorie basée sur le sujet"""
+        # Nettoyer le sujet pour créer un nom de catégorie
+        subject_clean = subject.strip().title()
+        
+        # Essayer de trouver une catégorie existante qui correspond
+        existing_category = ExerciseCategory.objects.filter(
+            name__icontains=subject_clean
+        ).first()
+        
+        if existing_category:
+            return existing_category
+        
+        # Créer une nouvelle catégorie pour ce sujet
+        category, created = ExerciseCategory.objects.get_or_create(
+            name=subject_clean,
+            defaults={
+                'description': f'Exercices en {subject_clean}',
+                'icon': 'fas fa-book',
+                'color': '#dc3545'
+            }
+        )
+        
+        if created:
+            print(f"Nouvelle catégorie créée: {subject_clean}")
+        
+        return category
 
 
 # Instance globale du service

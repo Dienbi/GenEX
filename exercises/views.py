@@ -210,7 +210,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             result = exercise_ai_service.generate_exercises(
                 user=request.user,
-                category=serializer.validated_data['category'],
+                subject=serializer.validated_data['subject'],
                 difficulty=serializer.validated_data['difficulty'],
                 exercise_type=serializer.validated_data['exercise_type'],
                 count=serializer.validated_data.get('count', 1),
