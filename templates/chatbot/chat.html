@@ -3,6 +3,8 @@
 
 {% block title %}Chatbot Éducatif{% endblock %}
 
+{% block body_attrs %}data-user-theme="{{ user_theme }}"{% endblock %}
+
 {% block extra_css %}
 <style>
     /* Utiliser la même police que le projet */
@@ -24,6 +26,33 @@
         color: white;
         padding: 1.5rem;
         border-radius: 10px 10px 0 0;
+    }
+    
+    .theme-toggle {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 10;
+    }
+    
+    .theme-toggle:hover {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.1);
+    }
+    
+    .theme-toggle i {
+        font-size: 16px;
     }
     
     .chat-messages {
@@ -272,6 +301,147 @@
         border-radius: 10px;
         padding: 2rem;
         text-align: center;
+    }
+    
+    /* Styles pour les notifications */
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 350px;
+    }
+    
+    .notification {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        margin-bottom: 10px;
+        transform: translateX(400px);
+        transition: all 0.3s ease;
+        border-left: 4px solid #1e7e34;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .notification.show {
+        transform: translateX(0);
+    }
+    
+    .notification::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #28a745, #20c997, #17a2b8);
+        animation: progress 3s linear forwards;
+    }
+    
+    @keyframes progress {
+        from { width: 100%; }
+        to { width: 0%; }
+    }
+    
+    .notification-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    
+    .notification-title {
+        font-weight: 600;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .notification-title i {
+        margin-right: 8px;
+        font-size: 16px;
+    }
+    
+    .notification-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    
+    .notification-close:hover {
+        opacity: 1;
+    }
+    
+    .notification-message {
+        font-size: 13px;
+        opacity: 0.9;
+        line-height: 1.4;
+    }
+    
+    .notification-icon {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        text-align: center;
+        line-height: 20px;
+        font-size: 12px;
+    }
+    
+    /* Mode sombre pour les notifications */
+    [data-theme="dark"] .notification {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        border-left: 4px solid #dc3545;
+    }
+    
+    [data-theme="dark"] .notification::before {
+        background: linear-gradient(90deg, #dc3545, #fd7e14, #ffc107);
+    }
+    
+    /* Animation de pulsation pour l'icône */
+    .notification-pulse {
+        animation: pulse 1.5s infinite;
+    }
+    
+    /* Indicateur de typing */
+    .typing-indicator {
+        display: none;
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-radius: 20px;
+        margin: 10px 0;
+        font-style: italic;
+        color: #6c757d;
+        border-left: 4px solid #dc3545;
+    }
+    
+    .typing-indicator.show {
+        display: block;
+    }
+    
+    .typing-dots {
+        display: inline-block;
+        animation: typing 1.4s infinite;
+    }
+    
+    @keyframes typing {
+        0%, 60%, 100% { opacity: 0.3; }
+        30% { opacity: 1; }
+    }
+    
+    [data-theme="dark"] .typing-indicator {
+        background: #2d2d2d;
+        color: #e0e0e0;
+    }
         background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
         transition: all 0.3s ease;
     }
@@ -575,6 +745,324 @@
     .session-header h5::before {
         content: '💬';
         font-size: 1.2rem;
+    }
+    
+    /* Styles pour la barre de recherche */
+    .search-container {
+        padding: 1rem 1.25rem;
+        background: white;
+        border-bottom: 1px solid #e9ecef;
+        position: sticky;
+        top: 80px;
+        z-index: 9;
+        backdrop-filter: blur(10px);
+    }
+    
+    .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .search-input-wrapper:focus-within {
+        border-color: #dc3545;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+        transform: translateY(-1px);
+    }
+    
+    .search-icon {
+        color: #6c757d;
+        margin-right: 0.75rem;
+        font-size: 0.9rem;
+        transition: color 0.3s ease;
+    }
+    
+    .search-input-wrapper:focus-within .search-icon {
+        color: #dc3545;
+    }
+    
+    .search-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 0.9rem;
+        color: #2c3e50;
+        color: #2c3e50;
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .search-input::placeholder {
+        color: #adb5bd;
+        font-style: italic;
+    }
+    
+    .search-clear-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.7rem;
+        margin-left: 0.5rem;
+    }
+    
+    .search-clear-btn:hover {
+        background: #c82333;
+        transform: scale(1.1);
+    }
+    
+    .search-stats {
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-align: center;
+        font-style: italic;
+    }
+    
+    /* Animation pour les résultats de recherche */
+    .session-item.search-highlight {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border-left: 4px solid #ffc107;
+        animation: searchHighlight 0.5s ease-out;
+    }
+    
+    @keyframes searchHighlight {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    
+    .session-item.search-hidden {
+        display: none;
+    }
+    
+    /* Mode sombre pour la recherche */
+    [data-theme="dark"] .search-container {
+        background: #2d2d2d;
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    [data-theme="dark"] .search-input-wrapper {
+        background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    [data-theme="dark"] .search-input-wrapper:focus-within {
+        border-color: #dc3545;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    [data-theme="dark"] .search-input {
+        color: #e0e0e0;
+    }
+    
+    [data-theme="dark"] .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    [data-theme="dark"] .search-stats {
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    [data-theme="dark"] .session-item.search-highlight {
+        background: linear-gradient(135deg, #4a3c00 0%, #6c5c00 100%);
+        border-left-color: #ffc107;
+    }
+    
+    /* Styles pour le message "aucun résultat" */
+    .no-results-message {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: #6c757d;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 15px;
+        margin: 1rem;
+        border: 2px dashed #dee2e6;
+        animation: fadeInUp 0.5s ease-out;
+    }
+    
+    .no-results-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.7;
+    }
+    
+    .no-results-text {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+    
+    .no-results-suggestion {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    @keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Mode sombre pour le message "aucun résultat" */
+    [data-theme="dark"] .no-results-message {
+        background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    [data-theme="dark"] .no-results-text {
+        color: #e0e0e0;
+    }
+    
+    [data-theme="dark"] .no-results-suggestion {
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    /* Styles pour le widget de traduction Google Translate */
+    .translate-widget {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        max-width: 300px;
+        transition: all 0.3s ease;
+        animation: translateWidgetSlideIn 0.5s ease-out;
+    }
+    
+    .translate-widget:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+    }
+    
+    .translate-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .translate-header i {
+        color: #dc3545;
+        font-size: 1rem;
+    }
+    
+    .google-translate-container {
+        position: relative;
+    }
+    
+    /* Personnalisation du widget Google Translate */
+    .google-translate-container .goog-te-gadget {
+        font-family: 'Montserrat', sans-serif !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .google-translate-container .goog-te-gadget .goog-te-combo {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        color: #2c3e50;
+        transition: all 0.3s ease;
+        width: 100%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .google-translate-container .goog-te-gadget .goog-te-combo:focus {
+        border-color: #dc3545;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+        outline: none;
+    }
+    
+    .google-translate-container .goog-te-gadget .goog-te-combo:hover {
+        border-color: #dc3545;
+        transform: translateY(-1px);
+    }
+    
+    /* Masquer les éléments Google Translate non désirés */
+    .google-translate-container .goog-te-banner-frame {
+        display: none !important;
+    }
+    
+    .google-translate-container .goog-te-gadget .goog-te-gadget-simple {
+        background: transparent !important;
+        border: none !important;
+    }
+    
+    /* Animation d'apparition */
+    @keyframes translateWidgetSlideIn {
+        0% {
+            opacity: 0;
+            transform: translateX(-100px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    /* Mode sombre pour le widget de traduction */
+    [data-theme="dark"] .translate-widget {
+        background: linear-gradient(135deg, #2d2d2d 0%, #3d3d3d 100%);
+        border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    [data-theme="dark"] .translate-header {
+        color: #e0e0e0;
+    }
+    
+    [data-theme="dark"] .google-translate-container .goog-te-gadget .goog-te-combo {
+        background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #e0e0e0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    [data-theme="dark"] .google-translate-container .goog-te-gadget .goog-te-combo:focus {
+        border-color: #dc3545;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    /* Responsive design pour le widget de traduction */
+    @media (max-width: 768px) {
+        .translate-widget {
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            max-width: none;
+            padding: 12px;
+        }
     }
     
     .new-session-btn {
@@ -1063,6 +1551,266 @@
         color: rgba(255, 255, 255, 0.6);
         font-style: italic;
     }
+    
+    /* Mode sombre pour le chatbot */
+    [data-theme="dark"] .chat-container {
+        background: #1a1a1a;
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .chat-header {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .chat-messages {
+        background: #1a1a1a;
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .message-content {
+        background: #2d3748;
+        color: #e0e0e0;
+        border: 1px solid #4a5568;
+    }
+
+    [data-theme="dark"] .message.user .message-content {
+        background: #3182ce;
+        color: white;
+    }
+
+    [data-theme="dark"] .message.assistant .message-content {
+        background: #2d3748;
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .chat-input-container {
+        background: #2d3748;
+        border-top: 1px solid #4a5568;
+    }
+
+    [data-theme="dark"] .chat-input {
+        background: #1a1a1a;
+        color: #e0e0e0;
+        border: 1px solid #4a5568;
+    }
+
+    [data-theme="dark"] .chat-input:focus {
+        border-color: #3182ce;
+        box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
+    }
+
+    [data-theme="dark"] .chat-input::placeholder {
+        color: #a0aec0;
+    }
+
+    [data-theme="dark"] .btn-primary {
+        background: #3182ce;
+        border-color: #3182ce;
+    }
+
+    [data-theme="dark"] .btn-primary:hover {
+        background: #2c5aa0;
+        border-color: #2c5aa0;
+    }
+
+    [data-theme="dark"] .btn-secondary {
+        background: #4a5568;
+        border-color: #4a5568;
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .btn-secondary:hover {
+        background: #2d3748;
+        border-color: #2d3748;
+    }
+
+    [data-theme="dark"] .file-upload-area {
+        background: #2d3748;
+        border: 2px dashed #4a5568;
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .file-upload-area:hover {
+        border-color: #3182ce;
+        background: #2a4365;
+    }
+
+    [data-theme="dark"] .uploaded-files {
+        background: #2d3748;
+        border: 1px solid #4a5568;
+    }
+
+    [data-theme="dark"] .file-item {
+        background: #1a1a1a;
+        border: 1px solid #4a5568;
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .file-item:hover {
+        background: #2d3748;
+    }
+
+    [data-theme="dark"] .session-item {
+        background: #2d3748;
+        border: 1px solid #4a5568;
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .session-item:hover {
+        background: #4a5568;
+    }
+
+    [data-theme="dark"] .session-item.active {
+        background: #3182ce;
+        color: white;
+    }
+
+    [data-theme="dark"] .theme-toggle {
+        background: #2d3748;
+        border: 1px solid #4a5568;
+        color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .theme-toggle:hover {
+        background: #4a5568;
+    }
+
+    [data-theme="dark"] .theme-toggle.active {
+        background: #3182ce;
+        color: white;
+    }
+
+    /* Mode auto - suit les préférences système */
+    @media (prefers-color-scheme: dark) {
+        [data-theme="auto"] .chat-container {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        [data-theme="auto"] .chat-header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: #e0e0e0;
+        }
+        
+        [data-theme="auto"] .chat-messages {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        [data-theme="auto"] .message-content {
+            background: #2d3748;
+            color: #e0e0e0;
+            border: 1px solid #4a5568;
+        }
+        
+        [data-theme="auto"] .message.user .message-content {
+            background: #3182ce;
+            color: white;
+        }
+        
+        [data-theme="auto"] .message.assistant .message-content {
+            background: #2d3748;
+            color: #e0e0e0;
+        }
+        
+        [data-theme="auto"] .chat-input-container {
+            background: #2d3748;
+            border-top: 1px solid #4a5568;
+        }
+        
+        [data-theme="auto"] .chat-input {
+            background: #1a1a1a;
+            color: #e0e0e0;
+            border: 1px solid #4a5568;
+        }
+        
+        [data-theme="auto"] .chat-input:focus {
+            border-color: #3182ce;
+            box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
+        }
+        
+        [data-theme="auto"] .chat-input::placeholder {
+            color: #a0aec0;
+        }
+        
+        [data-theme="auto"] .btn-primary {
+            background: #3182ce;
+            border-color: #3182ce;
+        }
+        
+        [data-theme="auto"] .btn-primary:hover {
+            background: #2c5aa0;
+            border-color: #2c5aa0;
+        }
+        
+        [data-theme="auto"] .btn-secondary {
+            background: #4a5568;
+            border-color: #4a5568;
+            color: #e0e0e0;
+        }
+        
+        [data-theme="auto"] .btn-secondary:hover {
+            background: #2d3748;
+            border-color: #2d3748;
+        }
+        
+        [data-theme="auto"] .file-upload-area {
+            background: #2d3748;
+            border: 2px dashed #4a5568;
+            color: #e0e0e0;
+        }
+        
+        [data-theme="auto"] .file-upload-area:hover {
+            border-color: #3182ce;
+            background: #2a4365;
+        }
+        
+        [data-theme="auto"] .uploaded-files {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+        }
+        
+        [data-theme="auto"] .file-item {
+            background: #1a1a1a;
+            border: 1px solid #4a5568;
+            color: #e0e0e0;
+        }
+        
+        [data-theme="auto"] .file-item:hover {
+            background: #2d3748;
+        }
+        
+        [data-theme="auto"] .session-item {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            color: #e0e0e0;
+        }
+        
+        [data-theme="auto"] .session-item:hover {
+            background: #4a5568;
+        }
+        
+        [data-theme="auto"] .session-item.active {
+            background: #3182ce;
+            color: white;
+        }
+        
+        [data-theme="auto"] .theme-toggle {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            color: #e0e0e0;
+        }
+        
+        [data-theme="auto"] .theme-toggle:hover {
+            background: #4a5568;
+        }
+        
+        [data-theme="auto"] .theme-toggle.active {
+            background: #3182ce;
+            color: white;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -1078,6 +1826,26 @@
                         <button class="new-session-btn" onclick="createNewSession()">
                             <i class="fas fa-plus"></i> Nouvelle conversation
                         </button>
+                    </div>
+                    
+                    <!-- Barre de recherche dynamique -->
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" 
+                                   class="search-input" 
+                                   id="conversationSearch" 
+                                   placeholder="Rechercher dans les conversations..."
+                                   onkeyup="debouncedSearch(this.value)"
+                                   onkeydown="handleSearchKeydown(event)"
+                                   autocomplete="off">
+                            <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="search-stats" id="searchStats" style="display: none;">
+                            <span id="searchResultsCount">0</span> résultat(s) trouvé(s)
+                        </div>
                     </div>
                     
                     <div class="sessions-container" id="sessions-list">
@@ -1099,20 +1867,44 @@
                         </div>
                         {% endfor %}
                     </div>
+                    
+                    <!-- Widget de traduction Google Translate -->
+                    <div class="translate-widget">
+                        <div class="translate-header">
+                            <i class="fas fa-language"></i>
+                            <span>Traduction</span>
+                        </div>
+                        <div id="google_translate_element" class="google-translate-container"></div>
+                    </div>
                 </div>
                 
                 <!-- Zone de chat principale -->
                 <div class="main-chat-area">
-                    <div class="chat-container">
-                        <div class="chat-header">
-                            <h4 class="mb-0">
-                                <i class="fas fa-robot me-2"></i>
-                                Assistant Éducatif
-                            </h4>
-                            <small>Posez vos questions sur les mathématiques, physique, informatique, et plus encore !</small>
-                        </div>
+    <!-- Conteneur de notifications -->
+    <div class="notification-container" id="notificationContainer"></div>
+    
+    <div class="chat-container">
+        <div class="chat-header" style="position: relative;">
+            <div>
+                <h4 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>
+                    Assistant Éducatif
+                </h4>
+                <small>Posez vos questions sur les mathématiques, physique, informatique, et plus encore !</small>
+            </div>
+            <button class="theme-toggle" title="Changer le thème">
+                <i class="fas fa-adjust"></i>
+            </button>
+        </div>
                         
                         <div class="chat-messages" id="chat-messages">
+                            <!-- Indicateur de typing -->
+                            <div class="typing-indicator" id="typingIndicator">
+                                <i class="fas fa-robot me-2"></i>
+                                L'assistant écrit
+                                <span class="typing-dots">...</span>
+                            </div>
+                            
                             <div class="message assistant">
                                 <div class="message-content">
                                     <strong>Assistant :</strong> Bonjour ! Je suis votre assistant éducatif. Je peux vous aider dans de nombreux domaines : mathématiques, physique, chimie, informatique, biologie, histoire, français, et bien d'autres ! Posez-moi vos questions et je ferai de mon mieux pour vous expliquer clairement.
@@ -1903,6 +2695,12 @@ function sendMessage() {
 function sendMessageOnly(message) {
     console.log('💬 Envoi du message seul');
     
+    // Afficher l'indicateur de typing
+    showTypingIndicator();
+    
+    // Notification de début de traitement
+    showChatNotification('Traitement de votre message...', 'info');
+    
     // Ajouter le message de l'utilisateur à l'interface
     addMessage('user', message);
     
@@ -1929,6 +2727,13 @@ function sendMessageOnly(message) {
         console.log('📊 Données reçues:', data);
         if (data.success) {
             console.log('✅ Succès - Ajout de la réponse');
+            
+            // Masquer l'indicateur de typing
+            hideTypingIndicator();
+            
+            // Notification de succès
+            showChatNotification('Réponse générée avec succès !', 'success');
+            
             // Mettre à jour l'ID de session si c'est une nouvelle session
             if (data.session_id && !currentSessionId) {
                 currentSessionId = data.session_id;
@@ -1942,11 +2747,25 @@ function sendMessageOnly(message) {
             displayUploadedPDFs();
         } else {
             console.log('❌ Erreur dans la réponse:', data.error);
+            
+            // Masquer l'indicateur de typing
+            hideTypingIndicator();
+            
+            // Notification d'erreur
+            showChatNotification('Erreur lors de la génération', 'error');
+            
             addMessage('assistant', 'Désolé, une erreur est survenue. Veuillez réessayer.');
         }
     })
     .catch(error => {
         console.error('❌ Erreur de requête:', error);
+        
+        // Masquer l'indicateur de typing
+        hideTypingIndicator();
+        
+        // Notification d'erreur de connexion
+        showChatNotification('Erreur de connexion', 'error');
+        
         addMessage('assistant', 'Désolé, une erreur de connexion est survenue.');
     })
     .finally(() => {
@@ -1960,6 +2779,12 @@ function sendMessageOnly(message) {
 
 function sendPendingFilesAndMessage() {
     console.log('📤 Envoi combiné: fichiers + message');
+    
+    // Afficher l'indicateur de typing
+    showTypingIndicator();
+    
+    // Notification de début de traitement
+    showChatNotification('Traitement des fichiers...', 'info');
     
     // Ajouter le message de l'utilisateur à l'interface (même s'il est vide)
     const displayMessage = pendingMessage || '📎 Fichier(s) envoyé(s)';
@@ -2081,6 +2906,9 @@ function uploadSingleFileForMessage(file, callback) {
 function sendMessageWithFiles() {
     console.log('💬 Envoi du message avec contexte des fichiers');
     
+    // Notification de traitement des fichiers
+    showChatNotification('Analyse des fichiers en cours...', 'info');
+    
     // Envoyer la requête au serveur
     fetch('/chatbot/api/chat/', {
         method: 'POST',
@@ -2101,6 +2929,13 @@ function sendMessageWithFiles() {
         console.log('📊 Données reçues:', data);
         if (data.success) {
             console.log('✅ Succès - Ajout de la réponse');
+            
+            // Masquer l'indicateur de typing
+            hideTypingIndicator();
+            
+            // Notification de succès
+            showChatNotification('Analyse terminée avec succès !', 'success');
+            
             // Mettre à jour l'ID de session si c'est une nouvelle session
             if (data.session_id && !currentSessionId) {
                 currentSessionId = data.session_id;
@@ -2114,11 +2949,25 @@ function sendMessageWithFiles() {
             displayUploadedPDFs();
         } else {
             console.log('❌ Erreur dans la réponse:', data.error);
+            
+            // Masquer l'indicateur de typing
+            hideTypingIndicator();
+            
+            // Notification d'erreur
+            showChatNotification('Erreur lors de l\'analyse', 'error');
+            
             addMessage('assistant', 'Désolé, une erreur est survenue. Veuillez réessayer.');
         }
     })
     .catch(error => {
         console.error('❌ Erreur de requête:', error);
+        
+        // Masquer l'indicateur de typing
+        hideTypingIndicator();
+        
+        // Notification d'erreur de connexion
+        showChatNotification('Erreur de connexion', 'error');
+        
         addMessage('assistant', 'Désolé, une erreur de connexion est survenue.');
     })
     .finally(() => {
@@ -2334,6 +3183,330 @@ function updateSessionList() {
     });
 }
 
+// Fonction de recherche dynamique dans les conversations
+function filterConversations(searchTerm) {
+    const sessions = document.querySelectorAll('.session-item');
+    const searchStats = document.getElementById('searchStats');
+    const searchResultsCount = document.getElementById('searchResultsCount');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    
+    let visibleCount = 0;
+    
+    if (searchTerm.trim() === '') {
+        // Afficher toutes les conversations
+        sessions.forEach(session => {
+            session.classList.remove('search-hidden', 'search-highlight');
+            session.style.display = 'block';
+        });
+        searchStats.style.display = 'none';
+        searchClearBtn.style.display = 'none';
+        return;
+    }
+    
+    // Afficher le bouton de suppression
+    searchClearBtn.style.display = 'flex';
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    sessions.forEach(session => {
+        const title = session.querySelector('.session-title').textContent.toLowerCase();
+        const timestamp = session.querySelector('.session-timestamp').textContent.toLowerCase();
+        const subjectBadge = session.querySelector('.subject-badge');
+        const subject = subjectBadge ? subjectBadge.textContent.toLowerCase() : '';
+        
+        // Recherche dans le titre, timestamp et sujet
+        const matches = title.includes(searchLower) || 
+                      timestamp.includes(searchLower) || 
+                      subject.includes(searchLower);
+        
+        if (matches) {
+            session.classList.remove('search-hidden');
+            session.classList.add('search-highlight');
+            session.style.display = 'block';
+            visibleCount++;
+            
+            // Animation de surbrillance
+            setTimeout(() => {
+                session.classList.remove('search-highlight');
+            }, 2000);
+        } else {
+            session.classList.add('search-hidden');
+            session.classList.remove('search-highlight');
+            session.style.display = 'none';
+        }
+    });
+    
+    // Afficher les statistiques de recherche
+    searchResultsCount.textContent = visibleCount;
+    searchStats.style.display = visibleCount > 0 ? 'block' : 'none';
+    
+    // Sauvegarder l'historique de recherche
+    saveSearchHistory(searchTerm);
+    
+    // Message si aucun résultat
+    if (visibleCount === 0) {
+        showNoResultsMessage(searchTerm);
+    } else {
+        hideNoResultsMessage();
+    }
+}
+
+// Fonction pour effacer la recherche
+function clearSearch() {
+    const searchInput = document.getElementById('conversationSearch');
+    const searchStats = document.getElementById('searchStats');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    
+    searchInput.value = '';
+    searchStats.style.display = 'none';
+    searchClearBtn.style.display = 'none';
+    
+    // Réinitialiser l'affichage
+    filterConversations('');
+    hideNoResultsMessage();
+    
+    // Focus sur le champ de recherche
+    searchInput.focus();
+}
+
+// Fonction pour afficher un message quand aucun résultat
+function showNoResultsMessage(searchTerm) {
+    let noResultsDiv = document.getElementById('no-results-message');
+    
+    if (!noResultsDiv) {
+        noResultsDiv = document.createElement('div');
+        noResultsDiv.id = 'no-results-message';
+        noResultsDiv.className = 'no-results-message';
+        noResultsDiv.innerHTML = `
+            <div class="no-results-icon">🔍</div>
+            <div class="no-results-text">
+                Aucune conversation trouvée pour "<strong>${searchTerm}</strong>"
+            </div>
+            <div class="no-results-suggestion">
+                Essayez avec d'autres mots-clés ou créez une nouvelle conversation
+            </div>
+        `;
+        
+        document.getElementById('sessions-list').appendChild(noResultsDiv);
+    }
+}
+
+// Fonction pour masquer le message d'aucun résultat
+function hideNoResultsMessage() {
+    const noResultsDiv = document.getElementById('no-results-message');
+    if (noResultsDiv) {
+        noResultsDiv.remove();
+    }
+}
+
+// Fonction pour rechercher dans le contenu des messages (recherche avancée)
+function searchInMessages(searchTerm) {
+    if (searchTerm.trim() === '') return;
+    
+    // Cette fonction pourrait être étendue pour rechercher dans le contenu des messages
+    // en faisant des requêtes AJAX vers le backend
+    console.log('Recherche avancée dans les messages:', searchTerm);
+}
+
+// Fonction pour gérer les raccourcis clavier dans la recherche
+function handleSearchKeydown(event) {
+    // Échap pour effacer la recherche
+    if (event.key === 'Escape') {
+        clearSearch();
+        return;
+    }
+    
+    // Ctrl+F pour focus sur la recherche
+    if (event.ctrlKey && event.key === 'f') {
+        event.preventDefault();
+        document.getElementById('conversationSearch').focus();
+        return;
+    }
+    
+    // Entrée pour rechercher dans les messages (recherche avancée)
+    if (event.key === 'Enter') {
+        const searchTerm = event.target.value.trim();
+        if (searchTerm) {
+            searchInMessages(searchTerm);
+        }
+    }
+}
+
+// Fonction pour initialiser les raccourcis globaux
+function initializeSearchShortcuts() {
+    // Raccourci global Ctrl+F pour ouvrir la recherche
+    document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === 'f') {
+            event.preventDefault();
+            const searchInput = document.getElementById('conversationSearch');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
+            }
+        }
+    });
+    
+    // Auto-focus sur la recherche au chargement de la page
+    const searchInput = document.getElementById('conversationSearch');
+    if (searchInput) {
+        // Focus automatique après un court délai
+        setTimeout(() => {
+            searchInput.focus();
+        }, 500);
+    }
+}
+
+// Fonction pour améliorer l'expérience de recherche avec debouncing
+let searchTimeout;
+function debouncedSearch(searchTerm) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        filterConversations(searchTerm);
+    }, 300); // Attendre 300ms après la dernière frappe
+}
+
+// Fonction pour sauvegarder les recherches récentes
+function saveSearchHistory(searchTerm) {
+    if (searchTerm.trim() === '') return;
+    
+    let searchHistory = JSON.parse(localStorage.getItem('chatbot_search_history') || '[]');
+    
+    // Ajouter la recherche si elle n'existe pas déjà
+    if (!searchHistory.includes(searchTerm)) {
+        searchHistory.unshift(searchTerm);
+        // Garder seulement les 10 dernières recherches
+        searchHistory = searchHistory.slice(0, 10);
+        localStorage.setItem('chatbot_search_history', JSON.stringify(searchHistory));
+    }
+}
+
+// Fonction pour charger l'historique de recherche
+function loadSearchHistory() {
+    const searchHistory = JSON.parse(localStorage.getItem('chatbot_search_history') || '[]');
+    return searchHistory;
+}
+
+// Fonction pour initialiser Google Translate
+function initializeGoogleTranslate() {
+    // Vérifier si Google Translate est déjà chargé
+    if (document.getElementById("google-translate-script")) {
+        return;
+    }
+    
+    // Créer et charger le script Google Translate
+    const script = document.createElement("script");
+    script.id = "google-translate-script";
+    script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    script.async = true;
+    script.onerror = function() {
+        console.warn("Impossible de charger Google Translate");
+        // Masquer le widget en cas d'erreur
+        const translateWidget = document.querySelector('.translate-widget');
+        if (translateWidget) {
+            translateWidget.style.display = 'none';
+        }
+    };
+    document.body.appendChild(script);
+    
+    // Fonction de callback pour initialiser le widget
+    window.googleTranslateElementInit = function() {
+        // Vérifier si le widget est déjà initialisé
+        if (document.getElementById("gt-widget-loaded")) {
+            return;
+        }
+        
+        try {
+            // Initialiser le widget Google Translate
+            new window.google.translate.TranslateElement(
+                {
+                    pageLanguage: "fr",
+                    includedLanguages: "fr,en,ar,de,es,it,pt,ru,zh-CN,ja,ko,nl,tr,pl",
+                    layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false,
+                    multilanguagePage: true
+                },
+                "google_translate_element"
+            );
+            
+            // Marquer comme chargé
+            const marker = document.createElement("div");
+            marker.id = "gt-widget-loaded";
+            marker.style.display = "none";
+            document.body.appendChild(marker);
+            
+            // Personnaliser l'apparence après chargement
+            setTimeout(customizeGoogleTranslate, 500);
+            
+        } catch (error) {
+            console.error("Erreur lors de l'initialisation de Google Translate:", error);
+        }
+    };
+}
+
+// Fonction pour personnaliser l'apparence de Google Translate
+function customizeGoogleTranslate() {
+    // Masquer la bannière Google Translate
+    const banner = document.querySelector('.goog-te-banner-frame');
+    if (banner) {
+        banner.style.display = 'none';
+    }
+    
+    // Personnaliser le sélecteur de langue
+    const combo = document.querySelector('.goog-te-combo');
+    if (combo) {
+        combo.style.width = '100%';
+        combo.style.fontSize = '0.85rem';
+        combo.style.padding = '6px 10px';
+        combo.style.borderRadius = '8px';
+        combo.style.border = '2px solid #e9ecef';
+        combo.style.background = 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)';
+        combo.style.color = '#2c3e50';
+        combo.style.transition = 'all 0.3s ease';
+        combo.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+    }
+    
+    // Ajouter des événements pour les interactions
+    const translateWidget = document.querySelector('.translate-widget');
+    if (translateWidget) {
+        // Animation au survol
+        translateWidget.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 12px 35px rgba(0, 0, 0, 0.2)';
+        });
+        
+        translateWidget.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+        });
+    }
+}
+
+// Fonction pour détecter les changements de langue
+function detectLanguageChange() {
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                // Vérifier si le contenu a été traduit
+                const body = document.body;
+                if (body.classList.contains('translated-ltr') || body.classList.contains('translated-rtl')) {
+                    console.log('Page traduite détectée');
+                    // Optionnel : ajouter des actions spécifiques après traduction
+                }
+            }
+        });
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class']
+    });
+}
+
+// Initialiser la détection des changements de langue
+detectLanguageChange();
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -2540,5 +3713,369 @@ function generatePDF() {
         addMessage('assistant', '❌ Erreur lors de la génération du PDF. Veuillez réessayer.');
     });
 }
+</script>
+
+<!-- Script pour le mode sombre/clair -->
+<script>
+// Gestion du mode sombre/clair pour le chatbot
+class ThemeManager {
+    constructor() {
+        this.currentTheme = this.getStoredTheme() || 'auto';
+        this.init();
+    }
+
+    init() {
+        this.applyTheme(this.currentTheme);
+        this.bindEvents();
+    }
+
+    getStoredTheme() {
+        // Récupérer depuis localStorage
+        const stored = localStorage.getItem('chatbot-theme');
+        if (stored) return stored;
+        
+        // Récupérer depuis les préférences utilisateur (si connecté)
+        const userTheme = document.body.getAttribute('data-user-theme');
+        if (userTheme) return userTheme;
+        
+        return 'auto';
+    }
+
+    applyTheme(theme) {
+        const chatContainer = document.querySelector('.chat-container');
+        
+        if (chatContainer) {
+            chatContainer.setAttribute('data-theme', theme);
+        }
+        
+        // Mettre à jour l'icône du bouton
+        this.updateThemeIcon(theme);
+        
+        // Sauvegarder la préférence
+        localStorage.setItem('chatbot-theme', theme);
+    }
+
+    updateThemeIcon(theme) {
+        const icon = document.querySelector('.theme-toggle i');
+        if (!icon) return;
+
+        // Supprimer toutes les classes d'icônes
+        icon.className = '';
+        
+        switch(theme) {
+            case 'light':
+                icon.className = 'fas fa-sun';
+                break;
+            case 'dark':
+                icon.className = 'fas fa-moon';
+                break;
+            case 'auto':
+                icon.className = 'fas fa-adjust';
+                break;
+        }
+    }
+
+    bindEvents() {
+        const themeToggle = document.querySelector('.theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                this.cycleTheme();
+            });
+        }
+    }
+
+    cycleTheme() {
+        const themes = ['light', 'dark', 'auto'];
+        const currentIndex = themes.indexOf(this.currentTheme);
+        const nextIndex = (currentIndex + 1) % themes.length;
+        const nextTheme = themes[nextIndex];
+        
+        this.setTheme(nextTheme);
+    }
+
+    async setTheme(theme) {
+        this.currentTheme = theme;
+        this.applyTheme(theme);
+        
+        // Envoyer la préférence au serveur si l'utilisateur est connecté
+        try {
+            const response = await fetch('/chatbot/api/theme-toggle/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
+                body: JSON.stringify({ theme: theme })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Thème mis à jour:', data.message);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour du thème:', error);
+        }
+    }
+
+    getCSRFToken() {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        return token ? token.value : '';
+    }
+}
+
+// Initialiser le gestionnaire de thème quand le DOM est prêt
+document.addEventListener('DOMContentLoaded', function() {
+    window.themeManager = new ThemeManager();
+    
+    // Attacher l'événement au bouton de thème
+    const themeToggle = document.querySelector('.theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+            window.themeManager.toggleTheme();
+        });
+    }
+    
+    // Écouter les changements de préférences système
+    if (window.matchMedia) {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addListener(function(e) {
+            if (window.themeManager.currentTheme === 'auto') {
+                window.themeManager.applyTheme('auto');
+            }
+        });
+    }
+    
+    // Initialiser les raccourcis de recherche
+    initializeSearchShortcuts();
+    
+    // Initialiser Google Translate
+    initializeGoogleTranslate();
+});
+
+// Fonction utilitaire pour changer le thème depuis d'autres scripts
+window.setChatbotTheme = function(theme) {
+    if (window.themeManager) {
+        window.themeManager.setTheme(theme);
+    }
+};
+
+// Fonction pour obtenir le thème actuel
+window.getChatbotTheme = function() {
+    return window.themeManager ? window.themeManager.currentTheme : 'auto';
+};
+
+// ===== SYSTÈME DE NOTIFICATIONS =====
+class NotificationManager {
+    constructor() {
+        this.container = document.getElementById('notificationContainer');
+        this.notifications = [];
+        this.maxNotifications = 3;
+    }
+    
+    // Créer une nouvelle notification
+    showNotification(title, message, type = 'success', duration = 3000) {
+        const notification = this.createNotification(title, message, type);
+        this.container.appendChild(notification);
+        this.notifications.push(notification);
+        
+        // Animation d'entrée
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
+        // Auto-suppression
+        setTimeout(() => {
+            this.removeNotification(notification);
+        }, duration);
+        
+        // Limiter le nombre de notifications
+        if (this.notifications.length > this.maxNotifications) {
+            this.removeNotification(this.notifications[0]);
+        }
+        
+        // Son de notification
+        this.playNotificationSound(type);
+    }
+    
+    // Créer l'élément de notification
+    createNotification(title, message, type) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        
+        const icon = this.getNotificationIcon(type);
+        
+        notification.innerHTML = `
+            <div class="notification-header">
+                <div class="notification-title">
+                    <span class="notification-icon">${icon}</span>
+                    ${title}
+                </div>
+                <button class="notification-close" onclick="window.notificationManager.removeNotification(this.parentElement.parentElement)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="notification-message">${message}</div>
+        `;
+        
+        return notification;
+    }
+    
+    // Obtenir l'icône selon le type
+    getNotificationIcon(type) {
+        const icons = {
+            'success': '<i class="fas fa-check"></i>',
+            'info': '<i class="fas fa-info-circle"></i>',
+            'warning': '<i class="fas fa-exclamation-triangle"></i>',
+            'error': '<i class="fas fa-times-circle"></i>',
+            'chat': '<i class="fas fa-robot"></i>'
+        };
+        return icons[type] || icons['info'];
+    }
+    
+    // Supprimer une notification
+    removeNotification(notification) {
+        if (notification && notification.parentNode) {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+                const index = this.notifications.indexOf(notification);
+                if (index > -1) {
+                    this.notifications.splice(index, 1);
+                }
+            }, 300);
+        }
+    }
+    
+    // Jouer un son de notification
+    playNotificationSound(type) {
+        try {
+            // Créer un contexte audio
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Fréquences selon le type
+            const frequencies = {
+                'success': [523, 659, 784], // Do, Mi, Sol
+                'info': [440, 554], // La, Do#
+                'warning': [330, 370], // Mi, Fa#
+                'error': [220, 185], // La grave, Fa grave
+                'chat': [523, 659] // Do, Mi
+            };
+            
+            const freq = frequencies[type] || frequencies['info'];
+            
+            // Créer une mélodie simple
+            freq.forEach((f, index) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.frequency.setValueAtTime(f, audioContext.currentTime + index * 0.1);
+                osc.type = 'sine';
+                
+                gain.gain.setValueAtTime(0.1, audioContext.currentTime + index * 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + index * 0.1 + 0.2);
+                
+                osc.start(audioContext.currentTime + index * 0.1);
+                osc.stop(audioContext.currentTime + index * 0.1 + 0.2);
+            });
+        } catch (error) {
+            console.log('Impossible de jouer le son de notification:', error);
+        }
+    }
+}
+
+// Initialiser le gestionnaire de notifications
+window.notificationManager = new NotificationManager();
+
+// Fonctions utilitaires pour les notifications
+function showNotification(title, message, type = 'success') {
+    window.notificationManager.showNotification(title, message, type);
+}
+
+// Notifications spécifiques au chatbot
+function showChatNotification(message, type = 'chat') {
+    showNotification('Assistant IA', message, type);
+}
+
+// Indicateur de typing
+function showTypingIndicator() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) {
+        indicator.classList.add('show');
+    }
+}
+
+function hideTypingIndicator() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) {
+        indicator.classList.remove('show');
+    }
+}
+
+// Modifier la fonction sendMessage pour intégrer les notifications
+const originalSendMessage = window.sendMessage;
+window.sendMessage = function() {
+    // Afficher l'indicateur de typing
+    showTypingIndicator();
+    
+    // Notification de début de traitement
+    showChatNotification('Traitement de votre message...', 'info');
+    
+    // Appeler la fonction originale
+    const result = originalSendMessage.apply(this, arguments);
+    
+    return result;
+};
+
+// Modifier la fonction qui gère la réponse pour les notifications
+function handleChatResponse(response) {
+    // Masquer l'indicateur de typing
+    hideTypingIndicator();
+    
+    // Notification de réponse reçue
+    showChatNotification('Réponse générée avec succès !', 'success');
+    
+    // Si c'est une erreur
+    if (response.error) {
+        showChatNotification('Erreur lors de la génération', 'error');
+    }
+}
+
+// Intercepter les réponses du chatbot pour les notifications
+const originalFetch = window.fetch;
+window.fetch = function(...args) {
+    return originalFetch.apply(this, args).then(response => {
+        if (args[0] && args[0].includes('/chatbot/api/chat/')) {
+            response.clone().json().then(data => {
+                if (data.response) {
+                    // Réponse reçue avec succès
+                    setTimeout(() => {
+                        showChatNotification('Réponse prête !', 'success');
+                    }, 500);
+                } else if (data.error) {
+                    // Erreur dans la réponse
+                    setTimeout(() => {
+                        showChatNotification('Erreur: ' + data.error, 'error');
+                    }, 500);
+                }
+            }).catch(() => {
+                // Erreur de parsing
+                setTimeout(() => {
+                    showChatNotification('Erreur de communication', 'error');
+                }, 500);
+            });
+        }
+        return response;
+    });
+};
 </script>
 {% endblock %}

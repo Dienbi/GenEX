@@ -33,6 +33,7 @@ class ChatbotView(LoginRequiredMixin, View):
         context = {
             'sessions': sessions,
             'subjects': subjects,
+            'user_theme': request.user.theme_preference if request.user.is_authenticated else 'auto',
         }
         return render(request, 'chatbot/chat.html', context)
 
@@ -312,3 +313,33 @@ def generate_pdf(request):
     except Exception as e:
         logger.error(f"Erreur lors de la génération du PDF: {e}")
         return JsonResponse({'error': 'Erreur lors de la génération du PDF'}, status=500)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ThemeToggleView(LoginRequiredMixin, View):
+    """Vue pour basculer entre les thèmes"""
+    
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            theme = data.get('theme', 'auto')
+            
+            # Valider le thème
+            valid_themes = ['light', 'dark', 'auto']
+            if theme not in valid_themes:
+                return JsonResponse({'error': 'Thème invalide'}, status=400)
+            
+            # Mettre à jour la préférence de l'utilisateur
+            user = request.user
+            user.theme_preference = theme
+            user.save()
+            
+            return JsonResponse({
+                'success': True,
+                'theme': theme,
+                'message': f'Thème changé vers {theme}'
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors du changement de thème: {e}")
+            return JsonResponse({'error': 'Erreur lors du changement de thème'}, status=500)

@@ -10,5 +10,6 @@ urlpatterns = [
     path('api/upload/', views.upload_file, name='upload_file'),
     path('api/files/<int:session_id>/', views.get_uploaded_files, name='get_files'),
     path('api/generate-pdf/', views.generate_pdf, name='generate_pdf'),
+    path('api/theme-toggle/', views.ThemeToggleView.as_view(), name='theme_toggle'),
     path('widget/', views.chatbot_widget, name='widget'),
 ]

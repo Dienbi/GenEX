@@ -23,6 +23,14 @@ class User(AbstractUser):
     current_streak = models.IntegerField(default=0, help_text="Current consecutive days with quiz completion")
     longest_streak = models.IntegerField(default=0, help_text="Longest streak ever achieved")
     last_quiz_date = models.DateTimeField(null=True, blank=True, help_text="Last time user completed a quiz")
+    
+    # Theme preference
+    THEME_CHOICES = (
+        ('light', 'Light'),
+        ('dark', 'Dark'),
+        ('auto', 'Auto'),
+    )
+    theme_preference = models.CharField(max_length=10, choices=THEME_CHOICES, default='auto', help_text="User's theme preference")
 
     def __str__(self):
         return f"{self.username} ({self.user_type})"
