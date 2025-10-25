@@ -1,0 +1,483 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Résultats - {{ submission.exercise.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Thème rouge et blanc pour les résultats */
+    .results-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .results-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 15px 35px rgba(220, 53, 69, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .results-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 8s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-30px) rotate(180deg); }
+    }
+    
+    .score-display {
+        font-size: 5rem;
+        font-weight: 700;
+        margin: 30px 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .score-excellent { 
+        color: #28a745; 
+        text-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+    }
+    .score-good { 
+        color: #ffc107; 
+        text-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+    }
+    .score-poor { 
+        color: #dc3545; 
+        text-shadow: 0 0 20px rgba(220, 53, 69, 0.5);
+    }
+    
+    .results-content {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.1);
+        margin-bottom: 30px;
+        border: 2px solid #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .results-content:hover {
+        box-shadow: 0 12px 35px rgba(220, 53, 69, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .feedback-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        border-left: 5px solid #dc3545;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .feedback-section:hover {
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.15);
+    }
+    
+    .suggestions-section {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        border-left: 5px solid #2196f3;
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .suggestions-section:hover {
+        box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
+    }
+    
+    .correction-details {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        border-left: 5px solid #ff9800;
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .correction-details:hover {
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.15);
+    }
+    
+    .progress-section {
+        background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+        padding: 30px;
+        border-radius: 15px;
+        border-left: 5px solid #9c27b0;
+        box-shadow: 0 4px 15px rgba(156, 39, 176, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .progress-section:hover {
+        box-shadow: 0 8px 25px rgba(156, 39, 176, 0.15);
+    }
+    
+    .suggestion-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+    
+    .correction-element {
+        padding: 8px 12px;
+        margin: 5px 0;
+        border-radius: 5px;
+        display: inline-block;
+    }
+    
+    .correct-element {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .incorrect-element {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .missing-element {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+    .action-buttons {
+        text-align: center;
+        margin-top: 30px;
+    }
+    
+    .btn-custom {
+        margin: 0 15px;
+        padding: 15px 30px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+    
+    .btn-custom::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .btn-custom:hover::before {
+        left: 100%;
+    }
+    
+    .btn-retry {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    
+    .btn-new {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+    
+    .btn-dashboard {
+        background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+        color: white;
+    }
+    
+    .btn-custom:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+    }
+    
+    .btn-custom:active {
+        transform: translateY(-1px);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <!-- En-tête des résultats -->
+    <div class="results-header">
+        <h1><i class="fas fa-trophy me-2"></i>Résultats de la correction</h1>
+        <h3>{{ submission.exercise.title }}</h3>
+        <div class="score-display {% if submission.score >= 80 %}score-excellent{% elif submission.score >= 50 %}score-good{% else %}score-poor{% endif %}">
+            {{ submission.score|floatformat:0 }}/100
+        </div>
+        <p class="mb-0">
+            {% if submission.is_correct %}
+                <i class="fas fa-check-circle me-2"></i>Excellent travail !
+            {% else %}
+                <i class="fas fa-exclamation-triangle me-2"></i>Continuez à vous améliorer !
+            {% endif %}
+        </p>
+    </div>
+    
+    <!-- Statistiques -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ submission.score|floatformat:0 }}%</div>
+            <div class="stat-label">Score obtenu</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ submission.correction_time|floatformat:1 }}s</div>
+            <div class="stat-label">Temps de correction</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ submission.confidence_score|floatformat:0 }}%</div>
+            <div class="stat-label">Confiance IA</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ submission.submission_time|date:"H:i" }}</div>
+            <div class="stat-label">Heure de soumission</div>
+        </div>
+    </div>
+    
+    <!-- Feedback détaillé -->
+    <div class="results-content">
+        <div class="feedback-section">
+            <h4><i class="fas fa-comment-dots me-2"></i>Feedback de l'IA</h4>
+            <p class="feedback-text">{{ submission.feedback }}</p>
+        </div>
+        
+        {% if submission.suggestions %}
+        <div class="suggestions-section">
+            <h4><i class="fas fa-lightbulb me-2"></i>Suggestions d'amélioration</h4>
+            <div class="suggestions-list">
+                {% for suggestion in submission.suggestions %}
+                <div class="suggestion-item">
+                    <i class="fas fa-arrow-right me-2"></i>{{ suggestion }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if submission.ai_correction.correction_details %}
+        <div class="correction-details">
+            <h4><i class="fas fa-clipboard-list me-2"></i>Détails de la correction</h4>
+            
+            {% if submission.ai_correction.correction_details.correct_elements %}
+            <div class="mb-3">
+                <h6 class="text-success"><i class="fas fa-check-circle me-2"></i>Éléments corrects</h6>
+                {% for element in submission.ai_correction.correction_details.correct_elements %}
+                <span class="correction-element correct-element">{{ element }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if submission.ai_correction.correction_details.incorrect_elements %}
+            <div class="mb-3">
+                <h6 class="text-danger"><i class="fas fa-times-circle me-2"></i>Éléments incorrects</h6>
+                {% for element in submission.ai_correction.correction_details.incorrect_elements %}
+                <span class="correction-element incorrect-element">{{ element }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if submission.ai_correction.correction_details.missing_elements %}
+            <div class="mb-3">
+                <h6 class="text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Éléments manquants</h6>
+                {% for element in submission.ai_correction.correction_details.missing_elements %}
+                <span class="correction-element missing-element">{{ element }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <!-- Votre réponse -->
+        <div class="feedback-section">
+            <h4><i class="fas fa-edit me-2"></i>Votre réponse</h4>
+            <div class="user-answer">
+                <p class="text-muted">{{ submission.user_answer }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progrès de l'utilisateur -->
+    {% if user_progress %}
+    <div class="progress-section">
+        <h4><i class="fas fa-chart-line me-2"></i>Vos progrès</h4>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="stat-value">{{ user_progress.total_submissions }}</div>
+                    <div class="stat-label">Exercices résolus</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="stat-value">{{ user_progress.average_score }}%</div>
+                    <div class="stat-label">Score moyen</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="stat-value">{{ user_progress.success_rate }}%</div>
+                    <div class="stat-label">Taux de réussite</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="stat-value">{{ user_progress.correct_submissions }}</div>
+                    <div class="stat-label">Réussites</div>
+                </div>
+            </div>
+        </div>
+        
+        {% if user_progress.improvement_areas %}
+        <div class="mt-3">
+            <h6><i class="fas fa-target me-2"></i>Domaines d'amélioration</h6>
+            <div class="improvement-areas">
+                {% for area in user_progress.improvement_areas %}
+                <span class="badge bg-warning text-dark me-2 mb-2">{{ area }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- Boutons d'action -->
+    <div class="action-buttons">
+        <a href="{% url 'exercises:exercise-solve' submission.exercise.id %}" class="btn btn-custom btn-retry">
+            <i class="fas fa-redo me-2"></i>Réessayer cet exercice
+        </a>
+        <a href="{% url 'exercises:exercise-dashboard' %}" class="btn btn-custom btn-new">
+            <i class="fas fa-plus me-2"></i>Nouvel exercice
+        </a>
+        <a href="{% url 'main:dashboard' %}" class="btn btn-custom btn-dashboard">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </a>
+    </div>
+</div>
+
+<script>
+// Animation du score
+document.addEventListener('DOMContentLoaded', function() {
+    const scoreElement = document.querySelector('.score-display');
+    const finalScore = {{ submission.score }};
+    let currentScore = 0;
+    
+    const scoreInterval = setInterval(() => {
+        currentScore += 2;
+        if (currentScore >= finalScore) {
+            currentScore = finalScore;
+            clearInterval(scoreInterval);
+        }
+        scoreElement.textContent = Math.round(currentScore) + '/100';
+    }, 50);
+    
+    // Animation des cartes de statistiques
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.5s ease';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        }, index * 100);
+    });
+});
+
+// Partage des résultats
+function shareResults() {
+    const score = {{ submission.score }};
+    const exerciseTitle = "{{ submission.exercise.title }}";
+    const text = `J'ai obtenu ${score}/100 sur l'exercice "${exerciseTitle}" avec l'IA GenEX ! 🧠✨`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Résultats GenEX',
+            text: text,
+            url: window.location.href
+        });
+    } else {
+        // Fallback pour les navigateurs qui ne supportent pas l'API Share
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Résultats copiés dans le presse-papiers !');
+        });
+    }
+}
+
+// Ajouter un bouton de partage
+document.addEventListener('DOMContentLoaded', function() {
+    const actionButtons = document.querySelector('.action-buttons');
+    const shareButton = document.createElement('button');
+    shareButton.className = 'btn btn-custom';
+    shareButton.style.background = 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
+    shareButton.style.color = 'white';
+    shareButton.style.border = 'none';
+    shareButton.innerHTML = '<i class="fas fa-share-alt me-2"></i>Partager mes résultats';
+    shareButton.onclick = shareResults;
+    
+    actionButtons.appendChild(shareButton);
+});
+</script>
+{% endblock %}

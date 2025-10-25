@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_filters',
     'main',
     'users',
     'courses',
@@ -163,4 +165,7 @@ LOGIN_URL = '/users/login/'
 
 # Site URL for QR codes and certificates
 SITE_URL = 'http://127.0.0.1:8000'
+
+# OpenAI API Configuration
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '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')
 

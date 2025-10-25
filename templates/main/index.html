@@ -119,6 +119,23 @@
         box-shadow: 0 15px 40px rgba(220, 53, 69, 0.15);
     }
     
+    .btn-feature {
+        display: inline-block;
+        background: #dc3545;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        margin-top: 15px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .btn-feature:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+    
     .feature-icon {
         width: 70px;
         height: 70px;
@@ -248,6 +265,17 @@
 <section class="features-section">
     <h2 class="section-title">Pourquoi Choisir <span>GENEX</span> ?</h2>
     <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h3>Exercices Intelligents IA</h3>
+            <p>Générez des exercices personnalisés avec l'IA, adaptés à votre niveau et vos objectifs d'apprentissage.</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'exercises:exercise-dashboard' %}" class="btn-feature">Commencer</a>
+            {% endif %}
+        </div>
+        
         <div class="feature-card">
             <div class="feature-icon">
                 <i class="fas fa-microphone-alt"></i>
