@@ -22,7 +22,6 @@ scipy>=1.11.0
 torch>=2.0.0
 transformers>=4.34.0,<4.35.0
 regex>=2021.8.3
-<<<<<<< Updated upstream
 
 # PDF and Document Generation
 reportlab>=4.0.0
@@ -37,9 +36,7 @@ folium>=0.14.0
 # API and Web
 openai>=1.0.0
 pillow>=9.0.0
-=======
-PyPDF2
-openpyxl
-pandas
-reportlab
->>>>>>> Stashed changes
+
+# Django Extensions
+django-filter>=23.0
+django-cors-headers>=4.0.0
