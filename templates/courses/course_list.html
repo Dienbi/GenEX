@@ -1,0 +1,243 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Mes Cours - GenEX{% endblock %}
+
+{% block nav_my_courses %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .courses-hero {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 60px 0;
+        text-align: center;
+    }
+    
+    .courses-hero h1 {
+        font-size: 42px;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+    
+    .courses-hero p {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+    
+    .courses-container {
+        max-width: 1200px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
+    
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .action-bar h2 {
+        font-size: 28px;
+        color: #333;
+    }
+    
+    .btn-create {
+        background-color: #dc3545;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-create:hover {
+        background-color: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    }
+    
+    .btn-create-folder {
+        background-color: #28a745;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .btn-create-folder:hover {
+        background-color: #218838;
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+    
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+        margin-top: 30px;
+    }
+    
+    .course-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+        border: 1px solid #eee;
+    }
+    
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    
+    .course-card h3 {
+        color: #dc3545;
+        font-size: 22px;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .course-meta {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .course-meta i {
+        color: #dc3545;
+    }
+    
+    .course-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .btn-view {
+        flex: 1;
+        background-color: #dc3545;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        text-align: center;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .btn-view:hover {
+        background-color: #c82333;
+    }
+    
+    .btn-delete {
+        background-color: #6c757d;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-delete:hover {
+        background-color: #5a6268;
+    }
+    
+    .no-courses {
+        text-align: center;
+        padding: 80px 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+    }
+    
+    .no-courses i {
+        font-size: 80px;
+        color: #dc3545;
+        margin-bottom: 20px;
+    }
+    
+    .no-courses h3 {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .no-courses p {
+        color: #666;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="courses-hero">
+    <div class="container">
+        <h1><i class="fas fa-graduation-cap"></i> Mes Cours IA</h1>
+        <p>Découvrez et gérez vos cours générés par intelligence artificielle</p>
+    </div>
+</section>
+
+<!-- Courses Content -->
+<div class="courses-container">
+    <div class="action-bar">
+        <h2>Tous mes cours ({{ courses.count }})</h2>
+        <div class="action-buttons">
+            <a href="{% url 'courses:folder_create' %}" class="btn-create btn-create-folder">
+                <i class="fas fa-folder-plus"></i> Créer un dossier
+            </a>
+            <a href="{% url 'courses:course_create' %}" class="btn-create">
+                <i class="fas fa-plus-circle"></i> Créer un nouveau cours
+            </a>
+        </div>
+    </div>
+    
+    {% if courses %}
+        <div class="courses-grid">
+            {% for course in courses %}
+            <div class="course-card">
+                <h3>{{ course.title }}</h3>
+                <div class="course-meta">
+                    <span><i class="fas fa-calendar"></i> {{ course.created_at|date:"d M Y" }}</span>
+                    <span><i class="fas fa-clock"></i> {{ course.created_at|date:"H:i" }}</span>
+                </div>
+                <div class="course-actions">
+                    <a href="{% url 'courses:course_detail' course.pk %}" class="btn-view">
+                        <i class="fas fa-eye"></i> Voir le cours
+                    </a>
+                    <a href="{% url 'courses:course_delete' course.pk %}" class="btn-delete">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-courses">
+            <i class="fas fa-book-open"></i>
+            <h3>Aucun cours pour le moment</h3>
+            <p>Commencez par créer votre premier cours avec l'IA</p>
+            <a href="{% url 'courses:course_create' %}" class="btn-create">
+                <i class="fas fa-plus-circle"></i> Créer mon premier cours
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,122 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Supprimer le cours - GenEX{% endblock %}
+
+{% block nav_my_courses %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        max-width: 600px;
+        margin: 80px auto;
+        padding: 0 20px;
+    }
+    
+    .delete-card {
+        background: white;
+        border-radius: 12px;
+        padding: 50px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .warning-icon {
+        font-size: 80px;
+        color: #dc3545;
+        margin-bottom: 20px;
+    }
+    
+    .delete-card h2 {
+        font-size: 28px;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    
+    .course-title {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #dc3545;
+        margin: 20px 0;
+    }
+    
+    .delete-card p {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn-cancel {
+        background-color: #6c757d;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .btn-cancel:hover {
+        background-color: #5a6268;
+    }
+    
+    .btn-confirm {
+        background-color: #dc3545;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-confirm:hover {
+        background-color: #c82333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h2>Confirmer la suppression</h2>
+        
+        <p>Êtes-vous sûr de vouloir supprimer ce cours ?</p>
+        
+        <div class="course-title">
+            "{{ course.title }}"
+        </div>
+        
+        <p style="color: #dc3545; font-weight: 600;">
+            <i class="fas fa-info-circle"></i> Cette action est irréversible !
+        </p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="btn-group">
+                <a href="{% url 'courses:course_detail' course.pk %}" class="btn-cancel">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+                <button type="submit" class="btn-confirm">
+                    <i class="fas fa-trash"></i> Oui, supprimer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+

@@ -304,11 +304,21 @@
             <ul class="nav-menu">
                 <li><a href="{% url 'main:home' %}" class="{% block nav_home %}{% endblock %}">Accueil</a></li>
                 <li><a href="{% url 'main:about' %}" class="{% block nav_about %}{% endblock %}">À propos</a></li>
+<<<<<<< Updated upstream
                 <li><a href="#" class="{% block nav_courses %}{% endblock %}">Programmes</a></li>
                 <li><a href="{% url 'exercises:exercise-dashboard' %}" class="{% block nav_exercises %}{% endblock %}">
                     <i class="fas fa-brain"></i> Exercices IA
                 </a></li>
                 <li><a href="{% url 'voice_eval:home' %}" class="{% block nav_voice %}{% endblock %}">Voice Eval</a></li>
+=======
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'courses:course_list' %}" class="{% block nav_my_courses %}{% endblock %}"> Cours </a></li>
+                    <li><a href="{% url 'courses:folder_list' %}" class="{% block nav_folders %}{% endblock %}">Dossiers</a></li>
+                {% else %}
+                    <li><a href="#" class="{% block nav_programs %}{% endblock %}">Programmes</a></li>
+                {% endif %}
+                <li><a href="{% url 'voice_eval:voice-eval-home' %}" class="{% block nav_voice %}{% endblock %}">Voice Eval</a></li>
+>>>>>>> Stashed changes
                 
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'quizzes:home' %}" class="{% block nav_quizzes %}{% endblock %}">

@@ -1,0 +1,552 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Organiser le cours - GenEX{% endblock %}
+
+{% block nav_folders %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Variables CSS cohérentes avec le projet */
+    :root {
+        --primary-color: #dc3545;
+        --secondary-color: #6c757d;
+        --success-color: #28a745;
+        --info-color: #17a2b8;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+        --border-radius: 8px;
+        --box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        --transition: all 0.3s ease;
+    }
+
+    /* Page Header avec intégration du template */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color), #c82333);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+        z-index: 1;
+    }
+    
+    .page-header-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .page-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+
+    /* Container principal amélioré */
+    .assign-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+        border: 1px solid #e9ecef;
+    }
+    
+    .assign-header {
+        background: linear-gradient(135deg, var(--primary-color), #c82333);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .assign-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+        z-index: 1;
+    }
+    
+    .assign-header-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .assign-body {
+        padding: 2.5rem;
+    }
+    
+    /* Informations du cours améliorées */
+    .course-info {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border-left: 5px solid var(--primary-color);
+        box-shadow: var(--box-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .course-info::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.02), rgba(220, 53, 69, 0.01));
+        z-index: 1;
+    }
+    
+    .course-info-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .course-title {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .course-meta {
+        color: var(--secondary-color);
+        font-size: 0.95rem;
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .course-meta i {
+        color: var(--primary-color);
+        margin-right: 0.5rem;
+    }
+    
+    /* Section de sélection des dossiers */
+    .folders-section {
+        margin-bottom: 2rem;
+    }
+    
+    .folders-title {
+        color: var(--dark-color);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .folders-title i {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+    
+    /* Items de dossier améliorés */
+    .folder-item {
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: var(--transition);
+        cursor: pointer;
+        position: relative;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .folder-item:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.15);
+    }
+    
+    .folder-item.selected {
+        border-color: var(--primary-color);
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.05), rgba(220, 53, 69, 0.02));
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.2);
+    }
+    
+    .folder-checkbox {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        border: 2px solid #dee2e6;
+        background: white;
+        cursor: pointer;
+        transition: var(--transition);
+        z-index: 2;
+    }
+    
+    .folder-checkbox:checked {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+    
+    .folder-checkbox:checked::after {
+        content: '✓';
+        color: white;
+        font-weight: bold;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+    }
+    
+    .folder-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+    
+    .folder-color {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 12px;
+        vertical-align: middle;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .folder-name {
+        color: var(--dark-color);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .folder-description {
+        color: var(--secondary-color);
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+    }
+    
+    .folder-stats {
+        color: var(--secondary-color);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .folder-stats i {
+        color: var(--primary-color);
+    }
+    
+    /* Boutons d'action améliorés */
+    .btn-assign {
+        background: linear-gradient(135deg, var(--primary-color), #c82333);
+        border: none;
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: var(--transition);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .btn-assign:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-cancel {
+        background: var(--secondary-color);
+        border: none;
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+    
+    /* État vide amélioré */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--box-shadow);
+        border: 2px dashed #dee2e6;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        color: #dee2e6;
+    }
+    
+    .empty-state h5 {
+        color: var(--dark-color);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .empty-state p {
+        color: var(--secondary-color);
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+    
+    .btn-create-folder {
+        background: linear-gradient(135deg, var(--success-color), #218838);
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: var(--transition);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-create-folder:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Actions du formulaire */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .assign-body {
+            padding: 1.5rem;
+        }
+        
+        .course-info {
+            padding: 1.5rem;
+        }
+        
+        .folder-item {
+            padding: 1rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn-assign, .btn-cancel {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-content">
+            <h1 class="page-title">
+                <i class="fas fa-folder-plus me-3"></i>
+                Organiser le cours
+            </h1>
+            <p class="page-subtitle">Assignez ce cours à un ou plusieurs dossiers pour une meilleure organisation</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="assign-container">
+                <!-- En-tête du container -->
+                <div class="assign-header">
+                    <div class="assign-header-content">
+                        <h2 class="mb-0">
+                            <i class="fas fa-folder-plus me-2"></i>
+                            Sélection des dossiers
+                        </h2>
+                    </div>
+                </div>
+                
+                <!-- Contenu -->
+                <div class="assign-body">
+                    <!-- Informations du cours -->
+                    <div class="course-info">
+                        <div class="course-info-content">
+                            <h5 class="course-title">
+                                <i class="fas fa-book me-2"></i>
+                                {{ course.title }}
+                            </h5>
+                            <div class="course-meta">
+                                <span>
+                                    <i class="fas fa-language"></i>
+                                    {{ course.language|upper }}
+                                </span>
+                                <span>
+                                    <i class="fas fa-calendar"></i>
+                                    {{ course.created_at|date:"d/m/Y" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulaire d'assignation -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if folders %}
+                            <div class="folders-section">
+                                <h6 class="folders-title">
+                                    <i class="fas fa-folder"></i>
+                                    Sélectionnez les dossiers pour ce cours
+                                </h6>
+                                
+                                <div class="folders-list">
+                                    {% for folder in folders %}
+                                        <div class="folder-item" onclick="toggleFolder({{ folder.pk }})">
+                                            <input type="checkbox" 
+                                                   name="folders" 
+                                                   value="{{ folder.pk }}" 
+                                                   id="folder_{{ folder.pk }}"
+                                                   class="folder-checkbox"
+                                                   {% if folder in course.folders.all %}checked{% endif %}>
+                                            
+                                            <div class="folder-header">
+                                                <span class="folder-color" style="background-color: {{ folder.color }};"></span>
+                                                <h6 class="folder-name">{{ folder.name }}</h6>
+                                            </div>
+                                            
+                                            {% if folder.description %}
+                                                <p class="folder-description">{{ folder.description }}</p>
+                                            {% endif %}
+                                            
+                                            <div class="folder-stats">
+                                                <i class="fas fa-book"></i>
+                                                {{ folder.course_count }} cours
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- État vide -->
+                            <div class="empty-state">
+                                <i class="fas fa-folder-open"></i>
+                                <h5>Aucun dossier créé</h5>
+                                <p>Créez d'abord un dossier pour organiser vos cours et améliorer votre expérience d'apprentissage.</p>
+                                <a href="{% url 'courses:folder_create' %}" class="btn-create-folder">
+                                    <i class="fas fa-plus"></i>
+                                    Créer un dossier
+                                </a>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Boutons d'action -->
+                        {% if folders %}
+                            <div class="form-actions">
+                                <a href="{% url 'courses:course_detail' course.pk %}" class="btn-cancel">
+                                    <i class="fas fa-times"></i>
+                                    Annuler
+                                </a>
+                                <button type="submit" class="btn-assign">
+                                    <i class="fas fa-save"></i>
+                                    Organiser le cours
+                                </button>
+                            </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFolder(folderId) {
+    const checkbox = document.getElementById('folder_' + folderId);
+    const folderItem = checkbox.closest('.folder-item');
+    
+    checkbox.checked = !checkbox.checked;
+    
+    if (checkbox.checked) {
+        folderItem.classList.add('selected');
+    } else {
+        folderItem.classList.remove('selected');
+    }
+}
+
+// Initialiser l'état des dossiers sélectionnés
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('input[name="folders"]');
+    checkboxes.forEach(checkbox => {
+        const folderItem = checkbox.closest('.folder-item');
+        if (checkbox.checked) {
+            folderItem.classList.add('selected');
+        }
+    });
+});
+</script>
+{% endblock %}
