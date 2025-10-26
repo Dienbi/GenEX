@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: genex
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn GenEX.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.13
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: WEB_CONCURRENCY
+        value: 4
+    autoDeploy: true
+
+databases:
+  - name: genex-db
+    databaseName: genex
+    user: genex
+    plan: free

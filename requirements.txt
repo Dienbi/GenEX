@@ -3,6 +3,14 @@
 Django>=4.2.0
 djangorestframework>=3.14.0
 
+# PostgreSQL Database (for Production)
+psycopg2-binary==2.9.9
+dj-database-url==2.1.0
+
+# Production Server
+gunicorn==21.2.0
+whitenoise==6.6.0
+
 # AI and NLP Libraries
 openai-whisper>=20231117
 spacy>=3.7.0
