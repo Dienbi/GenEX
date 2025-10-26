@@ -52,4 +52,5 @@ pillow>=9.0.0
 # Django Extensions
 django-filter>=23.0
 django-cors-headers>=4.0.0
+bleach>=6.0.0
 
