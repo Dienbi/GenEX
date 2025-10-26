@@ -74,7 +74,10 @@ def signup(request):
 def signin(request):
     """Signin page view"""
     if request.user.is_authenticated:
-        return redirect('main:dashboard')
+        # Redirect based on user type
+        if request.user.is_superuser or request.user.user_type == 'admin':
+            return redirect('users:backoffice_dashboard')
+        return redirect('main:home')
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -90,7 +93,11 @@ def signin(request):
             login(request, user)
             messages.success(request, f'Welcome back, {user.username}!')
             
-            # Redirect to next page if specified, otherwise home page
+            # Redirect based on user type
+            if user.is_superuser or user.user_type == 'admin':
+                return redirect('users:backoffice_dashboard')
+            
+            # Redirect to next page if specified, otherwise home
             next_page = request.GET.get('next', 'main:home')
             return redirect(next_page)
         else:

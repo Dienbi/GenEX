@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'users'
+
 # API endpoints
 api_urlpatterns = [
     path('api/register/', views.register_api, name='api-register'),
@@ -19,4 +21,14 @@ web_urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
 ]
 
-urlpatterns = api_urlpatterns + web_urlpatterns
+# Backoffice (Admin) URLs
+backoffice_urlpatterns = [
+    path('backoffice/', views.backoffice_dashboard, name='backoffice_dashboard'),
+    path('backoffice/users/', views.backoffice_user_list, name='backoffice_user_list'),
+    path('backoffice/users/create/', views.backoffice_user_create, name='backoffice_user_create'),
+    path('backoffice/users/<int:user_id>/', views.backoffice_user_detail, name='backoffice_user_detail'),
+    path('backoffice/users/<int:user_id>/edit/', views.backoffice_user_update, name='backoffice_user_update'),
+    path('backoffice/users/<int:user_id>/delete/', views.backoffice_user_delete, name='backoffice_user_delete'),
+]
+
+urlpatterns = api_urlpatterns + web_urlpatterns + backoffice_urlpatterns

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Backoffice{% endblock %} - GenEX Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 270px;
+            height: 100vh;
+            background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%);
+            color: white;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+            border-bottom: 2px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .sidebar-header h1 {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .sidebar-header h1 span {
+            color: white;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .sidebar-user {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(220, 53, 69, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(220, 53, 69, 0.05);
+        }
+
+        .sidebar-user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc3545, #b02a37);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            border: 3px solid rgba(220, 53, 69, 0.3);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+        }
+
+        .sidebar-user-info h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .sidebar-user-info p {
+            font-size: 12px;
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu-title {
+            padding: 15px 20px 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #dc3545;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            font-size: 15px;
+        }
+
+        .sidebar-menu a:hover {
+            background: linear-gradient(90deg, rgba(220, 53, 69, 0.15) 0%, transparent 100%);
+            border-left-color: #dc3545;
+            padding-left: 30px;
+            color: #fff;
+        }
+
+        .sidebar-menu a.active {
+            background: linear-gradient(90deg, rgba(220, 53, 69, 0.25) 0%, transparent 100%);
+            border-left-color: #dc3545;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .sidebar-menu a i {
+            width: 30px;
+            margin-right: 15px;
+            font-size: 17px;
+        }
+
+        .sidebar-menu a.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .sidebar-menu a.disabled:hover {
+            background: none;
+            border-left-color: transparent;
+            padding-left: 20px;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 2px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 20px;
+            color: white;
+            text-decoration: none;
+            background: linear-gradient(135deg, #dc3545, #b02a37);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+        }
+
+        .sidebar-footer a:hover {
+            background: linear-gradient(135deg, #b02a37, #8e1f2e);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(220, 53, 69, 0.5);
+        }
+
+        .sidebar-footer a i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 270px;
+            min-height: 100vh;
+            background: #f8f9fa;
+        }
+
+        /* Top Bar */
+        .topbar {
+            background: white;
+            padding: 25px 35px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #dc3545;
+        }
+
+        .topbar-title h2 {
+            font-size: 26px;
+            color: #1a1a2e;
+            font-weight: 700;
+        }
+
+        .topbar-title p {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .topbar-actions .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+        }
+
+        .topbar-actions .btn:hover {
+            background: linear-gradient(135deg, #c82333, #bd2130);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+        }
+
+        /* Content Container */
+        .content-container {
+            padding: 30px;
+        }
+
+        /* Messages */
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: block !important;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 999;
+                background: #2c3e50;
+                color: white;
+                border: none;
+                padding: 12px 15px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 20px;
+            }
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>GEN<span>EX</span></h1>
+            <p>Administration Panel</p>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-user-avatar">
+                {{ user.username.0|upper }}
+            </div>
+            <div class="sidebar-user-info">
+                <h3>{{ user.username }}</h3>
+                <p>Administrator</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="sidebar-menu-title">Main</div>
+            <a href="{% url 'users:backoffice_dashboard' %}" class="{% block nav_dashboard %}{% endblock %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+
+            <div class="sidebar-menu-title">User Management</div>
+            <a href="{% url 'users:backoffice_user_list' %}" class="{% block nav_users %}{% endblock %}">
+                <i class="fas fa-users"></i> All Users
+            </a>
+            <a href="{% url 'users:backoffice_user_create' %}" class="{% block nav_create_user %}{% endblock %}">
+                <i class="fas fa-user-plus"></i> Create User
+            </a>
+
+            <div class="sidebar-menu-title">Content Management</div>
+            <a href="#" class="disabled">
+                <i class="fas fa-book"></i> Courses (Coming Soon)
+            </a>
+            <a href="#" class="disabled">
+                <i class="fas fa-question-circle"></i> Quizzes (Coming Soon)
+            </a>
+            <a href="#" class="disabled">
+                <i class="fas fa-dumbbell"></i> Exercises (Coming Soon)
+            </a>
+
+            <div class="sidebar-menu-title">Settings</div>
+            <a href="#" class="disabled">
+                <i class="fas fa-cog"></i> System Settings
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{% url 'main:signout' %}">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="topbar">
+            <div class="topbar-title">
+                <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+                <p>{% block page_description %}Welcome to the administration panel{% endblock %}</p>
+            </div>
+            <div class="topbar-actions">
+                {% block topbar_actions %}{% endblock %}
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-container">
+            <!-- Django Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

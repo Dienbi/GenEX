@@ -153,3 +153,168 @@ def profile_view(request):
         return redirect('profile')
     
     return render(request, 'users/profile.html', {'user': request.user})
+
+
+# ===== BACKOFFICE VIEWS (Admin Only) =====
+from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator
+from django.db.models import Q
+
+
+def is_admin(user):
+    """Check if user is admin"""
+    return user.is_authenticated and (user.is_superuser or user.user_type == 'admin')
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_dashboard(request):
+    """Admin backoffice dashboard"""
+    total_users = User.objects.count()
+    total_students = User.objects.filter(user_type='student').count()
+    total_admins = User.objects.filter(user_type='admin').count()
+    recent_users = User.objects.order_by('-date_joined')[:5]
+    
+    context = {
+        'total_users': total_users,
+        'total_students': total_students,
+        'total_admins': total_admins,
+        'recent_users': recent_users,
+    }
+    return render(request, 'users/backoffice/dashboard.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_user_list(request):
+    """Admin user list view with search and pagination"""
+    search_query = request.GET.get('search', '')
+    user_type_filter = request.GET.get('user_type', '')
+    
+    users = User.objects.all().order_by('-date_joined')
+    
+    # Apply search filter
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)
+        )
+    
+    # Apply user type filter
+    if user_type_filter:
+        users = users.filter(user_type=user_type_filter)
+    
+    # Pagination
+    paginator = Paginator(users, 20)  # 20 users per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'user_type_filter': user_type_filter,
+    }
+    return render(request, 'users/backoffice/user_list.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_user_create(request):
+    """Admin create user view"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        user_type = request.POST.get('user_type', 'student')
+        level = request.POST.get('level', '')
+        student_class = request.POST.get('student_class', '')
+        is_active = request.POST.get('is_active') == 'on'
+        
+        # Validation
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists')
+            return render(request, 'users/backoffice/user_form.html')
+        
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email already exists')
+            return render(request, 'users/backoffice/user_form.html')
+        
+        # Create user
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            user_type=user_type,
+            level=level if level else None,
+            student_class=student_class if student_class else None,
+            is_active=is_active
+        )
+        
+        messages.success(request, f'User {username} created successfully')
+        return redirect('users:backoffice_user_list')
+    
+    context = {'action': 'create'}
+    return render(request, 'users/backoffice/user_form.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_user_update(request, user_id):
+    """Admin update user view"""
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        user.username = request.POST.get('username', user.username)
+        user.email = request.POST.get('email', user.email)
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.user_type = request.POST.get('user_type', user.user_type)
+        user.level = request.POST.get('level', user.level)
+        user.student_class = request.POST.get('student_class', user.student_class)
+        user.is_active = request.POST.get('is_active') == 'on'
+        
+        # Update password if provided
+        new_password = request.POST.get('password')
+        if new_password:
+            user.set_password(new_password)
+        
+        user.save()
+        messages.success(request, f'User {user.username} updated successfully')
+        return redirect('users:backoffice_user_list')
+    
+    context = {
+        'action': 'update',
+        'user_obj': user,
+    }
+    return render(request, 'users/backoffice/user_form.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_user_delete(request, user_id):
+    """Admin delete user view"""
+    user = get_object_or_404(User, id=user_id)
+    
+    # Prevent admin from deleting themselves
+    if user.id == request.user.id:
+        messages.error(request, 'You cannot delete your own account')
+        return redirect('users:backoffice_user_list')
+    
+    if request.method == 'POST':
+        username = user.username
+        user.delete()
+        messages.success(request, f'User {username} deleted successfully')
+        return redirect('users:backoffice_user_list')
+    
+    context = {'user_obj': user}
+    return render(request, 'users/backoffice/user_confirm_delete.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_user_detail(request, user_id):
+    """Admin view user detail"""
+    user = get_object_or_404(User, id=user_id)
+    context = {'user_obj': user}
+    return render(request, 'users/backoffice/user_detail.html', context)

@@ -10,6 +10,8 @@ urlpatterns = [
     path('<int:pk>/', views.course_detail, name='course_detail'),
     path('<int:pk>/delete/', views.course_delete, name='course_delete'),
     path('<int:pk>/summary/', views.course_summary, name='course_summary'),
+    path('<int:pk>/audio/<int:section_index>/', views.generate_section_audio, name='generate_section_audio'),
+    path('<int:pk>/audio-list/', views.get_course_audio_list, name='get_course_audio_list'),
     path('<int:course_pk>/assign-folder/', views.course_assign_folder, name='course_assign_folder'),
     path('<int:course_pk>/unassign-folder/<int:folder_pk>/', views.course_unassign_folder, name='course_unassign_folder'),
     

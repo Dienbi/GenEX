@@ -96,6 +96,207 @@
         border-bottom-left-radius: 5px;
     }
     
+    /* Styles pour l'édition des messages */
+    .message-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    
+    .message:hover .message-actions {
+        opacity: 1;
+    }
+    
+    .edit-message-btn {
+        background: none;
+        border: none;
+        color: #6c757d;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 3px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    
+    .edit-message-btn:hover {
+        background: #f8f9fa;
+        color: #dc3545;
+    }
+    
+    .edit-indicator {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    /* Modal d'édition */
+    .edit-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .edit-modal-content {
+        background: white;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 80vh;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .edit-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        background: #f8f9fa;
+    }
+    
+    .edit-modal-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .close-edit-modal {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #6c757d;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .close-edit-modal:hover {
+        color: #dc3545;
+    }
+    
+    .edit-modal-body {
+        padding: 1rem;
+    }
+    
+    .edit-modal-body textarea {
+        width: 100%;
+        min-height: 120px;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        resize: vertical;
+        font-family: inherit;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    .edit-modal-body textarea:focus {
+        outline: none;
+        border-color: #dc3545;
+        box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
+    }
+    
+    .edit-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding: 1rem;
+        border-top: 1px solid #dee2e6;
+        background: #f8f9fa;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+    
+    .btn-primary {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #c82333;
+    }
+    
+    .btn-info {
+        background: #17a2b8;
+        color: white;
+    }
+    
+    .btn-info:hover {
+        background: #138496;
+    }
+    
+    /* Styles pour l'historique des modifications */
+    .edit-history {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 5px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .edit-history h4 {
+        margin: 0 0 1rem 0;
+        color: #333;
+        font-size: 1rem;
+    }
+    
+    .history-item {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 5px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .history-timestamp {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+    
+    .history-content-text {
+        color: #333;
+        line-height: 1.4;
+    }
+    
+    /* Indicateur de réponse aux modifications */
+    .edit-response-indicator {
+        font-size: 0.8rem;
+        color: #17a2b8;
+        margin-left: 0.5rem;
+        opacity: 0.8;
+    }
+    
     .chat-input {
         padding: 1rem;
         background: white;
@@ -1748,6 +1949,109 @@
         background: #3182ce;
         color: white;
     }
+    
+    /* Mode sombre pour l'édition des messages */
+    [data-theme="dark"] .edit-message-btn {
+        color: #a0aec0;
+    }
+    
+    [data-theme="dark"] .edit-message-btn:hover {
+        background: #2d3748;
+        color: #3182ce;
+    }
+    
+    [data-theme="dark"] .edit-indicator {
+        color: #a0aec0;
+    }
+    
+    [data-theme="dark"] .edit-modal-content {
+        background: #2d3748;
+        color: #e0e0e0;
+    }
+    
+    [data-theme="dark"] .edit-modal-header {
+        background: #1a202c;
+        border-bottom-color: #4a5568;
+    }
+    
+    [data-theme="dark"] .edit-modal-header h3 {
+        color: #e0e0e0;
+    }
+    
+    [data-theme="dark"] .close-edit-modal {
+        color: #a0aec0;
+    }
+    
+    [data-theme="dark"] .close-edit-modal:hover {
+        color: #3182ce;
+    }
+    
+    [data-theme="dark"] .edit-modal-body textarea {
+        background: #1a1a1a;
+        color: #e0e0e0;
+        border-color: #4a5568;
+    }
+    
+    [data-theme="dark"] .edit-modal-body textarea:focus {
+        border-color: #3182ce;
+        box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.25);
+    }
+    
+    [data-theme="dark"] .edit-modal-footer {
+        background: #1a202c;
+        border-top-color: #4a5568;
+    }
+    
+    [data-theme="dark"] .btn-primary {
+        background: #3182ce;
+    }
+    
+    [data-theme="dark"] .btn-primary:hover {
+        background: #2c5aa0;
+    }
+    
+    [data-theme="dark"] .btn-secondary {
+        background: #4a5568;
+    }
+    
+    [data-theme="dark"] .btn-secondary:hover {
+        background: #2d3748;
+    }
+    
+    [data-theme="dark"] .btn-info {
+        background: #0dcaf0;
+        color: #000;
+    }
+    
+    [data-theme="dark"] .btn-info:hover {
+        background: #0aa2c0;
+    }
+    
+    [data-theme="dark"] .edit-history {
+        background: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    [data-theme="dark"] .edit-history h4 {
+        color: #e0e0e0;
+    }
+    
+    [data-theme="dark"] .history-item {
+        background: #1a1a1a;
+        border-color: #4a5568;
+    }
+    
+    [data-theme="dark"] .history-timestamp {
+        color: #a0aec0;
+    }
+    
+    [data-theme="dark"] .history-content-text {
+        color: #e0e0e0;
+    }
+    
+    [data-theme="dark"] .edit-response-indicator {
+        color: #0dcaf0;
+    }
 
     /* Mode auto - suit les préférences système */
     @media (prefers-color-scheme: dark) {
@@ -2824,6 +3128,11 @@ function sendMessageOnly(message) {
                 updateSessionList();
             }
             
+            // Mettre à jour le message utilisateur avec l'ID s'il est disponible
+            if (data.user_message_id) {
+                updateUserMessageWithId(data.user_message_id);
+            }
+            
             // Ajouter la réponse de l'assistant
             addMessage('assistant', data.response);
             
@@ -3026,6 +3335,11 @@ function sendMessageWithFiles() {
                 updateSessionList();
             }
             
+            // Mettre à jour le message utilisateur avec l'ID s'il est disponible
+            if (data.user_message_id) {
+                updateUserMessageWithId(data.user_message_id);
+            }
+            
             // Ajouter la réponse de l'assistant
             addMessage('assistant', data.response);
             
@@ -3071,7 +3385,37 @@ function sendMessageWithFiles() {
     });
 }
 
-function addMessage(type, content) {
+// Fonction pour mettre à jour un message utilisateur avec son ID
+function updateUserMessageWithId(messageId) {
+    // Trouver le dernier message utilisateur qui n'a pas d'ID
+    const userMessages = document.querySelectorAll('.message.user');
+    const lastUserMessage = userMessages[userMessages.length - 1];
+    
+    if (lastUserMessage && !lastUserMessage.getAttribute('data-message-id')) {
+        // Ajouter l'ID du message
+        lastUserMessage.setAttribute('data-message-id', messageId);
+        
+        // Ajouter le bouton d'édition
+        const contentDiv = lastUserMessage.querySelector('.message-content');
+        if (contentDiv && !lastUserMessage.querySelector('.message-actions')) {
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-message-btn';
+            editButton.innerHTML = '✏️';
+            editButton.title = 'Modifier le message';
+            editButton.onclick = () => editMessage(messageId, contentDiv.textContent.replace('Vous : ', ''));
+            
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'message-actions';
+            buttonContainer.appendChild(editButton);
+            
+            lastUserMessage.appendChild(buttonContainer);
+        }
+        
+        console.log('✅ Message utilisateur mis à jour avec l\'ID:', messageId);
+    }
+}
+
+function addMessage(type, content, messageData = null) {
     console.log(`💬 Ajout d'un message ${type}:`, content);
     const messagesContainer = document.getElementById('chat-messages');
     
@@ -3083,6 +3427,11 @@ function addMessage(type, content) {
     console.log('✅ Container trouvé, création du message');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}`;
+    
+    // Ajouter l'ID du message si disponible
+    if (messageData && messageData.id) {
+        messageDiv.setAttribute('data-message-id', messageData.id);
+    }
     
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
@@ -3098,7 +3447,30 @@ function addMessage(type, content) {
             contentDiv.innerHTML = `<strong>Vous :</strong> ${content}`;
         } else {
             // C'est du texte normal, l'échapper
-            contentDiv.innerHTML = `<strong>Vous :</strong> ${escapeHtml(content)}`;
+            const displayContent = escapeHtml(content);
+            let editIndicator = '';
+            
+            // Ajouter l'indicateur de modification si le message a été modifié
+            if (messageData && messageData.is_edited) {
+                editIndicator = ' <span class="edit-indicator" title="Message modifié">(modifié)</span>';
+            }
+            
+            contentDiv.innerHTML = `<strong>Vous :</strong> ${displayContent}${editIndicator}`;
+            
+            // Ajouter le bouton d'édition pour les messages utilisateur
+            if (messageData && messageData.id) {
+                const editButton = document.createElement('button');
+                editButton.className = 'edit-message-btn';
+                editButton.innerHTML = '✏️';
+                editButton.title = 'Modifier le message';
+                editButton.onclick = () => editMessage(messageData.id, content);
+                
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'message-actions';
+                buttonContainer.appendChild(editButton);
+                
+                messageDiv.appendChild(buttonContainer);
+            }
         }
     }
     
@@ -3108,6 +3480,243 @@ function addMessage(type, content) {
     
     // Scroll vers le bas
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function editMessage(messageId, currentContent) {
+    // Créer une modal d'édition
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.setAttribute('data-message-id', messageId);
+    modal.innerHTML = `
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h3>Modifier le message</h3>
+                <button class="close-edit-modal" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="edit-modal-body">
+                <textarea id="edit-message-textarea" placeholder="Modifiez votre message...">${currentContent}</textarea>
+                <div class="edit-history" id="edit-history" style="display: none;">
+                    <h4>Historique des modifications</h4>
+                    <div class="history-content" id="history-content"></div>
+                </div>
+            </div>
+            <div class="edit-modal-footer">
+                <button class="btn btn-info" onclick="toggleEditHistory()">Historique</button>
+                <button class="btn btn-secondary" onclick="closeEditModal()">Annuler</button>
+                <button class="btn btn-primary" onclick="saveEditedMessage(${messageId})" title="Sauvegarder, supprimer les messages suivants et générer une nouvelle réponse">🔄 Sauvegarder & Reprendre</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Focus sur le textarea
+    setTimeout(() => {
+        document.getElementById('edit-message-textarea').focus();
+    }, 100);
+}
+
+function closeEditModal() {
+    const modal = document.querySelector('.edit-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function toggleEditHistory() {
+    const historyDiv = document.getElementById('edit-history');
+    const historyContent = document.getElementById('history-content');
+    
+    if (historyDiv.style.display === 'none') {
+        // Charger l'historique des modifications
+        loadEditHistory();
+        historyDiv.style.display = 'block';
+    } else {
+        historyDiv.style.display = 'none';
+    }
+}
+
+function loadEditHistory() {
+    const historyContent = document.getElementById('history-content');
+    const messageId = document.querySelector('.edit-modal').getAttribute('data-message-id');
+    
+    // Récupérer les données du message depuis l'API
+    fetch(`/chatbot/api/session/${currentSessionId}/`)
+    .then(response => response.json())
+    .then(data => {
+        const message = data.messages.find(msg => msg.id == messageId);
+        if (message) {
+            let historyHtml = '';
+            
+            // Message original
+            if (message.original_content) {
+                historyHtml += `
+                    <div class="history-item">
+                        <div class="history-timestamp">Message original</div>
+                        <div class="history-content-text">${escapeHtml(message.original_content)}</div>
+                    </div>
+                `;
+            }
+            
+            // Message actuel (si modifié)
+            if (message.is_edited) {
+                historyHtml += `
+                    <div class="history-item">
+                        <div class="history-timestamp">Modifié le ${new Date(message.edited_at).toLocaleString()}</div>
+                        <div class="history-content-text">${escapeHtml(message.content)}</div>
+                    </div>
+                `;
+            } else {
+                historyHtml += `
+                    <div class="history-item">
+                        <div class="history-timestamp">Message actuel</div>
+                        <div class="history-content-text">${escapeHtml(message.content)}</div>
+                    </div>
+                `;
+            }
+            
+            historyContent.innerHTML = historyHtml;
+        }
+    })
+    .catch(error => {
+        console.error('Erreur lors du chargement de l\'historique:', error);
+        historyContent.innerHTML = '<div class="history-item">Erreur lors du chargement de l\'historique</div>';
+    });
+}
+
+function saveEditedMessage(messageId) {
+    const textarea = document.getElementById('edit-message-textarea');
+    const newContent = textarea.value.trim();
+    
+    if (!newContent) {
+        alert('Le message ne peut pas être vide');
+        return;
+    }
+    
+    // Demander confirmation car cela va supprimer les messages suivants
+    if (!confirm('⚠️ Attention : Cette action va supprimer tous les messages qui suivent ce message et générer une nouvelle réponse. Êtes-vous sûr de vouloir continuer ?')) {
+        return;
+    }
+    
+    // Envoyer la requête de modification
+    fetch(`/chatbot/api/message/${messageId}/edit/`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            content: newContent
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Supprimer tous les messages qui suivent le message modifié
+            deleteMessagesAfter(messageId);
+            
+            // Mettre à jour le message dans l'interface
+            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageElement) {
+                const contentDiv = messageElement.querySelector('.message-content');
+                const displayContent = escapeHtml(newContent);
+                contentDiv.innerHTML = `<strong>Vous :</strong> ${displayContent} <span class="edit-indicator" title="Message modifié">(modifié)</span>`;
+            }
+            
+            closeEditModal();
+            
+            // Afficher le nombre de messages supprimés
+            const deletedCount = data.deleted_messages_count || 0;
+            if (deletedCount > 0) {
+                showChatNotification(`Message modifié et ${deletedCount} message(s) suivant(s) supprimé(s)`, 'success');
+            } else {
+                showChatNotification('Message modifié avec succès', 'success');
+            }
+            
+            // Générer une nouvelle réponse de l'assistant basée sur le message modifié
+            generateNewResponse(newContent, messageId);
+        } else {
+            alert('Erreur lors de la modification: ' + (data.error || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        console.error('Erreur lors de la modification:', error);
+        alert('Erreur lors de la modification du message');
+    });
+}
+
+function deleteMessagesAfter(messageId) {
+    // Trouver l'élément du message modifié
+    const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+    if (!messageElement) return;
+    
+    // Supprimer tous les messages qui suivent ce message
+    let nextElement = messageElement.nextElementSibling;
+    while (nextElement) {
+        const temp = nextElement.nextElementSibling;
+        nextElement.remove();
+        nextElement = temp;
+    }
+    
+    console.log('Messages suivants supprimés après le message', messageId);
+}
+
+function generateNewResponse(modifiedMessage, originalMessageId) {
+    // Afficher un indicateur de chargement spécial
+    showChatNotification('🔄 Génération d\'une nouvelle réponse basée sur votre modification...', 'info');
+    
+    // Ajouter un indicateur de frappe pour montrer que l'assistant travaille
+    showTypingIndicator();
+    
+    // Envoyer le message modifié pour obtenir une nouvelle réponse
+    fetch('/chatbot/api/chat/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            message: modifiedMessage,
+            session_id: currentSessionId,
+            is_edit_response: true, // Flag pour indiquer que c'est une réponse à une modification
+            original_message_id: originalMessageId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Masquer l'indicateur de frappe
+        hideTypingIndicator();
+        
+        if (data.success) {
+            // Ajouter la nouvelle réponse de l'assistant avec un indicateur spécial
+            addMessage('assistant', data.response, {
+                id: data.message_id,
+                is_edited: false,
+                edited_at: null,
+                original_content: null
+            });
+            
+            // Ajouter un indicateur visuel que c'est une réponse à une modification
+            const lastMessage = document.querySelector('.message.assistant:last-child');
+            if (lastMessage) {
+                const contentDiv = lastMessage.querySelector('.message-content');
+                if (contentDiv) {
+                    contentDiv.innerHTML = contentDiv.innerHTML + ' <span class="edit-response-indicator" title="Réponse générée suite à la modification de votre message">🔄</span>';
+                }
+            }
+            
+            showChatNotification('✅ Nouvelle réponse générée !', 'success');
+        } else {
+            showChatNotification('❌ Erreur lors de la génération de la réponse', 'error');
+        }
+    })
+    .catch(error => {
+        // Masquer l'indicateur de frappe
+        hideTypingIndicator();
+        
+        console.error('Erreur lors de la génération de la réponse:', error);
+        showChatNotification('❌ Erreur lors de la génération de la réponse', 'error');
+    });
 }
 
 function processMarkdown(text) {
@@ -3230,7 +3839,7 @@ function loadSession(sessionId) {
         messagesContainer.innerHTML = '';
         
         data.messages.forEach(msg => {
-            addMessage(msg.type, msg.content);
+            addMessage(msg.type, msg.content, msg);
         });
         
         // Afficher les PDFs uploadés pour cette session
@@ -3725,9 +4334,32 @@ function getCookie(name) {
     // Fonction pour supprimer un PDF
     function removePDF(fileId) {
         if (confirm('Êtes-vous sûr de vouloir supprimer ce PDF ?')) {
-            // Ici vous pouvez ajouter une fonction pour supprimer le PDF
-            console.log('Suppression du PDF:', fileId);
-            displayUploadedPDFs(); // Recharger la liste
+            console.log('🗑️ Suppression du PDF:', fileId);
+            
+            // Afficher un indicateur de chargement
+            showChatNotification('Suppression du fichier...', 'info');
+            
+            // Appeler l'API de suppression
+            fetch(`/chatbot/api/file/${fileId}/delete/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showChatNotification('✅ Fichier supprimé avec succès', 'success');
+                    // Recharger la liste des fichiers
+                    displayUploadedPDFs();
+                } else {
+                    showChatNotification('❌ Erreur lors de la suppression: ' + (data.error || 'Erreur inconnue'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la suppression:', error);
+                showChatNotification('❌ Erreur lors de la suppression du fichier', 'error');
+            });
         }
     }
 
