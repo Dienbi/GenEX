@@ -36,3 +36,4 @@ class FolderForm(forms.ModelForm):
             field.widget.attrs.update({
                 'class': 'form-control'
             })
+

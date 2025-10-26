@@ -156,15 +156,16 @@
     transform: translateY(-2px);
 }
 
-.btn-print {
-    background: var(--info-color);
+.btn-audio {
+    background: #e74c3c;
     color: white;
 }
 
-.btn-print:hover {
-    background: #138496;
+.btn-audio:hover {
+    background: #c0392b;
     transform: translateY(-2px);
 }
+
 
 .btn-organize {
     background: #6f42c1;
@@ -997,6 +998,549 @@
         font-size: 0.8rem;
     }
     
+    /* Styles pour l'interface audio */
+    .audio-sections-container {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+    
+    .audio-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+    }
+    
+    .audio-header h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.5rem;
+    }
+    
+    .audio-header p {
+        margin: 0;
+        opacity: 0.9;
+    }
+    
+    .audio-sections-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .audio-section-item {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .audio-section-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .section-header h4 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.2rem;
+        flex: 1;
+    }
+    
+    .section-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-play, .btn-generate {
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 1rem;
+    }
+    
+    .btn-play:hover {
+        background: #2980b9;
+        transform: scale(1.1);
+    }
+    
+    .btn-generate {
+        background: #e74c3c;
+    }
+    
+    .btn-generate:hover {
+        background: #c0392b;
+        transform: scale(1.1);
+    }
+    
+    .section-preview {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+    }
+    
+    .audio-player-container {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .audio-player-container audio {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Contrôles audio personnalisés */
+    .audio-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .audio-btn {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 1rem;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .audio-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .audio-btn:hover::before {
+        left: 100%;
+    }
+    
+    .audio-btn:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+    }
+    
+    .audio-btn:active {
+        transform: translateY(0) scale(0.98);
+    }
+    
+    .btn-play-audio {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    }
+    
+    .btn-play-audio:hover {
+        background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+    }
+    
+    .btn-pause-audio {
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    }
+    
+    .btn-pause-audio:hover {
+        background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+    }
+    
+    .btn-stop-audio {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    }
+    
+    .btn-stop-audio:hover {
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    }
+    
+    .btn-volume {
+        background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    }
+    
+    .btn-volume:hover {
+        background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%);
+    }
+    
+    .audio-progress {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0 1rem;
+    }
+    
+    .current-time, .total-time {
+        font-size: 0.85rem;
+        color: #495057;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        background: rgba(255,255,255,0.8);
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+        min-width: 45px;
+        text-align: center;
+    }
+    
+    .progress-bar {
+        flex: 1;
+        height: 8px;
+        background: linear-gradient(90deg, #e9ecef 0%, #f8f9fa 100%);
+        border-radius: 6px;
+        overflow: hidden;
+        cursor: pointer;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
+    }
+    
+    .progress-bar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+        border-radius: 6px;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-color) 0%, #0056b3 100%);
+        width: 0%;
+        transition: width 0.1s ease;
+        border-radius: 6px;
+        position: relative;
+        box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+    }
+    
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+        transform: translate(50%, -2px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        border: 2px solid var(--primary-color);
+    }
+    
+    .progress-bar:hover .progress-fill {
+        background: linear-gradient(90deg, #2980b9, #1f5f8b);
+    }
+    
+    .audio-info {
+        display: flex;
+        gap: 1rem;
+        color: #666;
+        font-size: 0.85rem;
+    }
+    
+    .audio-info small {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    /* Styles pour les contrôles audio dans les sections */
+    .section-audio-controls {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .audio-control-btn {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .audio-control-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .audio-control-btn:hover::before {
+        left: 100%;
+    }
+    
+    .audio-control-btn:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+    
+    .audio-control-btn:active {
+        transform: translateY(0) scale(0.98);
+    }
+    
+    .btn-generate-audio {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    }
+    
+    .btn-generate-audio:hover {
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    }
+    
+    .btn-play-audio {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    }
+    
+    .btn-play-audio:hover {
+        background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+    }
+    
+    .btn-pause-audio {
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    }
+    
+    .btn-pause-audio:hover {
+        background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+    }
+    
+    .btn-stop-audio {
+        background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    }
+    
+    .btn-stop-audio:hover {
+        background: linear-gradient(135deg, #7f8c8d 0%, #6c7b7d 100%);
+    }
+    
+    /* Animation de pulsation pour le bouton de génération */
+    .btn-generate-audio {
+        animation: pulse-generate 2s infinite;
+    }
+    
+    @keyframes pulse-generate {
+        0% { box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3); }
+        50% { box-shadow: 0 4px 12px rgba(231, 76, 60, 0.6), 0 0 0 10px rgba(231, 76, 60, 0.1); }
+        100% { box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3); }
+    }
+    
+    /* Indicateur de statut */
+    .audio-control-btn[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+    
+    .audio-control-btn[disabled]:hover {
+        transform: none !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* États de chargement et d'erreur */
+    .audio-control-btn.loading {
+        position: relative;
+        pointer-events: none;
+    }
+    
+    .audio-control-btn.loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        border: 2px solid transparent;
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .audio-control-btn.error {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    
+    .audio-control-btn.success {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        animation: success-pulse 0.6s ease-out;
+    }
+    
+    @keyframes success-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Responsive design pour les contrôles audio */
+    @media (max-width: 768px) {
+        .section-audio-controls {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.75rem;
+        }
+        
+        .audio-control-btn {
+            width: 42px;
+            height: 42px;
+            font-size: 1rem;
+        }
+        
+        .audio-progress {
+            margin: 0 0.5rem;
+            gap: 0.5rem;
+        }
+        
+        .current-time, .total-time {
+            font-size: 0.75rem;
+            min-width: 40px;
+            padding: 0.2rem 0.4rem;
+        }
+    }
+    
+    /* Lecteur audio intégré dans les sections */
+    .section-audio-player {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 16px;
+        border: 1px solid #e9ecef;
+        border-left: 6px solid var(--primary-color);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .section-audio-player::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), var(--info-color), var(--success-color));
+    }
+    
+    .section-audio-player .audio-controls {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .section-audio-player .audio-info {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(52, 152, 219, 0.05);
+        border-radius: 8px;
+        border: 1px solid rgba(52, 152, 219, 0.1);
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .section-audio-player .audio-info small {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #e9ecef;
+        font-weight: 500;
+        color: #495057;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .section-audio-player .audio-info small i {
+        color: var(--primary-color);
+    }
+    
+    .section-audio-player .download-link {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+        color: white !important;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+    }
+    
+    .section-audio-player .download-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        text-decoration: none;
+    }
+    
     .code-header {
         flex-direction: column;
         gap: 0.75rem;
@@ -1131,10 +1675,59 @@
                     <span><i class="fas fa-hashtag"></i> Section {{ forloop.counter }}</span>
                     <span><i class="fas fa-layer-group"></i> Niveau {{ section.level }}</span>
                 </div>
+                <div class="section-audio-controls">
+                    <button onclick="generateSectionAudio({{ forloop.counter0 }})" class="audio-control-btn btn-generate-audio" title="Générer l'audio">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button onclick="playSectionAudio({{ forloop.counter0 }})" class="audio-control-btn btn-play-audio" title="Écouter" style="display: none;">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button onclick="pauseSectionAudio({{ forloop.counter0 }})" class="audio-control-btn btn-pause-audio" title="Pause" style="display: none;">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button onclick="stopSectionAudio({{ forloop.counter0 }})" class="audio-control-btn btn-stop-audio" title="Arrêter" style="display: none;">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                </div>
             </div>
             
             <div class="section-content">
                 {{ section.content|linebreaks|safe }}
+            </div>
+            
+            <!-- Lecteur audio intégré -->
+            <div id="audio-player-{{ forloop.counter0 }}" class="section-audio-player" style="display: none;">
+                <div class="audio-controls">
+                    <button onclick="playAudio({{ forloop.counter0 }})" class="audio-btn btn-play-audio" title="Jouer">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button onclick="pauseAudio({{ forloop.counter0 }})" class="audio-btn btn-pause-audio" title="Pause">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button onclick="stopAudio({{ forloop.counter0 }})" class="audio-btn btn-stop-audio" title="Arrêter">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                    <div class="audio-progress">
+                        <span class="current-time">0:00</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <span class="total-time">0:00</span>
+                    </div>
+                    <button onclick="toggleMute({{ forloop.counter0 }})" class="audio-btn btn-volume" title="Volume">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+                <audio id="audio-{{ forloop.counter0 }}" preload="metadata" crossorigin="anonymous" style="display: none;">
+                    <source src="" type="audio/mpeg">
+                    <source src="" type="audio/wav">
+                    Votre navigateur ne supporte pas l'élément audio.
+                </audio>
+                <div class="audio-info">
+                    <small><i class="fas fa-clock"></i> <span class="duration">0:00</span></small>
+                    <small><i class="fas fa-file"></i> <span class="file-size">0 MB</span></small>
+                    <small><i class="fas fa-link"></i> <a href="#" target="_blank" class="download-link" style="color: #3498db;">Télécharger</a></small>
+                </div>
             </div>
         </section>
         {% endfor %}
@@ -1150,9 +1743,6 @@
                 <button onclick="copySummary()" class="nav-btn btn-summary" aria-label="Copier le résumé">
                     <i class="far fa-copy"></i> Copier
                 </button>
-                <button onclick="downloadSummary()" class="nav-btn btn-print" aria-label="Télécharger le résumé en PDF">
-                    <i class="fas fa-download"></i> PDF
-                </button>
                 <button class="close-btn" onclick="closeSummary()" aria-label="Fermer le résumé">&times;</button>
             </div>
         </div>
@@ -1165,7 +1755,7 @@
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <script>
 // Test de fonctionnement JavaScript
 console.log('JavaScript loaded successfully');
@@ -1190,6 +1780,7 @@ window.generateSummary = function() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
     
+    
     const url = '{% url "courses:course_summary" course.pk %}';
     console.log('Making request to:', url);
     
@@ -1207,17 +1798,27 @@ window.generateSummary = function() {
     .then(data => {
         console.log('Response data:', data);
         if (data.success) {
+            // Debug: afficher le résumé brut retourné par le serveur
+            console.log('📄 Résumé brut du serveur:', data.summary);
+            console.log('📏 Longueur du résumé:', data.summary.length);
+            
             // Parser le résumé pour extraire les sections
-            content.innerHTML = formatSummary(data.summary);
+            const formattedSummary = formatSummary(data.summary);
+            console.log('📝 Résumé formaté:', formattedSummary);
+            
+            content.innerHTML = formattedSummary;
             content.focus();
             initCollapsibleSections();
+            
         } else {
             content.innerHTML = '<div style="color: var(--primary-color); text-align: center; padding: 2rem;"><i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i><h3>Erreur lors de la génération</h3><p>' + data.error + '</p></div>';
+            
         }
     })
     .catch(error => {
         console.error('Fetch error:', error);
         content.innerHTML = '<div style="color: var(--primary-color); text-align: center; padding: 2rem;"><i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i><h3>Erreur de connexion</h3><p>' + error.message + '</p></div>';
+        
     })
     .finally(() => {
         btn.disabled = false;
@@ -1227,17 +1828,52 @@ window.generateSummary = function() {
 
 // Formater le résumé pour un affichage structuré
 function formatSummary(summary) {
-    // Supposons que le résumé est structuré avec des sections marquées par <h3>
+    console.log('🔧 formatSummary appelée avec:', summary.substring(0, 200) + '...');
+    
+    // Si le résumé est déjà un HTML complet avec .summary-container, le retourner tel quel
+    if (summary.includes('class="summary-container"')) {
+        console.log('✅ Résumé contient déjà .summary-container, retour direct');
+        return summary;
+    }
+    
+    try {
     const parser = new DOMParser();
     const doc = parser.parseFromString(summary, 'text/html');
     
-    // Extraire les sections
-    const sections = doc.querySelectorAll('.summary-container > h3, .summary-container > div, .summary-container > ul');
-    let formattedHtml = '<div class="summary-container">';
-    
+        // Vérifier si on a déjà une structure .summary-container
+        const existingContainer = doc.querySelector('.summary-container');
+        if (existingContainer) {
+            console.log('✅ Container .summary-container trouvé, retour direct');
+            return summary;
+        }
+        
+        // Essayer d'extraire les sections avec différents sélecteurs
+        let sections = doc.querySelectorAll('.summary-container > h3, .summary-container > div, .summary-container > ul');
+        
+        // Si pas de sections trouvées, essayer d'autres sélecteurs
+        if (sections.length === 0) {
+            sections = doc.querySelectorAll('h3, h2, h1');
+            console.log('🔍 Sections trouvées avec sélecteurs alternatifs:', sections.length);
+        }
+        
+        // Si toujours pas de sections, créer une structure simple
+        if (sections.length === 0) {
+            console.log('⚠️ Aucune section trouvée, création d\'une structure simple');
+            return `<div class="summary-container">
+                <div class="summary-section">
+                    <h3><i class="fas fa-robot"></i> Résumé du cours</h3>
+                    <div class="summary-section-content">
+                        ${summary}
+                    </div>
+                </div>
+            </div>`;
+        }
+        
+        let formattedHtml = '<div class="summary-container">';
     let currentSection = null;
+        
     sections.forEach(node => {
-        if (node.tagName.toLowerCase() === 'h3') {
+            if (node.tagName.toLowerCase().match(/^h[1-6]$/)) {
             if (currentSection) {
                 formattedHtml += '</div></div>'; // Fermer la section précédente
             }
@@ -1269,7 +1905,21 @@ function formatSummary(summary) {
     }
     
     formattedHtml += '</div>';
+        console.log('✅ Résumé formaté avec succès');
     return formattedHtml;
+        
+    } catch (error) {
+        console.error('❌ Erreur dans formatSummary:', error);
+        // En cas d'erreur, retourner une structure simple
+        return `<div class="summary-container">
+            <div class="summary-section">
+                <h3><i class="fas fa-robot"></i> Résumé du cours</h3>
+                <div class="summary-section-content">
+                    ${summary}
+                </div>
+            </div>
+        </div>`;
+    }
 }
 
 // Initialiser les sections rétractables
@@ -1303,17 +1953,735 @@ function copySummary() {
     });
 }
 
-// Télécharger le résumé en PDF
-function downloadSummary() {
-    const element = document.getElementById('summaryContent');
-    const opt = {
-        margin: 1,
-        filename: `Résumé_${document.querySelector('.course-header h1').textContent}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-    html2pdf().from(element).set(opt).save();
+// ===== FONCTIONS POUR LES PODCASTS AUDIO =====
+
+// Afficher la modal audio
+function showAudioModal() {
+    const modal = document.getElementById('audioModal');
+    const content = document.getElementById('audioContent');
+    
+    if (!modal || !content) {
+        console.error('Required elements not found');
+        showCopyNotification('Erreur: Éléments de l\'interface non trouvés', 'error');
+        return;
+    }
+    
+    modal.style.display = 'block';
+    modal.setAttribute('aria-hidden', 'false');
+    content.innerHTML = '<div class="loading"><i class="fas fa-spinner" aria-hidden="true"></i><p>Chargement des sections audio...</p></div>';
+    
+    // Charger la liste des sections avec audio
+    loadAudioSections();
+}
+
+// Fermer la modal audio
+function closeAudioModal() {
+    const modal = document.getElementById('audioModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        
+        // Arrêter tous les lecteurs audio
+        const audioElements = modal.querySelectorAll('audio');
+        audioElements.forEach(audio => {
+            audio.pause();
+            audio.currentTime = 0;
+        });
+    }
+}
+
+// Charger les sections avec audio
+function loadAudioSections() {
+    const content = document.getElementById('audioContent');
+    const courseId = {{ course.pk|default:"0" }};
+    
+    fetch(`/courses/${courseId}/audio-list/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayAudioSections(data);
+            } else {
+                content.innerHTML = `<div style="color: var(--primary-color); text-align: center; padding: 2rem;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h3>Erreur lors du chargement</h3>
+                    <p>${data.error}</p>
+                </div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            content.innerHTML = `<div style="color: var(--primary-color); text-align: center; padding: 2rem;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h3>Erreur de connexion</h3>
+                <p>${error.message}</p>
+            </div>`;
+        });
+}
+
+// Afficher les sections avec audio
+function displayAudioSections(data) {
+    const content = document.getElementById('audioContent');
+    
+    let html = `
+        <div class="audio-sections-container">
+            <div class="audio-header">
+                <h3><i class="fas fa-headphones"></i> ${data.course_title}</h3>
+                <p><i class="fas fa-language"></i> Langue: ${data.course_language.toUpperCase()}</p>
+            </div>
+            <div class="audio-sections-list">
+    `;
+    
+    data.sections.forEach(section => {
+        html += `
+            <div class="audio-section-item" data-section-index="${section.index}">
+                <div class="section-header">
+                    <h4><i class="fas fa-play-circle"></i> ${section.title}</h4>
+                    <div class="section-actions">
+                        ${section.has_audio ? 
+                            `<button onclick="playSectionAudio(${section.index})" class="btn-play" title="Écouter">
+                                <i class="fas fa-play"></i>
+                            </button>` :
+                            `<button onclick="generateSectionAudio(${section.index})" class="btn-generate" title="Générer l'audio">
+                                <i class="fas fa-microphone"></i>
+                            </button>`
+                        }
+                    </div>
+                </div>
+                <div class="section-preview">
+                    ${section.content_preview}
+                </div>
+                ${section.has_audio ? `
+                    <div class="audio-player-container" id="player-${section.index}" style="display: none;">
+                        <div class="audio-controls">
+                            <button onclick="playAudio(${section.index})" class="audio-btn btn-play-audio" title="Jouer">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button onclick="pauseAudio(${section.index})" class="audio-btn btn-pause-audio" title="Pause">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button onclick="stopAudio(${section.index})" class="audio-btn btn-stop-audio" title="Arrêter">
+                                <i class="fas fa-stop"></i>
+                            </button>
+                            <div class="audio-progress">
+                                <span class="current-time">0:00</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <span class="total-time">${section.audio_files[0].info.duration_formatted}</span>
+                            </div>
+                            <button onclick="toggleMute(${section.index})" class="audio-btn btn-volume" title="Volume">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </div>
+                        <audio id="audio-${section.index}" preload="metadata" crossorigin="anonymous" style="display: none;">
+                            <source src="${section.audio_files[0].url}" type="audio/mpeg">
+                            <source src="${section.audio_files[0].url}" type="audio/wav">
+                            Votre navigateur ne supporte pas l'élément audio.
+                        </audio>
+                        <div class="audio-info">
+                            <small><i class="fas fa-clock"></i> ${section.audio_files[0].info.duration_formatted}</small>
+                            <small><i class="fas fa-file"></i> ${section.audio_files[0].info.file_size_mb} MB</small>
+                            <small><i class="fas fa-link"></i> <a href="${section.audio_files[0].url}" target="_blank" style="color: #3498db;">Télécharger</a></small>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    });
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    content.innerHTML = html;
+    
+    // Initialiser les événements pour tous les lecteurs audio
+    setTimeout(() => {
+        data.sections.forEach(section => {
+            if (section.has_audio) {
+                initializeAudioEvents(section.index);
+            }
+        });
+    }, 100);
+}
+
+// Générer l'audio pour une section
+function generateSectionAudio(sectionIndex) {
+    const courseId = {{ course.pk|default:0 }};
+    const button = document.querySelector('.btn-generate-audio[onclick*="' + sectionIndex + '"]');
+    
+    if (button) {
+        button.disabled = true;
+        button.classList.add('loading');
+        button.innerHTML = '<i class="fas fa-microphone"></i>';
+    }
+    
+    fetch('/courses/' + courseId + '/audio/' + sectionIndex + '/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showCopyNotification('Audio généré avec succès', 'success');
+            
+            // Animation de succès
+            if (button) {
+                button.classList.remove('loading');
+                button.classList.add('success');
+                setTimeout(() => {
+                    button.classList.remove('success');
+                }, 600);
+            }
+            
+            // Mettre à jour l'interface pour cette section
+            updateSectionAfterAudioGeneration(sectionIndex, data);
+        } else {
+            showCopyNotification('Erreur lors de la génération: ' + data.error, 'error');
+            
+            // Animation d'erreur
+            if (button) {
+                button.classList.remove('loading');
+                button.classList.add('error');
+                setTimeout(() => {
+                    button.classList.remove('error');
+                }, 500);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showCopyNotification('Erreur lors de la génération audio', 'error');
+        
+        // Animation d'erreur
+        if (button) {
+            button.classList.remove('loading');
+            button.classList.add('error');
+            setTimeout(() => {
+                button.classList.remove('error');
+            }, 500);
+        }
+    })
+    .finally(() => {
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-microphone"></i>';
+        }
+    });
+}
+
+// Mettre à jour une section après génération d'audio
+function updateSectionAfterAudioGeneration(sectionIndex, data) {
+    // Masquer le bouton de génération
+    const generateBtn = document.querySelector('.btn-generate-audio[onclick*="' + sectionIndex + '"]');
+    if (generateBtn) {
+        generateBtn.style.display = 'none';
+    }
+    
+    // Afficher les boutons de contrôle
+    const playBtn = document.querySelector('.btn-play-audio[onclick*="playSectionAudio(' + sectionIndex + ')"]');
+    const pauseBtn = document.querySelector('.btn-pause-audio[onclick*="pauseSectionAudio(' + sectionIndex + ')"]');
+    const stopBtn = document.querySelector('.btn-stop-audio[onclick*="stopSectionAudio(' + sectionIndex + ')"]');
+    
+    if (playBtn) playBtn.style.display = 'flex';
+    if (pauseBtn) pauseBtn.style.display = 'flex';
+    if (stopBtn) stopBtn.style.display = 'flex';
+    
+    // Configurer le lecteur audio
+    const audioPlayer = document.getElementById('audio-player-' + sectionIndex);
+    const audio = document.getElementById('audio-' + sectionIndex);
+    
+    if (audioPlayer && audio) {
+        // Mettre à jour les sources audio
+        const sources = audio.querySelectorAll('source');
+        sources.forEach(source => {
+            source.src = data.audio_url;
+        });
+        
+        // Mettre à jour les informations
+        const durationSpan = audioPlayer.querySelector('.duration');
+        const fileSizeSpan = audioPlayer.querySelector('.file-size');
+        const downloadLink = audioPlayer.querySelector('.download-link');
+        
+        if (durationSpan && data.audio_info) {
+            durationSpan.textContent = data.audio_info.duration_formatted;
+        }
+        if (fileSizeSpan && data.audio_info) {
+            fileSizeSpan.textContent = data.audio_info.file_size_mb + ' MB';
+        }
+        if (downloadLink) {
+            downloadLink.href = data.audio_url;
+        }
+        
+        // Afficher le lecteur
+        audioPlayer.style.display = 'block';
+    }
+}
+
+// Contrôles audio pour les sections
+function playSectionAudio(sectionIndex) {
+    console.log('playSectionAudio appelée pour section:', sectionIndex);
+    
+    const audioPlayer = document.getElementById('audio-player-' + sectionIndex);
+    const audio = document.getElementById('audio-' + sectionIndex);
+    
+    console.log('audioPlayer trouvé:', !!audioPlayer);
+    console.log('audio trouvé:', !!audio);
+    
+    if (audioPlayer && audio) {
+        if (audioPlayer.style.display === 'none' || audioPlayer.style.display === '') {
+            console.log('Affichage du lecteur audio');
+            
+            // Arrêter tous les autres audios
+            stopAllOtherAudios(sectionIndex);
+            
+            // Afficher le lecteur
+            audioPlayer.style.display = 'block';
+            
+            // Attendre un peu avant de jouer pour éviter les conflits
+            setTimeout(() => {
+                console.log('Tentative de lecture de l\'audio...');
+                safePlayAudio(audio).then(() => {
+                    console.log('Audio joué avec succès via playSectionAudio');
+                }).catch(function(error) {
+                    console.error('Erreur de lecture:', error);
+                    // Ne pas afficher d'alerte pour les erreurs d'interruption
+                    if (!error.message.includes('interrupted') && !error.message.includes('AbortError')) {
+                        alert('Erreur de lecture: ' + error.message);
+                    }
+                });
+            }, 200);
+        } else {
+            console.log('Masquage du lecteur audio');
+            // Masquer le lecteur et arrêter l'audio
+            audioPlayer.style.display = 'none';
+            if (!audio.paused) {
+                audio.pause();
+            }
+        }
+    } else {
+        console.error('Éléments audio non trouvés pour la section:', sectionIndex);
+    }
+}
+
+function pauseSectionAudio(sectionIndex) {
+    const audio = document.getElementById('audio-' + sectionIndex);
+    if (audio) {
+        audio.pause();
+    }
+}
+
+function stopSectionAudio(sectionIndex) {
+    const audio = document.getElementById('audio-' + sectionIndex);
+    const audioPlayer = document.getElementById('audio-player-' + sectionIndex);
+    
+    if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+    }
+    
+    if (audioPlayer) {
+        audioPlayer.style.display = 'none';
+    }
+}
+
+// Mettre à jour une section après génération d'audio
+function updateSectionAfterGeneration(sectionIndex, data) {
+    const sectionItem = document.querySelector(`[data-section-index="${sectionIndex}"]`);
+    if (!sectionItem) return;
+    
+    // Remplacer le bouton de génération par le bouton de lecture
+    const actionsDiv = sectionItem.querySelector('.section-actions');
+    if (actionsDiv) {
+        actionsDiv.innerHTML = `
+            <button onclick="playSectionAudio(${sectionIndex})" class="btn-play" title="Écouter">
+                <i class="fas fa-play"></i>
+            </button>
+        `;
+    }
+    
+    // Ajouter le lecteur audio
+    const audioPlayerContainer = document.createElement('div');
+    audioPlayerContainer.className = 'audio-player-container';
+    audioPlayerContainer.id = `player-${sectionIndex}`;
+    audioPlayerContainer.style.display = 'none';
+    
+    const audioInfo = data.audio_info || { duration_formatted: '0:00', file_size_mb: '0' };
+    
+    audioPlayerContainer.innerHTML = `
+        <div class="audio-controls">
+            <button onclick="playAudio(${sectionIndex})" class="audio-btn btn-play-audio" title="Jouer">
+                <i class="fas fa-play"></i>
+            </button>
+            <button onclick="pauseAudio(${sectionIndex})" class="audio-btn btn-pause-audio" title="Pause">
+                <i class="fas fa-pause"></i>
+            </button>
+            <button onclick="stopAudio(${sectionIndex})" class="audio-btn btn-stop-audio" title="Arrêter">
+                <i class="fas fa-stop"></i>
+            </button>
+            <div class="audio-progress">
+                <span class="current-time">0:00</span>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <span class="total-time">${audioInfo.duration_formatted}</span>
+            </div>
+            <button onclick="toggleMute(${sectionIndex})" class="audio-btn btn-volume" title="Volume">
+                <i class="fas fa-volume-up"></i>
+            </button>
+        </div>
+        <audio id="audio-${sectionIndex}" preload="metadata" crossorigin="anonymous" style="display: none;">
+            <source src="${data.audio_url}" type="audio/mpeg">
+            <source src="${data.audio_url}" type="audio/wav">
+            Votre navigateur ne supporte pas l'élément audio.
+        </audio>
+        <div class="audio-info">
+            <small><i class="fas fa-clock"></i> ${audioInfo.duration_formatted}</small>
+            <small><i class="fas fa-file"></i> ${audioInfo.file_size_mb} MB</small>
+            <small><i class="fas fa-link"></i> <a href="${data.audio_url}" target="_blank" style="color: #3498db;">Télécharger</a></small>
+        </div>
+    `;
+    
+    // Ajouter le lecteur à la section
+    sectionItem.appendChild(audioPlayerContainer);
+    
+    // Afficher un message de succès
+    showCopyNotification(`Audio prêt ! Cliquez sur ▶️ pour écouter "${data.section_title}"`, 'success');
+    
+    // Initialiser les événements audio après un court délai
+    setTimeout(() => {
+        initializeAudioEvents(sectionIndex);
+    }, 500);
+}
+
+// ===== FONCTIONS DE CONTRÔLE AUDIO =====
+
+// Fonction utilitaire pour jouer l'audio de manière sécurisée
+function safePlayAudio(audio) {
+    console.log('safePlayAudio appelée pour:', audio);
+    
+    if (!audio) {
+        console.warn('Audio element non trouvé');
+        return Promise.reject(new Error('Audio element non trouvé'));
+    }
+    
+    if (audio.paused === false) {
+        console.log('Audio déjà en cours de lecture');
+        return Promise.resolve();
+    }
+    
+    // Vérifier que l'audio a une source
+    const hasSrc = audio.src || audio.querySelector('source[src]');
+    if (!hasSrc) {
+        console.warn('Audio sans source, impossible de jouer');
+        return Promise.reject(new Error('Audio sans source'));
+    }
+    
+    console.log('Source audio trouvée:', audio.src || audio.querySelector('source[src]').src);
+    console.log('État audio - paused:', audio.paused, 'readyState:', audio.readyState);
+    
+    return new Promise((resolve, reject) => {
+        try {
+            // Forcer le chargement si nécessaire
+            if (audio.readyState < 2) {
+                console.log('Chargement de l\'audio...');
+                audio.load();
+            }
+            
+            const playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        console.log('Audio joué avec succès');
+                        resolve();
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors de la lecture:', error);
+                        // Ignorer les erreurs d'interruption
+                        if (error.name === 'AbortError' || error.message.includes('interrupted')) {
+                            console.log('Erreur d\'interruption ignorée');
+                            resolve(); // Résoudre au lieu de rejeter
+                        } else {
+                            reject(error);
+                        }
+                    });
+            } else {
+                console.log('play() a retourné undefined');
+                resolve();
+            }
+        } catch (error) {
+            console.error('Erreur dans safePlayAudio:', error);
+            reject(error);
+        }
+    });
+}
+
+// Arrêter tous les autres audios
+function stopAllOtherAudios(currentSectionIndex) {
+    const allAudios = document.querySelectorAll('audio');
+    allAudios.forEach((audio) => {
+        const audioId = audio.id;
+        const sectionIndex = audioId.replace('audio-', '');
+        if (sectionIndex !== currentSectionIndex.toString() && !audio.paused) {
+            audio.pause();
+        }
+    });
+}
+
+// Vérifier si l'audio joue vraiment
+function checkAudioPlaying(audio, sectionIndex) {
+    setTimeout(() => {
+        console.log('Vérification de l\'état audio après 1 seconde:');
+        console.log('- paused:', audio.paused);
+        console.log('- currentTime:', audio.currentTime);
+        console.log('- duration:', audio.duration);
+        console.log('- readyState:', audio.readyState);
+        
+        if (audio.paused) {
+            console.warn('Audio en pause après tentative de lecture');
+            showCopyNotification('Problème de lecture audio. Essayez de télécharger le fichier.', 'error');
+        } else {
+            console.log('Audio joue correctement');
+        }
+    }, 1000);
+}
+
+// Jouer l'audio
+function playAudio(sectionIndex) {
+    console.log('playAudio appelée pour section:', sectionIndex);
+    
+    const audio = document.getElementById('audio-' + sectionIndex);
+    if (audio) {
+        // Arrêter tous les autres audios d'abord
+        stopAllOtherAudios(sectionIndex);
+        
+        // Attendre un peu pour que les pauses se terminent
+        setTimeout(() => {
+            safePlayAudio(audio).then(() => {
+                updateAudioControls(sectionIndex, 'playing');
+                showCopyNotification('Lecture démarrée', 'success');
+                
+                // Vérifier si l'audio joue vraiment
+                checkAudioPlaying(audio, sectionIndex);
+                
+            }).catch(error => {
+                console.error('Erreur de lecture:', error);
+                if (error.message === 'Audio sans source') {
+                    showCopyNotification('Aucun fichier audio disponible. Générez d\'abord l\'audio.', 'error');
+                } else {
+                    showCopyNotification('Erreur de lecture: ' + error.message, 'error');
+                }
+            });
+        }, 200);
+    } else {
+        console.error('Audio element non trouvé pour section:', sectionIndex);
+    }
+}
+
+// Mettre en pause l'audio
+function pauseAudio(sectionIndex) {
+    const audio = document.getElementById('audio-' + sectionIndex);
+    if (audio && !audio.paused) {
+        audio.pause();
+        updateAudioControls(sectionIndex, 'paused');
+        showCopyNotification('Lecture en pause', 'info');
+    }
+}
+
+// Arrêter l'audio
+function stopAudio(sectionIndex) {
+    const audio = document.getElementById('audio-' + sectionIndex);
+    if (audio) {
+        if (!audio.paused) {
+            audio.pause();
+        }
+        audio.currentTime = 0;
+        updateAudioControls(sectionIndex, 'stopped');
+        updateProgressBar(sectionIndex, 0);
+        showCopyNotification('Lecture arrêtée', 'info');
+    }
+}
+
+// Basculer le volume (muet/non muet)
+function toggleMute(sectionIndex) {
+    const audio = document.getElementById('audio-' + sectionIndex);
+    const volumeBtn = document.querySelector('#audio-player-' + sectionIndex + ' .btn-volume i');
+    
+    if (audio) {
+        if (audio.muted) {
+            audio.muted = false;
+            if (volumeBtn) {
+                volumeBtn.className = 'fas fa-volume-up';
+            }
+            showCopyNotification('Son activé', 'success');
+        } else {
+            audio.muted = true;
+            if (volumeBtn) {
+                volumeBtn.className = 'fas fa-volume-mute';
+            }
+            showCopyNotification('Son désactivé', 'info');
+        }
+    }
+}
+
+// Mettre à jour les contrôles selon l'état
+function updateAudioControls(sectionIndex, state) {
+    const playBtn = document.querySelector('#audio-player-' + sectionIndex + ' .btn-play-audio');
+    const pauseBtn = document.querySelector('#audio-player-' + sectionIndex + ' .btn-pause-audio');
+    const stopBtn = document.querySelector('#audio-player-' + sectionIndex + ' .btn-stop-audio');
+    
+    // Réinitialiser tous les boutons
+    if (playBtn) playBtn.style.opacity = '1';
+    if (pauseBtn) pauseBtn.style.opacity = '1';
+    if (stopBtn) stopBtn.style.opacity = '1';
+    
+    switch(state) {
+        case 'playing':
+            if (playBtn) playBtn.style.opacity = '0.5';
+            break;
+        case 'paused':
+            if (pauseBtn) pauseBtn.style.opacity = '0.5';
+            break;
+        case 'stopped':
+            if (stopBtn) stopBtn.style.opacity = '0.5';
+            break;
+    }
+}
+
+// Mettre à jour la barre de progression
+function updateProgressBar(sectionIndex, currentTime, duration) {
+    const progressFill = document.querySelector('#audio-player-' + sectionIndex + ' .progress-fill');
+    const currentTimeSpan = document.querySelector('#audio-player-' + sectionIndex + ' .current-time');
+    
+    if (progressFill && duration > 0) {
+        const percentage = (currentTime / duration) * 100;
+        progressFill.style.width = percentage + '%';
+    }
+    
+    if (currentTimeSpan) {
+        currentTimeSpan.textContent = formatTime(currentTime);
+    }
+}
+
+// Formater le temps (secondes vers MM:SS)
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Initialiser les événements audio
+function initializeAudioEvents(sectionIndex) {
+    const audio = document.getElementById(`audio-${sectionIndex}`);
+    if (!audio) return;
+    
+    // Événements de lecture
+    audio.addEventListener('play', () => {
+        updateAudioControls(sectionIndex, 'playing');
+    });
+    
+    audio.addEventListener('pause', () => {
+        updateAudioControls(sectionIndex, 'paused');
+    });
+    
+    audio.addEventListener('ended', () => {
+        updateAudioControls(sectionIndex, 'stopped');
+        updateProgressBar(sectionIndex, 0, audio.duration);
+        showCopyNotification('Lecture terminée', 'success');
+    });
+    
+    // Mise à jour de la progression
+    audio.addEventListener('timeupdate', () => {
+        updateProgressBar(sectionIndex, audio.currentTime, audio.duration);
+    });
+    
+    // Chargement des métadonnées
+    audio.addEventListener('loadedmetadata', () => {
+        const totalTimeSpan = document.querySelector('#audio-player-' + sectionIndex + ' .total-time');
+        if (totalTimeSpan) {
+            totalTimeSpan.textContent = formatTime(audio.duration);
+        }
+    });
+    
+    // Gestion des erreurs
+    audio.addEventListener('error', (e) => {
+        console.error('Erreur audio:', e);
+        showCopyNotification('Erreur de lecture audio', 'error');
+    });
+    
+    // Clic sur la barre de progression
+    const progressBar = document.querySelector('#audio-player-' + sectionIndex + ' .progress-bar');
+    if (progressBar) {
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percentage = clickX / rect.width;
+            const newTime = percentage * audio.duration;
+            audio.currentTime = newTime;
+        });
+    }
+}
+
+// Fonction de diagnostic audio
+window.diagnoseAudio = function(sectionIndex) {
+    console.log('=== DIAGNOSTIC AUDIO SECTION ' + sectionIndex + ' ===');
+    
+    const audio = document.getElementById('audio-' + sectionIndex);
+    const audioPlayer = document.getElementById('audio-player-' + sectionIndex);
+    
+    console.log('Audio element:', audio);
+    console.log('Audio player:', audioPlayer);
+    
+    if (audio) {
+        console.log('Propriétés audio:');
+        console.log('- src:', audio.src);
+        console.log('- paused:', audio.paused);
+        console.log('- muted:', audio.muted);
+        console.log('- volume:', audio.volume);
+        console.log('- currentTime:', audio.currentTime);
+        console.log('- duration:', audio.duration);
+        console.log('- readyState:', audio.readyState);
+        console.log('- networkState:', audio.networkState);
+        
+        const sources = audio.querySelectorAll('source');
+        console.log('Sources:', sources);
+        sources.forEach((source, index) => {
+            console.log('Source ' + index + ':', source.src, source.type);
+        });
+        
+        // Tester la lecture directe
+        console.log('Test de lecture directe...');
+        audio.play().then(() => {
+            console.log('Lecture directe réussie');
+        }).catch(error => {
+            console.error('Erreur lecture directe:', error);
+        });
+    } else {
+        console.error('Audio element non trouvé');
+    }
+    
+    console.log('=== FIN DIAGNOSTIC ===');
+};
+
+// Fonction utilitaire pour obtenir le cookie CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 
 // Détecter le langage de programmation

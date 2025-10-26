@@ -7,6 +7,7 @@ import requests
 import bleach
 import re
 import html
+import os
 from django.core.cache import cache
 import time
 import threading
@@ -21,6 +22,7 @@ import logging
 import json  # Ajouté pour gérer les données JSON dans course_summary
 from .models import Course, Folder
 from .forms import FolderForm
+from .tts_service import TTSService
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -878,3 +880,125 @@ def course_unassign_folder(request, course_pk, folder_pk):
         'course': course,
         'folder': folder
     })
+
+@login_required
+def generate_section_audio(request, pk, section_index):
+    """Génère l'audio pour une section spécifique du cours"""
+    if request.method == 'POST':
+        try:
+            course = get_object_or_404(Course, pk=pk, user=request.user)
+            sections = parse_course_content(course.content)
+            
+            if section_index < 0 or section_index >= len(sections):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Section non trouvée'
+                }, status=404)
+            
+            section = sections[section_index]
+            section_title = section.get('title', f'Section {section_index + 1}')
+            section_content = section.get('content', '')
+            
+            if not section_content or len(section_content.strip()) < 50:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Contenu de section trop court pour générer un audio'
+                })
+            
+            # Initialiser le service TTS
+            tts_service = TTSService()
+            
+            # Générer l'audio
+            audio_path = tts_service.generate_section_audio(
+                course_id=course.pk,
+                section_title=section_title,
+                content=section_content,
+                language=course.language
+            )
+            
+            # Obtenir l'URL publique
+            audio_url = tts_service.get_audio_url(audio_path)
+            
+            if not audio_url:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Erreur lors de la génération de l\'URL audio'
+                })
+            
+            # Obtenir les informations sur l'audio
+            audio_info = tts_service.get_audio_info(audio_path)
+            
+            return JsonResponse({
+                'success': True,
+                'audio_url': audio_url,
+                'section_title': section_title,
+                'audio_info': audio_info,
+                'message': f'Audio généré avec succès pour "{section_title}"'
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la génération audio: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': f'Erreur lors de la génération audio: {str(e)}'
+            }, status=500)
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Méthode non autorisée'
+    }, status=405)
+
+@login_required
+def get_course_audio_list(request, pk):
+    """Retourne la liste des sections du cours avec leurs audios disponibles"""
+    try:
+        course = get_object_or_404(Course, pk=pk, user=request.user)
+        sections = parse_course_content(course.content)
+        
+        tts_service = TTSService()
+        audio_base_path = tts_service.audio_base_path
+        
+        sections_with_audio = []
+        
+        for i, section in enumerate(sections):
+            section_title = section.get('title', f'Section {i + 1}')
+            
+            # Chercher les fichiers audio existants pour cette section
+            audio_files = []
+            if os.path.exists(audio_base_path):
+                for filename in os.listdir(audio_base_path):
+                    if filename.startswith(f"course_{course.pk}_") and filename.endswith('.mp3'):
+                        # Vérifier si ce fichier correspond à cette section
+                        if section_title.lower().replace(' ', '_') in filename.lower():
+                            audio_path = os.path.join(audio_base_path, filename)
+                            audio_url = tts_service.get_audio_url(audio_path)
+                            audio_info = tts_service.get_audio_info(audio_path)
+                            
+                            if audio_url:
+                                audio_files.append({
+                                    'url': audio_url,
+                                    'filename': filename,
+                                    'info': audio_info
+                                })
+            
+            sections_with_audio.append({
+                'index': i,
+                'title': section_title,
+                'content_preview': section.get('content', '')[:200] + '...' if len(section.get('content', '')) > 200 else section.get('content', ''),
+                'has_audio': len(audio_files) > 0,
+                'audio_files': audio_files
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'course_title': course.title,
+            'course_language': course.language,
+            'sections': sections_with_audio
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de la liste audio: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Erreur lors de la récupération de la liste audio: {str(e)}'
+        }, status=500)
