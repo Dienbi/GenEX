@@ -1,5 +1,22 @@
 from django.urls import path
+from . import views
+
+app_name = 'courses'
 
 urlpatterns = [
-    # Add your courses URLs here
+    # URLs pour les cours
+    path('', views.course_list, name='course_list'),
+    path('create/', views.course_create, name='course_create'),
+    path('<int:pk>/', views.course_detail, name='course_detail'),
+    path('<int:pk>/delete/', views.course_delete, name='course_delete'),
+    path('<int:pk>/summary/', views.course_summary, name='course_summary'),
+    path('<int:course_pk>/assign-folder/', views.course_assign_folder, name='course_assign_folder'),
+    path('<int:course_pk>/unassign-folder/<int:folder_pk>/', views.course_unassign_folder, name='course_unassign_folder'),
+    
+    # URLs pour les dossiers
+    path('folders/', views.folder_list, name='folder_list'),
+    path('folders/create/', views.folder_create, name='folder_create'),
+    path('folders/<int:pk>/', views.folder_detail, name='folder_detail'),
+    path('folders/<int:pk>/edit/', views.folder_edit, name='folder_edit'),
+    path('folders/<int:pk>/delete/', views.folder_delete, name='folder_delete'),
 ]

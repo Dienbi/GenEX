@@ -304,6 +304,8 @@
             <ul class="nav-menu">
                 <li><a href="{% url 'main:home' %}" class="{% block nav_home %}{% endblock %}">Accueil</a></li>
                 <li><a href="{% url 'main:about' %}" class="{% block nav_about %}{% endblock %}">À propos</a></li>
+                    <li><a href="{% url 'courses:course_list' %}" class="{% block nav_my_courses %}{% endblock %}"> Cours </a></li>
+                    <li><a href="{% url 'courses:folder_list' %}" class="{% block nav_folders %}{% endblock %}">Dossiers</a></li>
                 <li><a href="#" class="{% block nav_courses %}{% endblock %}">Programmes</a></li>
                 <li><a href="{% url 'exercises:exercise-dashboard' %}" class="{% block nav_exercises %}{% endblock %}">
                     <i class="fas fa-brain"></i> Exercices IA
