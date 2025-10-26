@@ -171,7 +171,7 @@ pipeline {
             emailext(
                 subject: "❌ GenEX Pipeline Failed - Build #${BUILD_NUMBER}",
                 body: "The pipeline failed. Check console output at ${BUILD_URL}",
-                to: 'admin@genex.tn'
+                to: 'dhia.borji2001@gmail.com'
             )
         }
     }
