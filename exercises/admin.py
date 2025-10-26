@@ -111,12 +111,12 @@ class AIExerciseGenerationAdmin(admin.ModelAdmin):
 
 @admin.register(ExerciseSubmission)
 class ExerciseSubmissionAdmin(admin.ModelAdmin):
-    list_display = ['user', 'exercise', 'score', 'is_correct', 'submitted_at']
-    list_filter = ['is_correct', 'submitted_at', 'exercise__category']
+    list_display = ['user', 'exercise', 'score', 'is_correct', 'submission_time']
+    list_filter = ['is_correct', 'submission_time', 'exercise__category']
     search_fields = ['user__username', 'exercise__title', 'user_answer']
-    readonly_fields = ['submitted_at']
+    readonly_fields = ['submission_time']
     list_per_page = 25
-    ordering = ['-submitted_at']
+    ordering = ['-submission_time']
 
 @admin.register(ExerciseCollection)
 class ExerciseCollectionAdmin(admin.ModelAdmin):
@@ -138,28 +138,28 @@ class ExerciseInCollectionAdmin(admin.ModelAdmin):
 
 @admin.register(ExerciseFavorite)
 class ExerciseFavoriteAdmin(admin.ModelAdmin):
-    list_display = ['user', 'exercise', 'added_at']
-    list_filter = ['added_at', 'exercise__category']
+    list_display = ['user', 'exercise', 'created_at']
+    list_filter = ['created_at', 'exercise__category']
     search_fields = ['user__username', 'exercise__title']
-    ordering = ['-added_at']
+    ordering = ['-created_at']
 
 @admin.register(ExerciseHistory)
 class ExerciseHistoryAdmin(admin.ModelAdmin):
-    list_display = ['user', 'exercise', 'completed_at', 'score']
-    list_filter = ['completed_at', 'exercise__category']
+    list_display = ['user', 'exercise', 'viewed_at', 'time_spent']
+    list_filter = ['viewed_at', 'exercise__category']
     search_fields = ['user__username', 'exercise__title']
-    ordering = ['-completed_at']
+    ordering = ['-viewed_at']
 
 @admin.register(ExerciseWishlist)
 class ExerciseWishlistAdmin(admin.ModelAdmin):
-    list_display = ['user', 'exercise', 'added_at']
-    list_filter = ['added_at', 'exercise__category']
+    list_display = ['user', 'exercise', 'added_at', 'priority']
+    list_filter = ['added_at', 'priority', 'exercise__category']
     search_fields = ['user__username', 'exercise__title']
     ordering = ['-added_at']
 
 @admin.register(ExerciseCorrectionSession)
 class ExerciseCorrectionSessionAdmin(admin.ModelAdmin):
-    list_display = ['submission', 'corrector', 'status', 'created_at']
-    list_filter = ['status', 'created_at']
-    search_fields = ['submission__exercise__title', 'corrector__username']
-    readonly_fields = ['created_at', 'updated_at']
+    list_display = ['user', 'exercise', 'is_active', 'started_at', 'best_score']
+    list_filter = ['is_active', 'started_at', 'exercise__category']
+    search_fields = ['user__username', 'exercise__title']
+    readonly_fields = ['started_at']
