@@ -33,6 +33,11 @@ class ChatMessage(models.Model):
     # Métadonnées pour l'analyse
     subject_detected = models.CharField(max_length=100, blank=True, null=True)  # mathématiques, physique, etc.
     response_time = models.FloatField(null=True, blank=True)  # temps de réponse en secondes
+    
+    # Champs pour la modification des messages
+    is_edited = models.BooleanField(default=False)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    original_content = models.TextField(blank=True, null=True)  # Contenu original avant modification
 
     class Meta:
         ordering = ['timestamp']

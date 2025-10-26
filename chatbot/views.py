@@ -11,6 +11,7 @@ from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.utils import timezone
 from .models import ChatSession, ChatMessage, EducationalSubject, UploadedFile
 from .services import GroqChatService
 from .file_processor import FileProcessor
@@ -47,6 +48,8 @@ class ChatAPIView(LoginRequiredMixin, View):
             data = json.loads(request.body)
             message = data.get('message', '').strip()
             session_id = data.get('session_id')
+            is_edit_response = data.get('is_edit_response', False)
+            original_message_id = data.get('original_message_id')
             
             if not message:
                 return JsonResponse({'error': 'Message vide'}, status=400)
@@ -60,18 +63,30 @@ class ChatAPIView(LoginRequiredMixin, View):
                     title=message[:50] + "..." if len(message) > 50 else message
                 )
             
-            # Enregistrer le message de l'utilisateur
-            user_message = ChatMessage.objects.create(
-                session=session,
-                message_type='user',
-                content=message
-            )
-            
-            # Détecter le sujet éducatif
-            detected_subject = self._detect_educational_subject(message)
-            if detected_subject:
-                user_message.subject_detected = detected_subject
-                user_message.save()
+            # Si c'est une réponse à une modification, ne pas créer un nouveau message utilisateur
+            if not is_edit_response:
+                # Enregistrer le message de l'utilisateur
+                user_message = ChatMessage.objects.create(
+                    session=session,
+                    message_type='user',
+                    content=message
+                )
+                
+                # Détecter le sujet éducatif
+                detected_subject = self._detect_educational_subject(message)
+                if detected_subject:
+                    user_message.subject_detected = detected_subject
+                    user_message.save()
+            else:
+                # Pour les réponses aux modifications, utiliser le sujet du message original
+                if original_message_id:
+                    try:
+                        original_message = ChatMessage.objects.get(id=original_message_id, session=session)
+                        detected_subject = original_message.subject_detected
+                    except ChatMessage.DoesNotExist:
+                        detected_subject = self._detect_educational_subject(message)
+                else:
+                    detected_subject = self._detect_educational_subject(message)
             
             # Obtenir la réponse du chatbot
             start_time = time.time()
@@ -79,6 +94,13 @@ class ChatAPIView(LoginRequiredMixin, View):
             
             # Récupérer l'historique de la conversation
             conversation_history = self._get_conversation_history(session)
+            
+            # Ajouter un contexte spécial pour les réponses aux modifications
+            if is_edit_response:
+                conversation_history.append({
+                    "role": "system",
+                    "content": "L'utilisateur a modifié son message précédent. Réponds à la nouvelle version du message en tenant compte du contexte de la conversation."
+                })
             
             response = chat_service.get_response(message, conversation_history, detected_subject)
             response_time = time.time() - start_time
@@ -97,6 +119,7 @@ class ChatAPIView(LoginRequiredMixin, View):
                 'response': response,
                 'session_id': session.id,
                 'message_id': assistant_message.id,
+                'user_message_id': user_message.id if not is_edit_response else None,
                 'response_time': round(response_time, 2)
             })
             
@@ -171,7 +194,10 @@ class ChatSessionAPIView(LoginRequiredMixin, View):
                 'type': msg.message_type,
                 'content': msg.content,
                 'timestamp': msg.timestamp.isoformat(),
-                'subject': msg.subject_detected
+                'subject': msg.subject_detected,
+                'is_edited': msg.is_edited,
+                'edited_at': msg.edited_at.isoformat() if msg.edited_at else None,
+                'original_content': msg.original_content
             })
         
         return JsonResponse({
@@ -343,3 +369,117 @@ class ThemeToggleView(LoginRequiredMixin, View):
         except Exception as e:
             logger.error(f"Erreur lors du changement de thème: {e}")
             return JsonResponse({'error': 'Erreur lors du changement de thème'}, status=500)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MessageEditAPIView(LoginRequiredMixin, View):
+    """API pour modifier les messages utilisateur"""
+    
+    def put(self, request, message_id):
+        """Modifier un message utilisateur"""
+        try:
+            data = json.loads(request.body)
+            new_content = data.get('content', '').strip()
+            
+            if not new_content:
+                return JsonResponse({'error': 'Contenu du message requis'}, status=400)
+            
+            # Récupérer le message
+            message = get_object_or_404(ChatMessage, id=message_id, message_type='user')
+            
+            # Vérifier que l'utilisateur est propriétaire de la session
+            if message.session.user != request.user:
+                return JsonResponse({'error': 'Non autorisé'}, status=403)
+            
+            # Sauvegarder le contenu original si c'est la première modification
+            if not message.is_edited:
+                message.original_content = message.content
+            
+            # Mettre à jour le message
+            message.content = new_content
+            message.is_edited = True
+            message.edited_at = timezone.now()
+            message.save()
+            
+            # Détecter le nouveau sujet éducatif
+            detected_subject = self._detect_educational_subject(new_content)
+            if detected_subject:
+                message.subject_detected = detected_subject
+                message.save()
+            
+            # Supprimer tous les messages qui suivent ce message dans la session
+            messages_to_delete = ChatMessage.objects.filter(
+                session=message.session,
+                timestamp__gt=message.timestamp
+            )
+            deleted_count = messages_to_delete.count()
+            messages_to_delete.delete()
+            
+            logger.info(f"🗑️ Supprimé {deleted_count} messages après le message {message_id}")
+            
+            return JsonResponse({
+                'success': True,
+                'message': {
+                    'id': message.id,
+                    'content': message.content,
+                    'is_edited': message.is_edited,
+                    'edited_at': message.edited_at.isoformat(),
+                    'original_content': message.original_content,
+                    'subject': message.subject_detected
+                },
+                'deleted_messages_count': deleted_count
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Données JSON invalides'}, status=400)
+        except Exception as e:
+            logger.error(f"Erreur lors de la modification du message: {e}")
+            return JsonResponse({'error': 'Erreur lors de la modification du message'}, status=500)
+    
+    def _detect_educational_subject(self, message):
+        """Détecte le sujet éducatif basé sur le contenu du message"""
+        message_lower = message.lower()
+        
+        subjects = EducationalSubject.objects.filter(is_active=True)
+        for subject in subjects:
+            for keyword in subject.keyword_list:
+                if keyword.lower() in message_lower:
+                    return subject.name
+        
+        return None
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class FileDeleteAPIView(LoginRequiredMixin, View):
+    """API pour supprimer un fichier uploadé"""
+    
+    def delete(self, request, file_id):
+        """Supprimer un fichier uploadé"""
+        try:
+            # Récupérer le fichier
+            file_obj = get_object_or_404(UploadedFile, id=file_id)
+            
+            # Vérifier que l'utilisateur est propriétaire du fichier
+            if file_obj.user != request.user:
+                return JsonResponse({'error': 'Non autorisé'}, status=403)
+            
+            # Supprimer le fichier physique du système de fichiers
+            if file_obj.file:
+                try:
+                    file_obj.file.delete(save=False)
+                except Exception as e:
+                    logger.warning(f"Impossible de supprimer le fichier physique: {e}")
+            
+            # Supprimer l'enregistrement de la base de données
+            file_obj.delete()
+            
+            logger.info(f"🗑️ Fichier supprimé: {file_obj.filename} (ID: {file_id})")
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Fichier supprimé avec succès'
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la suppression du fichier: {e}")
+            return JsonResponse({'error': 'Erreur lors de la suppression du fichier'}, status=500)
