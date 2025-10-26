@@ -155,24 +155,13 @@ pipeline {
     
     post {
         always {
-            echo '📋 Cleaning up workspace...'
-            cleanWs()
+            echo '📋 Pipeline execution completed'
         }
         success {
             echo '✅ Pipeline completed successfully!'
-            emailext(
-                subject: "✅ GenEX Pipeline Success - Build #${BUILD_NUMBER}",
-                body: "The pipeline completed successfully. Check console output at ${BUILD_URL}",
-                to: 'admin@genex.tn'
-            )
         }
         failure {
-            echo '❌ Pipeline failed!'
-            emailext(
-                subject: "❌ GenEX Pipeline Failed - Build #${BUILD_NUMBER}",
-                body: "The pipeline failed. Check console output at ${BUILD_URL}",
-                to: 'dhia.borji2001@gmail.com'
-            )
+            echo '❌ Pipeline failed! Check the console output above for details.'
         }
     }
 }
