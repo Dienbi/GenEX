@@ -29,6 +29,14 @@
         opacity: 0.9;
     }
 
+    .header-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
     .generate-btn {
         display: inline-block;
         background: #fff;
@@ -38,7 +46,6 @@
         text-decoration: none;
         font-weight: 700;
         font-size: 18px;
-        margin-top: 20px;
         transition: all 0.3s;
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
@@ -50,6 +57,41 @@
 
     .generate-btn i {
         margin-right: 10px;
+    }
+
+    .available-btn {
+        display: inline-block;
+        background: #28a745;
+        color: #fff;
+        padding: 15px 40px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 18px;
+        transition: all 0.3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        border: 2px solid #28a745;
+    }
+
+    .available-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        background: #218838;
+        border-color: #218838;
+    }
+
+    .available-btn i {
+        margin-right: 10px;
+    }
+
+    .available-btn .badge {
+        background: #fff;
+        color: #28a745;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 14px;
+        margin-left: 8px;
+        font-weight: 800;
     }
 
     .section-title {
@@ -136,10 +178,37 @@
         justify-content: space-between;
         align-items: center;
         transition: all 0.3s;
+        gap: 20px;
     }
 
     .attempt-item:hover {
         box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+
+    .attempt-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .view-details-btn {
+        padding: 8px 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .view-details-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
     }
 
     .attempt-info h4 {
@@ -401,9 +470,17 @@
     <div class="quiz-header">
         <h1><i class="fas fa-brain"></i> AI Quiz Generator</h1>
         <p>Generate custom quizzes on any topic using AI technology</p>
-        <a href="{% url 'quizzes:generate' %}" class="generate-btn">
-            <i class="fas fa-plus-circle"></i> Generate New Quiz
-        </a>
+        <div class="header-buttons">
+            <a href="{% url 'quizzes:generate' %}" class="generate-btn">
+                <i class="fas fa-plus-circle"></i> Generate New Quiz
+            </a>
+            {% if available_quizzes %}
+            <a href="#available-quizzes" class="available-btn">
+                <i class="fas fa-star"></i> Available Quizzes
+                <span class="badge">{{ available_quizzes|length }}</span>
+            </a>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Streak Stats -->
@@ -531,13 +608,19 @@
         </div>
     </div>
 
-    <!-- Your Quizzes -->
-    <h2 class="section-title"><i class="fas fa-clipboard-list"></i> Your Quizzes</h2>
-    {% if user_quizzes %}
+    <!-- Available Quizzes from Admins -->
+    {% if available_quizzes %}
+    <div id="available-quizzes"></div>
+    <h2 class="section-title"><i class="fas fa-star"></i> Available Quizzes</h2>
     <div class="quiz-grid">
-        {% for quiz in user_quizzes %}
-        <div class="quiz-card">
-            <span class="quiz-subject">{{ quiz.subject }}</span>
+        {% for quiz in available_quizzes %}
+        <div class="quiz-card" style="border-left-color: #28a745;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                <span class="quiz-subject" style="background: #e7f3ff; color: #0066cc; font-weight: 700;">{{ quiz.subject }}</span>
+                <span style="font-size: 11px; background: #ffc107; color: #333; padding: 4px 8px; border-radius: 12px; font-weight: 600;">
+                    <i class="fas fa-user-shield"></i> Admin
+                </span>
+            </div>
             <h3>{{ quiz.title }}</h3>
             <div class="quiz-meta">
                 <i class="fas fa-calendar"></i> {{ quiz.created_at|date:"M d, Y" }}
@@ -545,16 +628,17 @@
                     <i class="fas fa-question-circle"></i> {{ quiz.questions.count }} questions
                 </span>
             </div>
-            <a href="{% url 'quizzes:take_quiz' quiz.id %}" class="take-quiz-btn">
-                <i class="fas fa-play"></i> Take Quiz
+            {% if quiz.user_attempted %}
+                <div style="margin: 10px 0; padding: 8px; background: #d4edda; border-radius: 5px; font-size: 13px; color: #155724;">
+                    <i class="fas fa-check-circle"></i> Attempted {{ quiz.attempt_count }}x
+                </div>
+            {% endif %}
+            <a href="{% url 'quizzes:take_quiz' quiz.id %}" class="take-quiz-btn" style="background: #dc3545 !important; border-color: #dc3545 !important;">
+                <i class="fas fa-{% if quiz.user_attempted %}redo{% else %}play{% endif %}"></i> 
+                {% if quiz.user_attempted %}Retake Quiz{% else %}Take Quiz{% endif %}
             </a>
         </div>
         {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <i class="fas fa-inbox"></i>
-        <p>No quizzes yet. Generate your first quiz!</p>
     </div>
     {% endif %}
 
@@ -568,10 +652,18 @@
                 <p>
                     <i class="fas fa-calendar"></i> {{ attempt.completed_at|date:"M d, Y H:i" }}
                 </p>
+                <p style="margin-top: 5px;">
+                    <i class="fas fa-book"></i> Subject: <strong>{{ attempt.quiz.subject }}</strong>
+                </p>
             </div>
-            <div class="attempt-score">
-                <div class="score-value">{{ attempt.percentage|floatformat:0 }}%</div>
-                <div class="score-label">{{ attempt.score }}/{{ attempt.total_questions }}</div>
+            <div class="attempt-actions">
+                <div class="attempt-score">
+                    <div class="score-value">{{ attempt.percentage|floatformat:0 }}%</div>
+                    <div class="score-label">{{ attempt.score }}/{{ attempt.total_questions }}</div>
+                </div>
+                <a href="{% url 'quizzes:quiz_results' attempt.id %}" class="view-details-btn">
+                    <i class="fas fa-eye"></i> View Details
+                </a>
             </div>
         </div>
         {% endfor %}
@@ -582,5 +674,24 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+// Smooth scroll to Available Quizzes section
+document.addEventListener('DOMContentLoaded', function() {
+    const availableBtn = document.querySelector('.available-btn');
+    if (availableBtn) {
+        availableBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector('#available-quizzes');
+            if (target) {
+                target.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
 

@@ -5,6 +5,12 @@
 {% block page_title %}Delete User{% endblock %}
 {% block page_description %}Confirm deletion of {{ user_obj.username }}{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'users:backoffice_user_detail' user_obj.id %}" class="btn" style="background: #6c757d;">
+    <i class="fas fa-arrow-left"></i> Back to User
+</a>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .backoffice-container {

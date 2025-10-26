@@ -25,12 +25,25 @@ def quiz_home(request):
     streak_info = check_and_update_streak(request.user)
     time_info = get_time_until_streak_expires(request.user)
     
+    # User's own generated quizzes
     user_quizzes = Quiz.objects.filter(created_by=request.user)
-    user_attempts = QuizAttempt.objects.filter(user=request.user)[:5]
     
-    # Get leaderboard data
+    # Available quizzes created by admins (active only, not created by current user)
     from django.contrib.auth import get_user_model
+    from django.db.models import Q
     User = get_user_model()
+    available_quizzes = Quiz.objects.filter(
+        is_active=True
+    ).filter(
+        Q(created_by__user_type='admin') | Q(created_by__is_superuser=True)
+    ).exclude(created_by=request.user).order_by('-created_at')
+    
+    # Add attempt info for available quizzes
+    for quiz in available_quizzes:
+        quiz.user_attempted = QuizAttempt.objects.filter(quiz=quiz, user=request.user).exists()
+        quiz.attempt_count = QuizAttempt.objects.filter(quiz=quiz, user=request.user).count()
+    
+    user_attempts = QuizAttempt.objects.filter(user=request.user).select_related('quiz')[:5]
     
     # Top 10 Current Streaks (active users only, current_streak > 0)
     top_current_streaks = User.objects.filter(
@@ -44,6 +57,7 @@ def quiz_home(request):
     
     context = {
         'user_quizzes': user_quizzes,
+        'available_quizzes': available_quizzes,
         'user_attempts': user_attempts,
         'current_streak': streak_info['current_streak'],
         'longest_streak': streak_info['longest_streak'],

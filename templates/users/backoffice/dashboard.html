@@ -146,6 +146,24 @@
             <div class="number">{{ total_admins }}</div>
             <div class="label">Administrators</div>
         </div>
+
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-question-circle"></i></div>
+            <div class="number">{{ total_quizzes }}</div>
+            <div class="label">Total Quizzes</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
+            <div class="number">{{ active_quizzes }}</div>
+            <div class="label">Active Quizzes</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-pencil-alt"></i></div>
+            <div class="number">{{ total_quiz_attempts }}</div>
+            <div class="label">Quiz Attempts</div>
+        </div>
     </div>
 
     <!-- Quick Actions -->
@@ -157,6 +175,12 @@
             </a>
             <a href="{% url 'users:backoffice_user_create' %}" class="btn-red">
                 <i class="fas fa-user-plus"></i> Create New User
+            </a>
+            <a href="{% url 'users:backoffice_quiz_list' %}" class="btn-red">
+                <i class="fas fa-question-circle"></i> Manage Quizzes
+            </a>
+            <a href="{% url 'users:backoffice_quiz_create' %}" class="btn-red">
+                <i class="fas fa-magic"></i> Create New Quiz
             </a>
         </div>
     </div>

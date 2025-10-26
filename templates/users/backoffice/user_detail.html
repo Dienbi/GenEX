@@ -5,6 +5,12 @@
 {% block page_title %}User Details{% endblock %}
 {% block page_description %}View complete information for {{ user_obj.username }}{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'users:backoffice_user_list' %}" class="btn" style="background: #6c757d;">
+    <i class="fas fa-arrow-left"></i> Back to Users
+</a>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .backoffice-container {

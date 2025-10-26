@@ -189,10 +189,15 @@
 
     <!-- Filters -->
     <div class="filters-section">
-        <form method="get" class="filters-form">
+        <form method="get" class="filters-form" id="userSearchForm">
             <div class="form-group">
                 <label for="search">Search</label>
-                <input type="text" id="search" name="search" placeholder="Username, email, name..." value="{{ search_query }}">
+                <input type="text" 
+                       id="search" 
+                       name="search" 
+                       placeholder="Username, email, name..." 
+                       value="{{ search_query }}"
+                       autocomplete="off">
             </div>
             <div class="form-group">
                 <label for="user_type">User Type</label>
@@ -294,4 +299,38 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+// Dynamic search - search as you type
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search');
+    const userTypeSelect = document.getElementById('user_type');
+    const searchForm = document.getElementById('userSearchForm');
+    let searchTimeout;
+
+    // Search on input
+    if (searchInput) {
+        // Auto-focus on search input after page load if it has value
+        if (searchInput.value) {
+            searchInput.focus();
+            // Place cursor at end of text
+            searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+        }
+        
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                searchForm.submit();
+            }, 1200);
+        });
+    }
+
+    // Search on user type change
+    if (userTypeSelect) {
+        userTypeSelect.addEventListener('change', function() {
+            searchForm.submit();
+        });
+    }
+});
+</script>
 {% endblock %}

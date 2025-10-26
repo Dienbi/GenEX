@@ -1,0 +1,336 @@
+{% extends 'users/backoffice/base.html' %}
+
+{% block title %}Quizzes{% endblock %}
+{% block nav_quizzes %}active{% endblock %}
+{% block page_title %}Quizzes Management{% endblock %}
+{% block page_description %}Manage all quizzes on the platform{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'users:backoffice_quiz_create' %}" class="btn">
+    <i class="fas fa-plus"></i> Create New Quiz
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 25px;
+    }
+
+    .search-bar form {
+        display: flex;
+        gap: 10px;
+    }
+
+    .search-bar input[type="text"] {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .search-bar button {
+        padding: 12px 25px;
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .quiz-table {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: #f8f9fa;
+    }
+
+    th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    td {
+        padding: 15px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-active {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-inactive {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .badge-locked {
+        background-color: #ffc107;
+        color: #333;
+    }
+
+    .badge-editable {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .action-buttons a {
+        color: #dc3545;
+        margin: 0 8px;
+        font-size: 16px;
+        transition: all 0.3s;
+    }
+
+    .action-buttons a:hover {
+        color: #c82333;
+        transform: scale(1.2);
+    }
+
+    .action-buttons a.disabled {
+        color: #ccc;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 25px;
+        align-items: center;
+    }
+
+    .pagination a {
+        padding: 8px 15px;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        color: #333;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .pagination a:hover {
+        background: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+
+    .pagination .current {
+        padding: 8px 15px;
+        background: #dc3545;
+        color: white;
+        border-radius: 5px;
+        font-weight: 600;
+    }
+
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        background: white;
+        border-radius: 10px;
+    }
+
+    .empty-state i {
+        font-size: 60px;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #adb5bd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="backoffice-container">
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <form method="get" id="searchForm">
+            <input type="text" 
+                   name="search" 
+                   id="searchInput"
+                   placeholder="Search quizzes by title or subject..." 
+                   value="{{ search_query }}"
+                   autocomplete="off">
+            <button type="submit">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
+    </div>
+
+    {% if page_obj %}
+    <div class="quiz-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Subject</th>
+                    <th>Created By</th>
+                    <th>Attempts</th>
+                    <th>Status</th>
+                    <th>Edit Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for quiz in page_obj %}
+                <tr>
+                    <td><strong>{{ quiz.title }}</strong></td>
+                    <td>{{ quiz.subject }}</td>
+                    <td>{{ quiz.created_by.username }}</td>
+                    <td>
+                        <span style="font-weight: 600;">{{ quiz.attempt_count }}</span>
+                        {% if quiz.attempt_count > 0 %}
+                            <i class="fas fa-users" style="color: #28a745; margin-left: 5px;"></i>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if quiz.is_active %}
+                            <span class="badge badge-active">Active</span>
+                        {% else %}
+                            <span class="badge badge-inactive">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if quiz.can_edit %}
+                            <span class="badge badge-editable">
+                                <i class="fas fa-unlock"></i> Editable
+                            </span>
+                        {% else %}
+                            <span class="badge badge-locked">
+                                <i class="fas fa-lock"></i> Locked
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ quiz.created_at|date:"M d, Y" }}</td>
+                    <td class="action-buttons">
+                        <a href="{% url 'users:backoffice_quiz_detail' quiz.id %}" title="View">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'users:backoffice_quiz_update' quiz.id %}" 
+                           title="Edit" 
+                           class="{% if not quiz.can_edit %}disabled{% endif %}">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'users:backoffice_quiz_delete' quiz.id %}" 
+                           title="Delete"
+                           style="color: #dc3545;">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: #999;">
+                        No quizzes found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                <i class="fas fa-angle-left"></i>
+            </a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-question-circle"></i>
+        <h3>No Quizzes Yet</h3>
+        <p>Create your first quiz to get started</p>
+        <a href="{% url 'users:backoffice_quiz_create' %}" class="btn" style="margin-top: 20px;">
+            <i class="fas fa-plus"></i> Create Quiz
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Dynamic search - search as you type
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const searchForm = document.getElementById('searchForm');
+    let searchTimeout;
+
+    if (searchInput) {
+        // Auto-focus on search input after page load
+        searchInput.focus();
+        // Place cursor at end of text
+        searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+        
+        searchInput.addEventListener('input', function() {
+            // Clear previous timeout
+            clearTimeout(searchTimeout);
+            
+            // Wait 1200ms after user stops typing before searching
+            searchTimeout = setTimeout(function() {
+                searchForm.submit();
+            }, 1200);
+        });
+    }
+});
+</script>
+{% endblock %}
+

@@ -29,6 +29,13 @@ backoffice_urlpatterns = [
     path('backoffice/users/<int:user_id>/', views.backoffice_user_detail, name='backoffice_user_detail'),
     path('backoffice/users/<int:user_id>/edit/', views.backoffice_user_update, name='backoffice_user_update'),
     path('backoffice/users/<int:user_id>/delete/', views.backoffice_user_delete, name='backoffice_user_delete'),
+    
+    # Quiz management
+    path('backoffice/quizzes/', views.backoffice_quiz_list, name='backoffice_quiz_list'),
+    path('backoffice/quizzes/create/', views.backoffice_quiz_create, name='backoffice_quiz_create'),
+    path('backoffice/quizzes/<int:quiz_id>/', views.backoffice_quiz_detail, name='backoffice_quiz_detail'),
+    path('backoffice/quizzes/<int:quiz_id>/edit/', views.backoffice_quiz_update, name='backoffice_quiz_update'),
+    path('backoffice/quizzes/<int:quiz_id>/delete/', views.backoffice_quiz_delete, name='backoffice_quiz_delete'),
 ]
 
 urlpatterns = api_urlpatterns + web_urlpatterns + backoffice_urlpatterns

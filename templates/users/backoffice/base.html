@@ -355,8 +355,8 @@
             <a href="#" class="disabled">
                 <i class="fas fa-book"></i> Courses (Coming Soon)
             </a>
-            <a href="#" class="disabled">
-                <i class="fas fa-question-circle"></i> Quizzes (Coming Soon)
+            <a href="{% url 'users:backoffice_quiz_list' %}" class="{% block nav_quizzes %}{% endblock %}">
+                <i class="fas fa-question-circle"></i> Quizzes
             </a>
             <a href="#" class="disabled">
                 <i class="fas fa-dumbbell"></i> Exercises (Coming Soon)

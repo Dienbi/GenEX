@@ -5,6 +5,12 @@
 {% block page_title %}{% if action == 'create' %}Create New User{% else %}Edit User{% endif %}{% endblock %}
 {% block page_description %}{% if action == 'create' %}Add a new user to the system{% else %}Update user information{% endif %}{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'users:backoffice_user_list' %}" class="btn" style="background: #6c757d;">
+    <i class="fas fa-arrow-left"></i> Back to Users
+</a>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .backoffice-container {

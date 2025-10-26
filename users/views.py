@@ -170,16 +170,26 @@ def is_admin(user):
 @user_passes_test(is_admin, login_url='main:signin')
 def backoffice_dashboard(request):
     """Admin backoffice dashboard"""
+    from quizzes.models import Quiz, QuizAttempt
+    
     total_users = User.objects.count()
     total_students = User.objects.filter(user_type='student').count()
     total_admins = User.objects.filter(user_type='admin').count()
     recent_users = User.objects.order_by('-date_joined')[:5]
+    
+    # Quiz statistics
+    total_quizzes = Quiz.objects.count()
+    active_quizzes = Quiz.objects.filter(is_active=True).count()
+    total_quiz_attempts = QuizAttempt.objects.count()
     
     context = {
         'total_users': total_users,
         'total_students': total_students,
         'total_admins': total_admins,
         'recent_users': recent_users,
+        'total_quizzes': total_quizzes,
+        'active_quizzes': active_quizzes,
+        'total_quiz_attempts': total_quiz_attempts,
     }
     return render(request, 'users/backoffice/dashboard.html', context)
 
@@ -318,3 +328,171 @@ def backoffice_user_detail(request, user_id):
     user = get_object_or_404(User, id=user_id)
     context = {'user_obj': user}
     return render(request, 'users/backoffice/user_detail.html', context)
+
+
+# ===== BACKOFFICE QUIZ VIEWS (Admin Only) =====
+from quizzes.models import Quiz, Question, QuizAttempt
+from quizzes.ai_service import GeminiQuizGenerator
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_quiz_list(request):
+    """Admin quiz list view with search and pagination"""
+    search_query = request.GET.get('search', '')
+    
+    # Only show quizzes created by admins or superusers
+    quizzes = Quiz.objects.filter(
+        Q(created_by__user_type='admin') | Q(created_by__is_superuser=True)
+    ).order_by('-created_at')
+    
+    # Apply search filter
+    if search_query:
+        quizzes = quizzes.filter(
+            Q(title__icontains=search_query) |
+            Q(subject__icontains=search_query)
+        )
+    
+    # Add attempt count for each quiz
+    for quiz in quizzes:
+        quiz.attempt_count = quiz.attempts.count()
+        quiz.can_edit = quiz.attempt_count == 0
+    
+    # Pagination
+    paginator = Paginator(quizzes, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+    }
+    return render(request, 'users/backoffice/quiz_list.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_quiz_create(request):
+    """Admin create quiz view using AI"""
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        subject = request.POST.get('subject')
+        user_prompt = request.POST.get('user_prompt')
+        
+        if not title or not subject or not user_prompt:
+            messages.error(request, 'All fields are required')
+            return render(request, 'users/backoffice/quiz_form.html')
+        
+        try:
+            # Generate quiz using AI
+            ai_generator = GeminiQuizGenerator()
+            quiz_data = ai_generator.generate_quiz(user_prompt, subject)
+            
+            # Create quiz
+            quiz = Quiz.objects.create(
+                title=title,
+                subject=subject,
+                user_prompt=user_prompt,
+                created_by=request.user,
+                is_active=True
+            )
+            
+            # Create questions
+            for idx, q_data in enumerate(quiz_data['questions'], 1):
+                Question.objects.create(
+                    quiz=quiz,
+                    question_text=q_data['question_text'],
+                    option_a=q_data['option_a'],
+                    option_b=q_data['option_b'],
+                    option_c=q_data['option_c'],
+                    option_d=q_data['option_d'],
+                    correct_answer=q_data['correct_answer'].upper(),
+                    order=idx
+                )
+            
+            messages.success(request, f'Quiz "{title}" created successfully with {len(quiz_data["questions"])} questions!')
+            return redirect('users:backoffice_quiz_list')
+            
+        except Exception as e:
+            messages.error(request, f'Failed to generate quiz: {str(e)}')
+            return render(request, 'users/backoffice/quiz_form.html', {
+                'action': 'create',
+                'title': title,
+                'subject': subject,
+                'user_prompt': user_prompt
+            })
+    
+    context = {'action': 'create'}
+    return render(request, 'users/backoffice/quiz_form.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_quiz_detail(request, quiz_id):
+    """Admin view quiz detail"""
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    questions = quiz.questions.all()
+    attempts = quiz.attempts.all()[:10]  # Last 10 attempts
+    
+    context = {
+        'quiz': quiz,
+        'questions': questions,
+        'attempts': attempts,
+        'total_attempts': quiz.attempts.count(),
+        'can_edit': quiz.attempts.count() == 0,
+    }
+    return render(request, 'users/backoffice/quiz_detail.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_quiz_update(request, quiz_id):
+    """Admin update quiz view - only if no attempts"""
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    
+    # Check if quiz can be edited
+    if quiz.attempts.count() > 0:
+        messages.error(request, 'Cannot edit this quiz - users have already taken it')
+        return redirect('users:backoffice_quiz_detail', quiz_id=quiz.id)
+    
+    if request.method == 'POST':
+        quiz.title = request.POST.get('title', quiz.title)
+        quiz.subject = request.POST.get('subject', quiz.subject)
+        quiz.is_active = request.POST.get('is_active') == 'on'
+        quiz.save()
+        
+        # Update questions
+        questions = quiz.questions.all()
+        for question in questions:
+            question_id = str(question.id)
+            question.question_text = request.POST.get(f'question_text_{question_id}', question.question_text)
+            question.option_a = request.POST.get(f'option_a_{question_id}', question.option_a)
+            question.option_b = request.POST.get(f'option_b_{question_id}', question.option_b)
+            question.option_c = request.POST.get(f'option_c_{question_id}', question.option_c)
+            question.option_d = request.POST.get(f'option_d_{question_id}', question.option_d)
+            question.correct_answer = request.POST.get(f'correct_answer_{question_id}', question.correct_answer)
+            question.save()
+        
+        messages.success(request, f'Quiz "{quiz.title}" updated successfully')
+        return redirect('users:backoffice_quiz_detail', quiz_id=quiz.id)
+    
+    context = {
+        'action': 'update',
+        'quiz': quiz,
+        'questions': quiz.questions.all(),
+    }
+    return render(request, 'users/backoffice/quiz_edit.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_quiz_delete(request, quiz_id):
+    """Admin delete quiz view"""
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    
+    if request.method == 'POST':
+        title = quiz.title
+        quiz.delete()
+        messages.success(request, f'Quiz "{title}" deleted successfully')
+        return redirect('users:backoffice_quiz_list')
+    
+    context = {
+        'quiz': quiz,
+        'attempts_count': quiz.attempts.count()
+    }
+    return render(request, 'users/backoffice/quiz_confirm_delete.html', context)
