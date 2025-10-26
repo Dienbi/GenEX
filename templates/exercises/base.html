@@ -640,7 +640,7 @@ async function loadInitialData() {
     }
 }
 
-// Charger les catégories
+// Charger les catégories (pour les filtres uniquement)
 async function loadCategories() {
     try {
         console.log('Chargement des catégories...');
@@ -652,18 +652,17 @@ async function loadCategories() {
         categories = data.results || data;
         console.log('Catégories chargées:', categories);
         
-        const categorySelects = document.querySelectorAll('select[name="category"]');
-        console.log('Sélecteurs de catégories trouvés:', categorySelects.length);
-        
-        categorySelects.forEach(select => {
+        // Peupler le filtre de catégories (pas le modal de génération)
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
             categories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category.id;
                 option.textContent = category.name;
-                select.appendChild(option);
+                categoryFilter.appendChild(option);
             });
-        });
-        console.log('Catégories ajoutées aux sélecteurs');
+            console.log('Catégories ajoutées au filtre');
+        }
     } catch (error) {
         console.error('Erreur lors du chargement des catégories:', error);
     }
@@ -910,10 +909,26 @@ function setupEventListeners() {
             
             const formData = new FormData(form);
             
+            // Vérifier que tous les champs requis sont remplis
+            const subject = formData.get('subject');
+            const difficulty = formData.get('difficulty');
+            const exercise_type = formData.get('exercise_type');
+            
+            console.log('Valeurs du formulaire:');
+            console.log('- subject:', subject);
+            console.log('- difficulty:', difficulty);
+            console.log('- exercise_type:', exercise_type);
+            
+            if (!subject || !difficulty || !exercise_type) {
+                console.error('Champs manquants:', { subject, difficulty, exercise_type });
+                showError('Veuillez remplir tous les champs requis');
+                return;
+            }
+            
             const data = {
-                subject: formData.get('subject'),
-                difficulty: parseInt(formData.get('difficulty')),
-                exercise_type: parseInt(formData.get('exercise_type')),
+                subject: subject,
+                difficulty: parseInt(difficulty),
+                exercise_type: parseInt(exercise_type),
                 count: parseInt(formData.get('count')),
                 custom_prompt: formData.get('custom_prompt'),
                 specific_topics: formData.get('specific_topics') ? formData.get('specific_topics').split(',').map(s => s.trim()) : []
