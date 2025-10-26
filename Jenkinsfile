@@ -16,11 +16,16 @@ pipeline {
         }
         
         stage('Environment Setup') {
+            agent {
+                docker {
+                    image 'python:3.9'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    reuseNode true
+                }
+            }
             steps {
                 echo '🔧 Setting up Python environment...'
                 sh '''
-                    python3 -m venv venv || true
-                    . venv/bin/activate
                     pip install --upgrade pip
                     pip install -r requirements.txt
                 '''
@@ -28,10 +33,15 @@ pipeline {
         }
         
         stage('Linting') {
+            agent {
+                docker {
+                    image 'python:3.9'
+                    reuseNode true
+                }
+            }
             steps {
                 echo '🔍 Running code linting...'
                 sh '''
-                    . venv/bin/activate
                     pip install flake8 || true
                     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=venv,migrations,__pycache__ || true
                 '''
@@ -39,20 +49,32 @@ pipeline {
         }
         
         stage('Unit Tests') {
+            agent {
+                docker {
+                    image 'python:3.9'
+                    reuseNode true
+                }
+            }
             steps {
                 echo '🧪 Running unit tests...'
                 sh '''
-                    . venv/bin/activate
+                    pip install -r requirements.txt
                     python manage.py test --verbosity=2 || true
                 '''
             }
         }
         
         stage('Code Coverage') {
+            agent {
+                docker {
+                    image 'python:3.9'
+                    reuseNode true
+                }
+            }
             steps {
                 echo '📊 Generating code coverage report...'
                 sh '''
-                    . venv/bin/activate
+                    pip install -r requirements.txt
                     pip install coverage || true
                     coverage run --source='.' manage.py test || true
                     coverage report || true
@@ -90,10 +112,15 @@ pipeline {
         }
         
         stage('Security Check') {
+            agent {
+                docker {
+                    image 'python:3.9'
+                    reuseNode true
+                }
+            }
             steps {
                 echo '🔐 Running security checks...'
                 sh '''
-                    . venv/bin/activate
                     pip install safety bandit || true
                     safety check --json || true
                     bandit -r . -f json -o bandit-report.json -x ./venv,./migrations || true
@@ -112,10 +139,16 @@ pipeline {
         }
         
         stage('Database Migrations') {
+            agent {
+                docker {
+                    image 'python:3.9'
+                    reuseNode true
+                }
+            }
             steps {
                 echo '💾 Running database migrations...'
                 sh '''
-                    . venv/bin/activate
+                    pip install -r requirements.txt
                     python manage.py makemigrations --dry-run --verbosity 3
                     python manage.py migrate --noinput || true
                 '''
@@ -123,10 +156,16 @@ pipeline {
         }
         
         stage('Collect Static Files') {
+            agent {
+                docker {
+                    image 'python:3.9'
+                    reuseNode true
+                }
+            }
             steps {
                 echo '📦 Collecting static files...'
                 sh '''
-                    . venv/bin/activate
+                    pip install -r requirements.txt
                     python manage.py collectstatic --noinput || true
                 '''
             }
