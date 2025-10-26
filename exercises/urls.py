@@ -12,6 +12,10 @@ router.register(r'exercises', views.ExerciseViewSet, basename='exercise')
 router.register(r'attempts', views.ExerciseAttemptViewSet, basename='exercise-attempt')
 router.register(r'sessions', views.ExerciseSessionViewSet, basename='exercise-session')
 router.register(r'ai-generations', views.AIExerciseGenerationViewSet, basename='ai-generation')
+router.register(r'collections', views.ExerciseCollectionViewSet, basename='exercise-collection')
+router.register(r'favorites', views.ExerciseFavoriteViewSet, basename='exercise-favorite')
+router.register(r'wishlist', views.ExerciseWishlistViewSet, basename='exercise-wishlist')
+router.register(r'history', views.ExerciseHistoryViewSet, basename='exercise-history')
 
 urlpatterns = [
     # Interface utilisateur
@@ -19,6 +23,11 @@ urlpatterns = [
     path('<int:exercise_id>/', views.exercise_detail, name='exercise-detail'),
     path('<int:exercise_id>/solve/', views.exercise_solve, name='exercise-solve'),
     path('results/<int:submission_id>/', views.exercise_results, name='exercise-results'),
+    
+    # Collections
+    path('collections/', views.collections_list, name='collections-list'),
+    path('collections/<int:collection_id>/', views.collection_detail, name='collection-detail'),
+    path('collections/<int:collection_id>/exercises/', views.collection_exercises, name='collection-exercises'),
     
     # API
     path('api/', include(router.urls)),

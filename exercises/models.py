@@ -60,6 +60,20 @@ class Exercise(models.Model):
     solution = models.JSONField(help_text="Solution de l'exercice")
     hints = models.JSONField(default=list, blank=True, help_text="Indices pour l'exercice")
     
+    # Vidéo d'explication
+    explanation_video_url = models.URLField(blank=True, help_text="URL de la vidéo d'explication (YouTube, Vimeo, etc.)")
+    explanation_video_type = models.CharField(
+        max_length=20, 
+        choices=[
+            ('youtube', 'YouTube'),
+            ('vimeo', 'Vimeo'),
+            ('custom', 'Vidéo personnalisée'),
+            ('auto', 'Génération automatique'),
+        ],
+        default='auto',
+        help_text="Type de vidéo d'explication"
+    )
+    
     # Relations
     category = models.ForeignKey(ExerciseCategory, on_delete=models.CASCADE, related_name='exercises')
     exercise_type = models.ForeignKey(ExerciseType, on_delete=models.CASCADE, related_name='exercises')
@@ -244,6 +258,14 @@ class ExerciseSubmission(models.Model):
     feedback = models.TextField(blank=True, help_text="Feedback détaillé de l'IA")
     suggestions = models.JSONField(default=list, help_text="Suggestions d'amélioration")
     
+    # Correction avancée
+    detailed_correction = models.JSONField(default=dict, help_text="Correction ligne par ligne détaillée")
+    video_explanation_url = models.URLField(blank=True, help_text="URL de la vidéo d'explication")
+    comparison_answers = models.JSONField(default=list, help_text="Comparaison avec d'autres bonnes réponses")
+    personalized_feedback = models.TextField(blank=True, help_text="Feedback personnalisé adapté au niveau")
+    improvement_areas = models.JSONField(default=list, help_text="Domaines d'amélioration identifiés")
+    strengths = models.JSONField(default=list, help_text="Points forts identifiés")
+    
     # Métadonnées de correction
     correction_time = models.FloatField(default=0.0, help_text="Temps de correction en secondes")
     ai_model = models.CharField(max_length=50, default='llama-3.1-8b-instant')
@@ -285,3 +307,94 @@ class ExerciseCorrectionSession(models.Model):
     
     def __str__(self):
         return f"Session correction - {self.user.username} - {self.exercise.title}"
+
+
+class ExerciseCollection(models.Model):
+    """Collection personnalisée d'exercices créée par un utilisateur"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='exercise_collections')
+    name = models.CharField(max_length=100, help_text="Nom de la collection")
+    description = models.TextField(blank=True, help_text="Description de la collection")
+    color = models.CharField(max_length=7, default='#dc3545', help_text="Couleur de la collection (hex)")
+    icon = models.CharField(max_length=50, default='fas fa-folder', help_text="Icône FontAwesome")
+    
+    # Métadonnées
+    is_public = models.BooleanField(default=False, help_text="Collection visible par d'autres utilisateurs")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Collection d'exercices"
+        verbose_name_plural = "Collections d'exercices"
+        ordering = ['-updated_at']
+        unique_together = ['user', 'name']
+    
+    def __str__(self):
+        return f"{self.name} - {self.user.username}"
+
+
+class ExerciseFavorite(models.Model):
+    """Exercice marqué comme favori par un utilisateur"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_exercises')
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Exercice favori"
+        verbose_name_plural = "Exercices favoris"
+        ordering = ['-created_at']
+        unique_together = ['user', 'exercise']
+    
+    def __str__(self):
+        return f"Favori - {self.user.username} - {self.exercise.title}"
+
+
+class ExerciseInCollection(models.Model):
+    """Exercice ajouté à une collection"""
+    collection = models.ForeignKey(ExerciseCollection, on_delete=models.CASCADE, related_name='exercises')
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='in_collections')
+    added_at = models.DateTimeField(auto_now_add=True)
+    order = models.PositiveIntegerField(default=0, help_text="Ordre d'affichage dans la collection")
+    
+    class Meta:
+        verbose_name = "Exercice dans collection"
+        verbose_name_plural = "Exercices dans collections"
+        ordering = ['order', '-added_at']
+        unique_together = ['collection', 'exercise']
+    
+    def __str__(self):
+        return f"{self.exercise.title} dans {self.collection.name}"
+
+
+class ExerciseHistory(models.Model):
+    """Historique des exercices consultés par un utilisateur"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='exercise_history')
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='viewed_by')
+    viewed_at = models.DateTimeField(auto_now_add=True)
+    time_spent = models.FloatField(default=0.0, help_text="Temps passé sur l'exercice en secondes")
+    
+    class Meta:
+        verbose_name = "Historique d'exercice"
+        verbose_name_plural = "Historiques d'exercices"
+        ordering = ['-viewed_at']
+        unique_together = ['user', 'exercise']
+    
+    def __str__(self):
+        return f"Historique - {self.user.username} - {self.exercise.title}"
+
+
+class ExerciseWishlist(models.Model):
+    """Liste de souhaits d'exercices à faire plus tard"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='exercise_wishlist')
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='in_wishlists')
+    added_at = models.DateTimeField(auto_now_add=True)
+    priority = models.IntegerField(default=1, help_text="Priorité (1=haute, 5=basse)")
+    notes = models.TextField(blank=True, help_text="Notes personnelles sur l'exercice")
+    
+    class Meta:
+        verbose_name = "Exercice en liste de souhaits"
+        verbose_name_plural = "Exercices en liste de souhaits"
+        ordering = ['priority', '-added_at']
+        unique_together = ['user', 'exercise']
+    
+    def __str__(self):
+        return f"Liste de souhaits - {self.user.username} - {self.exercise.title}"

@@ -298,6 +298,12 @@
                             <button class="btn btn-outline-secondary" id="createSession">
                                 <i class="fas fa-play"></i> Nouvelle Session
                             </button>
+                            <button class="btn btn-outline-info" id="manageCollections">
+                                <i class="fas fa-folder"></i> Mes Collections
+                            </button>
+                            <button class="btn btn-outline-warning" id="viewHistory">
+                                <i class="fas fa-history"></i> Historique
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -528,6 +534,173 @@
                 <button type="button" class="btn btn-success" id="createSessionBtn">
                     <i class="fas fa-play"></i> Créer la session
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour ajouter à une collection -->
+<div class="modal fade" id="collectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-folder-plus text-info"></i>
+                    Ajouter à une collection
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Sélectionner une collection</label>
+                    <select class="form-select" id="collectionSelect">
+                        <option value="">Sélectionner une collection</option>
+                    </select>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <a href="#" onclick="showCreateCollectionModal()">Créer une nouvelle collection</a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-info" onclick="addToCollection()">
+                    <i class="fas fa-plus"></i> Ajouter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour créer une collection -->
+<div class="modal fade" id="createCollectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-folder-plus text-success"></i>
+                    Créer une nouvelle collection
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createCollectionForm">
+                    <div class="mb-3">
+                        <label class="form-label">Nom de la collection</label>
+                        <input type="text" class="form-control" name="name" required 
+                               placeholder="Ex: Mes exercices de mathématiques">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="2" 
+                                  placeholder="Description de la collection..."></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Couleur</label>
+                                <select class="form-select" name="color">
+                                    <option value="#dc3545">Rouge</option>
+                                    <option value="#007bff">Bleu</option>
+                                    <option value="#28a745">Vert</option>
+                                    <option value="#ffc107">Jaune</option>
+                                    <option value="#6f42c1">Violet</option>
+                                    <option value="#fd7e14">Orange</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Icône</label>
+                                <select class="form-select" name="icon">
+                                    <option value="fas fa-folder">Dossier</option>
+                                    <option value="fas fa-book">Livre</option>
+                                    <option value="fas fa-graduation-cap">Diplôme</option>
+                                    <option value="fas fa-star">Étoile</option>
+                                    <option value="fas fa-heart">Cœur</option>
+                                    <option value="fas fa-fire">Feu</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_public" id="isPublic">
+                        <label class="form-check-label" for="isPublic">
+                            Collection publique (visible par d'autres utilisateurs)
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-success" onclick="createCollection()">
+                    <i class="fas fa-plus"></i> Créer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour gérer les collections -->
+<div class="modal fade" id="manageCollectionsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-folder text-info"></i>
+                    Mes Collections
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6>Mes Collections</h6>
+                    <button class="btn btn-success btn-sm" onclick="showCreateCollectionModal()">
+                        <i class="fas fa-plus"></i> Nouvelle collection
+                    </button>
+                </div>
+                <div id="collectionsList">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Chargement des collections...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour l'historique -->
+<div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-history text-warning"></i>
+                    Historique des exercices
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="historyList">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Chargement de l'historique...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
             </div>
         </div>
     </div>
@@ -787,12 +960,29 @@ function createExerciseCard(exercise) {
                 </div>
                 
                 <div class="card-footer bg-transparent">
-                    <div class="d-grid gap-2">
+                    <!-- Actions principales -->
+                    <div class="d-grid gap-2 mb-2">
                         <button class="btn btn-primary btn-sm" onclick="startExercise(${exercise.id})">
                             <i class="fas fa-play"></i> Commencer
                         </button>
                         <button class="btn btn-outline-secondary btn-sm" onclick="viewExercise(${exercise.id})">
                             <i class="fas fa-eye"></i> Voir
+                        </button>
+                    </div>
+                    
+                    <!-- Actions secondaires -->
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-outline-danger btn-sm" onclick="toggleFavorite(${exercise.id})" 
+                                id="favoriteBtn${exercise.id}" title="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" onclick="addToWishlist(${exercise.id})" 
+                                title="Ajouter à la liste de souhaits">
+                            <i class="fas fa-bookmark"></i>
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" onclick="showCollectionModal(${exercise.id})" 
+                                title="Ajouter à une collection">
+                            <i class="fas fa-folder-plus"></i>
                         </button>
                     </div>
                 </div>
@@ -912,6 +1102,18 @@ function setupEventListeners() {
     }
     if (createSessionBtn) createSessionBtn.addEventListener('click', createSession);
     
+    // Bouton gérer collections
+    const manageCollectionsBtn = document.getElementById('manageCollections');
+    if (manageCollectionsBtn) {
+        manageCollectionsBtn.addEventListener('click', showManageCollectionsModal);
+    }
+    
+    // Bouton historique
+    const viewHistoryBtn = document.getElementById('viewHistory');
+    if (viewHistoryBtn) {
+        viewHistoryBtn.addEventListener('click', showHistoryModal);
+    }
+    
     console.log('=== EVENEMENTS CONFIGURES ===');
 }
 
@@ -1013,7 +1215,183 @@ function startExercise(exerciseId) {
 
 // Voir un exercice
 function viewExercise(exerciseId) {
+    // Enregistrer la consultation dans l'historique
+    trackExerciseView(exerciseId);
     window.location.href = `/exercises/${exerciseId}/`;
+}
+
+// Enregistrer la consultation d'un exercice
+async function trackExerciseView(exerciseId) {
+    try {
+        await fetch(`${API_BASE}exercises/${exerciseId}/track_view/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                time_spent: 0 // Temps initial
+            })
+        });
+    } catch (error) {
+        console.log('Erreur lors de l\'enregistrement de la consultation:', error);
+    }
+}
+
+// Fonctions pour les favoris et collections
+async function toggleFavorite(exerciseId) {
+    const button = document.getElementById(`favoriteBtn${exerciseId}`);
+    const icon = button.querySelector('i');
+    
+    try {
+        // Vérifier si c'est déjà un favori
+        const isFavorite = icon.classList.contains('fas');
+        
+        const response = await fetch(`${API_BASE}exercises/${exerciseId}/favorite/`, {
+            method: isFavorite ? 'DELETE' : 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        if (response.ok) {
+            if (isFavorite) {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-outline-danger');
+                showSuccess('Exercice retiré des favoris');
+            } else {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                button.classList.remove('btn-outline-danger');
+                button.classList.add('btn-danger');
+                showSuccess('Exercice ajouté aux favoris');
+            }
+        } else {
+            showError('Erreur lors de la modification des favoris');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors de la modification des favoris');
+    }
+}
+
+async function addToWishlist(exerciseId) {
+    try {
+        const response = await fetch(`${API_BASE}exercises/${exerciseId}/add_to_wishlist/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                priority: 1,
+                notes: ''
+            })
+        });
+        
+        if (response.ok) {
+            showSuccess('Exercice ajouté à la liste de souhaits');
+        } else {
+            showError('Erreur lors de l\'ajout à la liste de souhaits');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors de l\'ajout à la liste de souhaits');
+    }
+}
+
+function showCollectionModal(exerciseId) {
+    // Stocker l'ID de l'exercice pour l'utiliser dans le modal
+    window.currentExerciseId = exerciseId;
+    
+    // Charger les collections de l'utilisateur
+    loadUserCollections();
+    
+    // Afficher le modal
+    const modal = new bootstrap.Modal(document.getElementById('collectionModal'));
+    modal.show();
+}
+
+async function loadUserCollections() {
+    try {
+        console.log('Chargement des collections utilisateur...');
+        const response = await fetch(`${API_BASE}collections/`);
+        console.log('Réponse collections:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Données collections reçues:', data);
+            
+            // Gérer les deux formats possibles : direct array ou paginated
+            const collections = data.results || data;
+            console.log('Collections extraites:', collections.length, 'collections');
+            
+            const select = document.getElementById('collectionSelect');
+            if (!select) {
+                console.error('Élément collectionSelect non trouvé!');
+                return;
+            }
+            
+            select.innerHTML = '<option value="">Sélectionner une collection</option>';
+            
+            if (collections.length === 0) {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "Aucune collection disponible";
+                option.disabled = true;
+                select.appendChild(option);
+            } else {
+                collections.forEach(collection => {
+                    const option = document.createElement('option');
+                    option.value = collection.id;
+                    option.textContent = collection.name;
+                    select.appendChild(option);
+                });
+            }
+            
+            console.log('Collections ajoutées au sélecteur:', collections.length);
+        } else {
+            console.error('Erreur HTTP:', response.status, response.statusText);
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des collections:', error);
+    }
+}
+
+async function addToCollection() {
+    const exerciseId = window.currentExerciseId;
+    const collectionId = document.getElementById('collectionSelect').value;
+    
+    if (!collectionId) {
+        showError('Veuillez sélectionner une collection');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}exercises/${exerciseId}/add_to_collection/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                collection_id: collectionId
+            })
+        });
+        
+        if (response.ok) {
+            showSuccess('Exercice ajouté à la collection');
+            bootstrap.Modal.getInstance(document.getElementById('collectionModal')).hide();
+        } else {
+            const error = await response.json();
+            showError(error.error || 'Erreur lors de l\'ajout à la collection');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors de l\'ajout à la collection');
+    }
 }
 
 // Fonctions utilitaires
@@ -1032,14 +1410,433 @@ function getCookie(name) {
     return cookieValue;
 }
 
+// Fonctions pour gérer les collections
+function showCreateCollectionModal() {
+    // Fermer le modal actuel s'il est ouvert
+    const currentModal = bootstrap.Modal.getInstance(document.getElementById('collectionModal'));
+    if (currentModal) {
+        currentModal.hide();
+    }
+    
+    // Afficher le modal de création
+    const modal = new bootstrap.Modal(document.getElementById('createCollectionModal'));
+    modal.show();
+}
+
+function showManageCollectionsModal() {
+    const modal = new bootstrap.Modal(document.getElementById('manageCollectionsModal'));
+    modal.show();
+    loadCollectionsList();
+}
+
+async function createCollection() {
+    const form = document.getElementById('createCollectionForm');
+    const formData = new FormData(form);
+    
+    const data = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        color: formData.get('color'),
+        icon: formData.get('icon'),
+        is_public: formData.get('is_public') === 'on'
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE}collections/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            showSuccess('Collection créée avec succès!');
+            bootstrap.Modal.getInstance(document.getElementById('createCollectionModal')).hide();
+            form.reset();
+            // Recharger les collections dans le modal d'ajout
+            loadUserCollections();
+        } else {
+            const errorData = await response.json();
+            console.error('Erreur de création:', errorData);
+            
+            // Vérifier si c'est une erreur de contrainte d'unicité
+            if (response.status === 500 && errorData.detail && errorData.detail.includes('UNIQUE constraint failed')) {
+                // Proposer un nom unique
+                const originalName = data.name;
+                let counter = 1;
+                let newName = `${originalName} (${counter})`;
+                
+                // Essayer jusqu'à 10 fois avec des noms différents
+                while (counter <= 10) {
+                    data.name = newName;
+                    
+                    const retryResponse = await fetch(`${API_BASE}collections/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (retryResponse.ok) {
+                        showSuccess(`Collection créée avec succès! (Nom: ${newName})`);
+                        bootstrap.Modal.getInstance(document.getElementById('createCollectionModal')).hide();
+                        form.reset();
+                        loadUserCollections();
+                        return;
+                    }
+                    
+                    counter++;
+                    newName = `${originalName} (${counter})`;
+                }
+                
+                showError(`Une collection avec le nom "${originalName}" existe déjà. Veuillez choisir un autre nom.`);
+            } else {
+                showError(errorData.detail || 'Erreur lors de la création de la collection');
+            }
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors de la création de la collection');
+    }
+}
+
+async function loadCollectionsList() {
+    try {
+        console.log('Chargement de la liste des collections...');
+        const response = await fetch(`${API_BASE}collections/`);
+        console.log('Réponse collections liste:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Données collections liste reçues:', data);
+            
+            // Gérer les deux formats possibles : direct array ou paginated
+            const collections = data.results || data;
+            console.log('Collections extraites pour liste:', collections.length, 'collections');
+            
+            const container = document.getElementById('collectionsList');
+            if (!container) {
+                console.error('Élément collectionsList non trouvé!');
+                return;
+            }
+            
+            if (collections.length === 0) {
+                       container.innerHTML = `
+                           <div class="text-center py-4">
+                               <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                               <h5 class="text-muted">Aucune collection</h5>
+                               <p class="text-muted">Créez votre première collection pour organiser vos exercices.</p>
+                               <div class="d-grid gap-2">
+                                   <button class="btn btn-primary" onclick="showCreateCollectionModal()">
+                                       <i class="fas fa-plus"></i> Créer une collection
+                                   </button>
+                                   <button class="btn btn-outline-secondary" onclick="createTestCollections()">
+                                       <i class="fas fa-magic"></i> Créer des collections de test
+                                   </button>
+                               </div>
+                           </div>
+                       `;
+            } else {
+                const collectionsHtml = collections.map(collection => `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3" style="color: ${collection.color}">
+                                        <i class="${collection.icon} fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">${collection.name}</h6>
+                                        <p class="text-muted mb-1">${collection.description || 'Aucune description'}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-file-alt me-1"></i>
+                                            ${collection.exercise_count} exercice(s)
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="viewCollection(${collection.id})">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteCollection(${collection.id})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.innerHTML = collectionsHtml;
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des collections:', error);
+        document.getElementById('collectionsList').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Erreur lors du chargement des collections
+            </div>
+        `;
+    }
+}
+
+async function deleteCollection(collectionId) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette collection ?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}collections/${collectionId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        if (response.ok) {
+            showSuccess('Collection supprimée avec succès!');
+            loadCollectionsList();
+            loadUserCollections(); // Recharger aussi la liste dans le modal d'ajout
+        } else {
+            showError('Erreur lors de la suppression de la collection');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors de la suppression de la collection');
+    }
+}
+
+function viewCollection(collectionId) {
+    // Rediriger vers une page de détail de la collection
+    window.location.href = `/exercises/collections/${collectionId}/`;
+}
+
+// Fonctions pour l'historique
+function showHistoryModal() {
+    const modal = new bootstrap.Modal(document.getElementById('historyModal'));
+    modal.show();
+    loadHistory();
+}
+
+async function loadHistory() {
+    try {
+        console.log('Chargement de l\'historique...');
+        const response = await fetch(`${API_BASE}history/`);
+        console.log('Réponse historique:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Données historique reçues:', data);
+            
+            // Gérer les deux formats possibles : direct array ou paginated
+            const history = data.results || data;
+            console.log('Historique extrait:', history.length, 'éléments');
+            
+            const container = document.getElementById('historyList');
+            if (!container) {
+                console.error('Élément historyList non trouvé!');
+                return;
+            }
+            
+            if (!history || history.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Aucun historique</h5>
+                        <p class="text-muted">Commencez à consulter des exercices pour voir votre historique.</p>
+                        <button class="btn btn-primary" onclick="createTestHistory()">
+                            <i class="fas fa-plus"></i> Créer des données de test
+                        </button>
+                    </div>
+                `;
+            } else {
+                const historyHtml = history.map(item => `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-file-alt fa-2x text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">${item.exercise.title}</h6>
+                                        <p class="text-muted mb-1">${item.exercise.content_preview}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Temps passé: ${Math.round(item.time_spent / 60)} min
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">
+                                        ${new Date(item.viewed_at).toLocaleDateString()}
+                                    </small>
+                                    <div class="mt-2">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="startExercise(${item.exercise.id})">
+                                            <i class="fas fa-play"></i> Recommencer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.innerHTML = historyHtml;
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement de l\'historique:', error);
+        document.getElementById('historyList').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Erreur lors du chargement de l'historique
+            </div>
+        `;
+    }
+}
+
+// Créer des données de test pour l'historique
+async function createTestHistory() {
+    try {
+        // Récupérer quelques exercices
+        const exercisesResponse = await fetch(`${API_BASE}exercises/?page=1&page_size=3`);
+        if (exercisesResponse.ok) {
+            const exercisesData = await exercisesResponse.json();
+            const exercises = exercisesData.results || [];
+            
+            // Créer de l'historique pour chaque exercice
+            for (const exercise of exercises) {
+                await fetch(`${API_BASE}exercises/${exercise.id}/track_view/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        time_spent: Math.random() * 300 + 60 // 1-6 minutes
+                    })
+                });
+            }
+            
+            showSuccess('Données de test créées!');
+            loadHistory(); // Recharger l'historique
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors de la création des données de test');
+    }
+}
+
+// Créer des collections de test
+async function createTestCollections() {
+    const testCollections = [
+        {
+            name: 'Mes Exercices Favoris',
+            description: 'Collection de mes exercices préférés',
+            color: '#dc3545',
+            icon: 'fas fa-heart',
+            is_public: false
+        },
+        {
+            name: 'Mathématiques Avancées',
+            description: 'Exercices de mathématiques de niveau avancé',
+            color: '#007bff',
+            icon: 'fas fa-calculator',
+            is_public: true
+        },
+        {
+            name: 'À Réviser',
+            description: 'Exercices que je dois réviser',
+            color: '#ffc107',
+            icon: 'fas fa-book',
+            is_public: false
+        }
+    ];
+    
+    try {
+        let createdCount = 0;
+        for (const collectionData of testCollections) {
+            try {
+                const response = await fetch(`${API_BASE}collections/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(collectionData)
+                });
+                
+                if (response.ok) {
+                    createdCount++;
+                } else {
+                    console.log(`Collection "${collectionData.name}" existe déjà ou erreur`);
+                }
+            } catch (error) {
+                console.log(`Erreur pour "${collectionData.name}":`, error);
+            }
+        }
+        
+        if (createdCount > 0) {
+            showSuccess(`${createdCount} collections de test créées!`);
+        } else {
+            showSuccess('Collections de test déjà existantes!');
+        }
+        
+        loadCollectionsList(); // Recharger la liste
+        loadUserCollections(); // Recharger aussi la liste dans le modal d'ajout
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors de la création des collections de test');
+    }
+}
+
 function showSuccess(message) {
-    // Implémenter l'affichage des messages de succès
-    console.log('Success:', message);
+    // Créer une alerte Bootstrap
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Supprimer automatiquement après 3 secondes
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 3000);
 }
 
 function showError(message) {
-    // Implémenter l'affichage des messages d'erreur
-    console.error('Error:', message);
+    // Créer une alerte Bootstrap
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Supprimer automatiquement après 5 secondes
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
 }
+
 </script>
 {% endblock %}

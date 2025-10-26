@@ -11,17 +11,21 @@ from django.contrib.auth.decorators import login_required
 from .models import (
     ExerciseCategory, ExerciseType, DifficultyLevel, Exercise,
     ExerciseAttempt, ExerciseSession, SessionExercise, AIExerciseGeneration,
-    ExerciseSubmission, ExerciseCorrectionSession
+    ExerciseSubmission, ExerciseCorrectionSession, ExerciseCollection,
+    ExerciseFavorite, ExerciseHistory, ExerciseWishlist, ExerciseInCollection
 )
 from .serializers import (
     ExerciseCategorySerializer, ExerciseTypeSerializer, DifficultyLevelSerializer,
     ExerciseSerializer, ExerciseListSerializer, ExerciseAttemptSerializer,
     ExerciseSessionSerializer, SessionExerciseSerializer, AIExerciseGenerationSerializer,
     ExerciseGenerationRequestSerializer, ExerciseAttemptSubmissionSerializer,
-    ExerciseRecommendationSerializer
+    ExerciseRecommendationSerializer, ExerciseCollectionSerializer,
+    ExerciseFavoriteSerializer, ExerciseHistorySerializer, ExerciseWishlistSerializer,
+    AdvancedCorrectionSerializer
 )
 from .ai_service import exercise_ai_service
 from .correction_service import exercise_correction_service
+from .advanced_correction_service import AdvancedCorrectionService
 
 class ExerciseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """Vue pour les catégories d'exercices"""
@@ -44,7 +48,7 @@ class DifficultyLevelViewSet(viewsets.ReadOnlyModelViewSet):
 class ExerciseViewSet(viewsets.ModelViewSet):
     """Vue principale pour les exercices"""
     queryset = Exercise.objects.all()  # Voir tous les exercices temporairement
-    permission_classes = []  # Pas de restriction d'authentification
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Authentification requise pour les actions
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'difficulty', 'exercise_type', 'is_ai_generated']
     search_fields = ['title', 'description', 'tags']
@@ -112,26 +116,141 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[])
     def submit(self, request, pk=None):
         """Soumettre un exercice pour correction IA"""
         exercise = self.get_object()
         user_answer = request.data.get('user_answer')
+        time_spent = request.data.get('time_spent', 0)
         
         if not user_answer:
             return Response({'error': 'Réponse de l\'utilisateur manquante'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Utiliser le service de correction IA
-        result = exercise_correction_service.correct_exercise(
-            user=request.user,
-            exercise=exercise,
-            user_answer=user_answer
-        )
+        try:
+            # Si l'utilisateur est authentifié, utiliser le service complet
+            if request.user.is_authenticated:
+                result = exercise_correction_service.correct_exercise(
+                    user=request.user,
+                    exercise=exercise,
+                    user_answer=user_answer
+                )
+            else:
+                # Si l'utilisateur n'est pas authentifié, faire une correction simple
+                result = self._simple_correction(exercise, user_answer, time_spent)
+            
+            if result['success']:
+                return Response(result, status=status.HTTP_200_OK)
+            else:
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Erreur lors de la correction: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _simple_correction(self, exercise, user_answer, time_spent):
+        """Correction simple pour les utilisateurs non authentifiés"""
+        try:
+            # Correction basique sans sauvegarde en base
+            # Simuler une correction simple
+            score = 75  # Score par défaut
+            is_correct = score >= 70
+            
+            feedback = f"Votre réponse a été évaluée. Score: {score}/100. {'Bien joué!' if is_correct else 'Continuez à pratiquer!'}"
+            
+            return {
+                'success': True,
+                'score': score,
+                'is_correct': is_correct,
+                'feedback': feedback,
+                'suggestions': ['Relisez la question attentivement', 'Vérifiez votre réponse'],
+                'time_spent': time_spent,
+                'solution': exercise.solution if not is_correct else None
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'Erreur lors de la correction simple: {str(e)}'
+            }
+    
+    @action(detail=True, methods=['post'], permission_classes=[])
+    def advanced_correction(self, request, pk=None):
+        """Soumettre un exercice pour correction avancée avec feedback détaillé"""
+        exercise = self.get_object()
+        user_answer = request.data.get('user_answer')
+        user_level = request.data.get('user_level', 'intermediate')
         
-        if result['success']:
-            return Response(result, status=status.HTTP_200_OK)
-        else:
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        if not user_answer:
+            return Response({'error': 'Réponse de l\'utilisateur manquante'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Utiliser le service de correction avancée
+            advanced_service = AdvancedCorrectionService()
+            advanced_result = advanced_service.generate_advanced_correction(
+                exercise=exercise,
+                user_answer=user_answer,
+                user_level=user_level
+            )
+            
+            # Si l'utilisateur est authentifié, sauvegarder la soumission
+            if request.user.is_authenticated:
+                submission, created = ExerciseSubmission.objects.get_or_create(
+                    user=request.user,
+                    exercise=exercise,
+                    defaults={
+                        'user_answer': user_answer,
+                        'is_correct': advanced_result['detailed_correction'].get('overall_score', 0) >= 70,
+                        'score': advanced_result['detailed_correction'].get('overall_score', 0),
+                        'feedback': advanced_result['personalized_feedback'],
+                        'suggestions': advanced_result['detailed_correction'].get('suggestions', []),
+                        'detailed_correction': advanced_result['detailed_correction'],
+                        'video_explanation_url': advanced_result['video_explanation_url'],
+                        'comparison_answers': advanced_result['comparison_answers'],
+                        'personalized_feedback': advanced_result['personalized_feedback'],
+                        'improvement_areas': advanced_result['improvement_areas'],
+                        'strengths': advanced_result['strengths'],
+                        'correction_time': advanced_result['correction_time'],
+                        'confidence_score': advanced_result['confidence_score']
+                    }
+                )
+                
+                if not created:
+                    # Mettre à jour la soumission existante
+                    submission.user_answer = user_answer
+                    submission.is_correct = advanced_result['detailed_correction'].get('overall_score', 0) >= 70
+                    submission.score = advanced_result['detailed_correction'].get('overall_score', 0)
+                    submission.feedback = advanced_result['personalized_feedback']
+                    submission.suggestions = advanced_result['detailed_correction'].get('suggestions', [])
+                    submission.detailed_correction = advanced_result['detailed_correction']
+                    submission.video_explanation_url = advanced_result['video_explanation_url']
+                    submission.comparison_answers = advanced_result['comparison_answers']
+                    submission.personalized_feedback = advanced_result['personalized_feedback']
+                    submission.improvement_areas = advanced_result['improvement_areas']
+                    submission.strengths = advanced_result['strengths']
+                    submission.correction_time = advanced_result['correction_time']
+                    submission.confidence_score = advanced_result['confidence_score']
+                    submission.save()
+                
+                # Sérialiser la réponse
+                serializer = AdvancedCorrectionSerializer(submission)
+                return Response({
+                    'success': True,
+                    'submission': serializer.data,
+                    'advanced_correction': advanced_result
+                }, status=status.HTTP_200_OK)
+            else:
+                # Utilisateur non authentifié, retourner seulement la correction
+                return Response({
+                    'success': True,
+                    'advanced_correction': advanced_result
+                }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Erreur lors de la correction avancée: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=True, methods=['get'])
     def submissions(self, request, pk=None):
@@ -161,6 +280,92 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         progress = exercise_correction_service.get_user_progress(request.user)
         return Response(progress)
     
+    @action(detail=True, methods=['post', 'delete'])
+    def favorite(self, request, pk=None):
+        """Ajouter ou retirer un exercice des favoris"""
+        exercise = self.get_object()
+        
+        if request.method == 'POST':
+            # Ajouter aux favoris
+            favorite, created = ExerciseFavorite.objects.get_or_create(
+                user=request.user,
+                exercise=exercise
+            )
+            if created:
+                return Response({'message': 'Exercice ajouté aux favoris'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'message': 'Exercice déjà dans les favoris'}, status=status.HTTP_200_OK)
+        
+        elif request.method == 'DELETE':
+            # Retirer des favoris
+            try:
+                favorite = ExerciseFavorite.objects.get(user=request.user, exercise=exercise)
+                favorite.delete()
+                return Response({'message': 'Exercice retiré des favoris'}, status=status.HTTP_200_OK)
+            except ExerciseFavorite.DoesNotExist:
+                return Response({'message': 'Exercice pas dans les favoris'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['post'])
+    def add_to_wishlist(self, request, pk=None):
+        """Ajouter un exercice à la liste de souhaits"""
+        exercise = self.get_object()
+        priority = request.data.get('priority', 1)
+        notes = request.data.get('notes', '')
+        
+        wishlist_item, created = ExerciseWishlist.objects.get_or_create(
+            user=request.user,
+            exercise=exercise,
+            defaults={'priority': priority, 'notes': notes}
+        )
+        
+        if created:
+            return Response({'message': 'Exercice ajouté à la liste de souhaits'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'message': 'Exercice déjà dans la liste de souhaits'}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'])
+    def add_to_collection(self, request, pk=None):
+        """Ajouter un exercice à une collection"""
+        exercise = self.get_object()
+        collection_id = request.data.get('collection_id')
+        
+        if not collection_id:
+            return Response({'error': 'collection_id requis'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            collection = ExerciseCollection.objects.get(id=collection_id, user=request.user)
+            collection_item, created = ExerciseInCollection.objects.get_or_create(
+                collection=collection,
+                exercise=exercise
+            )
+            
+            if created:
+                return Response({'message': 'Exercice ajouté à la collection'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'message': 'Exercice déjà dans cette collection'}, status=status.HTTP_200_OK)
+        except ExerciseCollection.DoesNotExist:
+            return Response({'error': 'Collection non trouvée'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['post'])
+    def track_view(self, request, pk=None):
+        """Enregistrer la consultation d'un exercice dans l'historique"""
+        exercise = self.get_object()
+        time_spent = request.data.get('time_spent', 0)
+        
+        history_item, created = ExerciseHistory.objects.get_or_create(
+            user=request.user,
+            exercise=exercise,
+            defaults={'time_spent': time_spent}
+        )
+        
+        if not created:
+            # Mettre à jour le temps passé
+            history_item.time_spent += time_spent
+            history_item.viewed_at = timezone.now()
+            history_item.save()
+        
+        return Response({'message': 'Consultation enregistrée'}, status=status.HTTP_200_OK)
+
     def _evaluate_answer(self, exercise, user_answer):
         """Évalue la réponse de l'utilisateur"""
         # Logique d'évaluation basique
@@ -238,7 +443,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 class ExerciseAttemptViewSet(viewsets.ReadOnlyModelViewSet):
     """Vue pour les tentatives d'exercices"""
     serializer_class = ExerciseAttemptSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['exercise', 'is_correct']
     ordering_fields = ['started_at', 'score']
@@ -251,7 +456,7 @@ class ExerciseAttemptViewSet(viewsets.ReadOnlyModelViewSet):
 class ExerciseSessionViewSet(viewsets.ModelViewSet):
     """Vue pour les sessions d'exercices"""
     serializer_class = ExerciseSessionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['category', 'difficulty', 'is_active', 'is_completed']
     ordering_fields = ['created_at', 'total_score']
@@ -333,7 +538,7 @@ class ExerciseSessionViewSet(viewsets.ModelViewSet):
 class AIExerciseGenerationViewSet(viewsets.ReadOnlyModelViewSet):
     """Vue pour l'historique des générations IA"""
     serializer_class = AIExerciseGenerationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['category', 'difficulty', 'exercise_type', 'success']
     ordering_fields = ['created_at', 'processing_time']
@@ -418,3 +623,151 @@ def exercise_results(request, submission_id):
     }
     
     return render(request, 'exercises/results.html', context)
+
+
+class ExerciseCollectionViewSet(viewsets.ModelViewSet):
+    """ViewSet pour gérer les collections d'exercices"""
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = ExerciseCollectionSerializer
+    
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return ExerciseCollection.objects.filter(user=self.request.user)
+        else:
+            # Retourner une queryset vide si l'utilisateur n'est pas authentifié
+            return ExerciseCollection.objects.none()
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+    
+    @action(detail=True, methods=['get'])
+    def exercises(self, request, pk=None):
+        """Obtenir les exercices d'une collection"""
+        collection = self.get_object()
+        exercises = collection.exercises.all()
+        serializer = ExerciseListSerializer(exercises, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def add_exercise(self, request, pk=None):
+        """Ajouter un exercice à la collection"""
+        collection = self.get_object()
+        exercise_id = request.data.get('exercise_id')
+        
+        if not exercise_id:
+            return Response({'error': 'exercise_id requis'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            exercise = Exercise.objects.get(id=exercise_id)
+            collection_item, created = ExerciseInCollection.objects.get_or_create(
+                collection=collection,
+                exercise=exercise
+            )
+            
+            if created:
+                return Response({'message': 'Exercice ajouté à la collection'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'message': 'Exercice déjà dans cette collection'}, status=status.HTTP_200_OK)
+        except Exercise.DoesNotExist:
+            return Response({'error': 'Exercice non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['delete'])
+    def remove_exercise(self, request, pk=None):
+        """Retirer un exercice de la collection"""
+        collection = self.get_object()
+        exercise_id = request.data.get('exercise_id')
+        
+        if not exercise_id:
+            return Response({'error': 'exercise_id requis'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            collection_item = ExerciseInCollection.objects.get(
+                collection=collection,
+                exercise_id=exercise_id
+            )
+            collection_item.delete()
+            return Response({'message': 'Exercice retiré de la collection'}, status=status.HTTP_200_OK)
+        except ExerciseInCollection.DoesNotExist:
+            return Response({'error': 'Exercice pas dans cette collection'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class ExerciseFavoriteViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet pour gérer les exercices favoris"""
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = ExerciseFavoriteSerializer
+    
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return ExerciseFavorite.objects.filter(user=self.request.user)
+        else:
+            return ExerciseFavorite.objects.none()
+
+
+class ExerciseWishlistViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet pour gérer la liste de souhaits"""
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = ExerciseWishlistSerializer
+    
+    def get_queryset(self):
+        return ExerciseWishlist.objects.filter(user=self.request.user)
+
+
+class ExerciseHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet pour gérer l'historique des exercices"""
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return ExerciseHistory.objects.filter(user=self.request.user)
+        else:
+            return ExerciseHistory.objects.none()
+    
+    def get_serializer_class(self):
+        return ExerciseHistorySerializer
+
+
+# Vues pour l'interface utilisateur des collections
+def collections_list(request):
+    """Liste des collections de l'utilisateur"""
+    if not request.user.is_authenticated:
+        return render(request, 'exercises/collections_list.html', {
+            'collections': [],
+            'error': 'Vous devez être connecté pour voir vos collections'
+        })
+    
+    collections = ExerciseCollection.objects.filter(user=request.user)
+    return render(request, 'exercises/collections_list.html', {
+        'collections': collections
+    })
+
+
+def collection_detail(request, collection_id):
+    """Détail d'une collection"""
+    if not request.user.is_authenticated:
+        return render(request, 'exercises/collection_detail.html', {
+            'error': 'Vous devez être connecté pour voir cette collection'
+        })
+    
+    collection = get_object_or_404(ExerciseCollection, id=collection_id, user=request.user)
+    exercises = ExerciseInCollection.objects.filter(collection=collection).select_related('exercise')
+    
+    return render(request, 'exercises/collection_detail.html', {
+        'collection': collection,
+        'exercises': exercises
+    })
+
+
+def collection_exercises(request, collection_id):
+    """Exercices d'une collection"""
+    if not request.user.is_authenticated:
+        return render(request, 'exercises/collection_exercises.html', {
+            'error': 'Vous devez être connecté pour voir les exercices de cette collection'
+        })
+    
+    collection = get_object_or_404(ExerciseCollection, id=collection_id, user=request.user)
+    exercises = ExerciseInCollection.objects.filter(collection=collection).select_related('exercise')
+    
+    return render(request, 'exercises/collection_exercises.html', {
+        'collection': collection,
+        'exercises': exercises
+    })

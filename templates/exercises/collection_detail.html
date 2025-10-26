@@ -1,0 +1,117 @@
+{% extends 'exercises/base.html' %}
+
+{% block title %}{{ collection.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'exercises:collections-list' %}">Collections</a></li>
+                    <li class="breadcrumb-item active">{{ collection.name }}</li>
+                </ol>
+            </nav>
+
+            {% if error %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                </div>
+            {% else %}
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1><i class="fas fa-folder me-2"></i>{{ collection.name }}</h1>
+                        <p class="text-muted">{{ collection.description|default:"Aucune description" }}</p>
+                    </div>
+                    <div class="btn-group">
+                        <a href="{% url 'exercises:collection-exercises' collection.id %}" 
+                           class="btn btn-success">
+                            <i class="fas fa-play me-2"></i>Commencer les Exercices
+                        </a>
+                        <button class="btn btn-outline-primary" onclick="editCollection({{ collection.id }})">
+                            <i class="fas fa-edit me-2"></i>Modifier
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">{{ exercises.count }}</h5>
+                                <p class="card-text">Exercice{{ exercises.count|pluralize }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-success">{{ collection.created_at|date:"d/m/Y" }}</h5>
+                                <p class="card-text">Créée le</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">{{ collection.updated_at|date:"d/m/Y" }}</h5>
+                                <p class="card-text">Modifiée le</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-warning">0</h5>
+                                <p class="card-text">Complété{{ exercises.count|pluralize }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if exercises %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Exercices dans cette collection</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for exercise_in_collection in exercises %}
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h6 class="card-title">{{ exercise_in_collection.exercise.title }}</h6>
+                                                <p class="card-text text-muted small">
+                                                    {{ exercise_in_collection.exercise.description|truncatewords:20 }}
+                                                </p>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="badge bg-{{ exercise_in_collection.exercise.difficulty.color }}">
+                                                        {{ exercise_in_collection.exercise.difficulty.name }}
+                                                    </span>
+                                                    <a href="{% url 'exercises:exercise-solve' exercise_in_collection.exercise.id %}" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-play me-1"></i>Résoudre
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-puzzle-piece fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">Aucun exercice</h4>
+                        <p class="text-muted">Cette collection ne contient pas encore d'exercices</p>
+                        <a href="{% url 'exercises:exercise-dashboard' %}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Explorer les Exercices
+                        </a>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

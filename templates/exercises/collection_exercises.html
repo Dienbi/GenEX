@@ -1,0 +1,114 @@
+{% extends 'exercises/base.html' %}
+
+{% block title %}Exercices - {{ collection.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'exercises:collections-list' %}">Collections</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'exercises:collection-detail' collection.id %}">{{ collection.name }}</a></li>
+                    <li class="breadcrumb-item active">Exercices</li>
+                </ol>
+            </nav>
+
+            {% if error %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                </div>
+            {% else %}
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1><i class="fas fa-puzzle-piece me-2"></i>Exercices - {{ collection.name }}</h1>
+                        <p class="text-muted">{{ exercises.count }} exercice{{ exercises.count|pluralize }} dans cette collection</p>
+                    </div>
+                    <div class="btn-group">
+                        <a href="{% url 'exercises:collection-detail' collection.id %}" 
+                           class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour à la Collection
+                        </a>
+                        <button class="btn btn-success" onclick="startCollectionSession()">
+                            <i class="fas fa-play me-2"></i>Commencer la Session
+                        </button>
+                    </div>
+                </div>
+
+                {% if exercises %}
+                    <div class="row">
+                        {% for exercise_in_collection in exercises %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="card-title">{{ exercise_in_collection.exercise.title }}</h5>
+                                            <span class="badge bg-{{ exercise_in_collection.exercise.difficulty.color }}">
+                                                {{ exercise_in_collection.exercise.difficulty.name }}
+                                            </span>
+                                        </div>
+                                        
+                                        <p class="card-text text-muted">
+                                            {{ exercise_in_collection.exercise.description|truncatewords:25 }}
+                                        </p>
+                                        
+                                        <div class="mb-3">
+                                            <small class="text-muted">
+                                                <i class="fas fa-tag me-1"></i>{{ exercise_in_collection.exercise.category.name }}
+                                            </small>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>{{ exercise_in_collection.exercise.estimated_time }} min
+                                            </small>
+                                        </div>
+                                        
+                                        <div class="progress mb-3" style="height: 5px;">
+                                            <div class="progress-bar bg-success" style="width: 0%"></div>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-star me-1"></i>Non commencé
+                                            </small>
+                                            <div class="btn-group">
+                                                <a href="{% url 'exercises:exercise-detail' exercise_in_collection.exercise.id %}" 
+                                                   class="btn btn-outline-info btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>Voir
+                                                </a>
+                                                <a href="{% url 'exercises:exercise-solve' exercise_in_collection.exercise.id %}" 
+                                                   class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-play me-1"></i>Résoudre
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-puzzle-piece fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">Aucun exercice</h4>
+                        <p class="text-muted">Cette collection ne contient pas encore d'exercices</p>
+                        <a href="{% url 'exercises:exercise-dashboard' %}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Explorer les Exercices
+                        </a>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function startCollectionSession() {
+    // Fonction pour commencer une session avec tous les exercices de la collection
+    if (confirm('Voulez-vous commencer une session avec tous les exercices de cette collection ?')) {
+        // Rediriger vers la page de génération de session avec les exercices de la collection
+        const exerciseIds = {{ exercises|map:'exercise.id'|join:',' }};
+        window.location.href = `/exercises/?collection_exercises=${exerciseIds.join(',')}`;
+    }
+}
+</script>
+{% endblock %}

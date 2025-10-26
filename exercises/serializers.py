@@ -2,7 +2,9 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import (
     ExerciseCategory, ExerciseType, DifficultyLevel, Exercise,
-    ExerciseAttempt, ExerciseSession, SessionExercise, AIExerciseGeneration
+    ExerciseAttempt, ExerciseSession, SessionExercise, AIExerciseGeneration,
+    ExerciseSubmission, ExerciseCollection, ExerciseFavorite, ExerciseHistory, 
+    ExerciseWishlist, ExerciseInCollection
 )
 
 User = get_user_model()
@@ -245,3 +247,84 @@ class ExerciseRecommendationSerializer(serializers.Serializer):
     )
     limit = serializers.IntegerField(min_value=1, max_value=20, default=5)
     exclude_attempted = serializers.BooleanField(default=True)
+
+
+class ExerciseCollectionSerializer(serializers.ModelSerializer):
+    """Sérialiseur pour les collections d'exercices"""
+    exercise_count = serializers.SerializerMethodField()
+    user = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = ExerciseCollection
+        fields = ['id', 'name', 'description', 'color', 'icon', 'is_public', 
+                 'exercise_count', 'user', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+    
+    def get_exercise_count(self, obj):
+        return obj.exercises.count()
+
+
+class ExerciseFavoriteSerializer(serializers.ModelSerializer):
+    """Sérialiseur pour les exercices favoris"""
+    exercise = ExerciseSerializer(read_only=True)
+    user = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = ExerciseFavorite
+        fields = ['id', 'exercise', 'user', 'created_at']
+        read_only_fields = ['id', 'user', 'created_at']
+
+
+class ExerciseHistorySerializer(serializers.ModelSerializer):
+    """Sérialiseur pour l'historique des exercices"""
+    exercise = ExerciseSerializer(read_only=True)
+    user = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = ExerciseHistory
+        fields = ['id', 'exercise', 'user', 'viewed_at', 'time_spent']
+        read_only_fields = ['id', 'user', 'viewed_at']
+
+
+class ExerciseWishlistSerializer(serializers.ModelSerializer):
+    """Sérialiseur pour la liste de souhaits"""
+    exercise = ExerciseSerializer(read_only=True)
+    user = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = ExerciseWishlist
+        fields = ['id', 'exercise', 'user', 'added_at', 'priority', 'notes']
+        read_only_fields = ['id', 'user', 'added_at']
+
+
+class ExerciseInCollectionSerializer(serializers.ModelSerializer):
+    """Sérialiseur pour les exercices dans une collection"""
+    exercise = ExerciseSerializer(read_only=True)
+    collection = ExerciseCollectionSerializer(read_only=True)
+    
+    class Meta:
+        model = ExerciseInCollection
+        fields = ['id', 'exercise', 'collection', 'added_at', 'order']
+        read_only_fields = ['id', 'added_at']
+
+
+class AdvancedCorrectionSerializer(serializers.ModelSerializer):
+    """Sérialiseur pour la correction avancée des exercices"""
+    exercise = ExerciseSerializer(read_only=True)
+    user = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = ExerciseSubmission
+        fields = [
+            'id', 'exercise', 'user', 'user_answer', 'submission_time',
+            'is_correct', 'score', 'feedback', 'suggestions',
+            'detailed_correction', 'video_explanation_url', 'comparison_answers',
+            'personalized_feedback', 'improvement_areas', 'strengths',
+            'correction_time', 'ai_model', 'confidence_score'
+        ]
+        read_only_fields = [
+            'id', 'user', 'submission_time', 'is_correct', 'score', 'feedback',
+            'suggestions', 'detailed_correction', 'video_explanation_url',
+            'comparison_answers', 'personalized_feedback', 'improvement_areas',
+            'strengths', 'correction_time', 'ai_model', 'confidence_score'
+        ]

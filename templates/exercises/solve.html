@@ -4,6 +4,8 @@
 {% block title %}Résoudre l'exercice - {{ exercise.title }}{% endblock %}
 
 {% block extra_css %}
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
     /* Thème rouge et blanc pour la résolution d'exercices */
     .exercise-container {
@@ -913,6 +915,11 @@
                         <i class="fas fa-paper-plane me-2"></i>
                         Soumettre la réponse
                     </button>
+                    
+                    <button type="button" class="btn btn-warning" id="advancedCorrectionBtn">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        Correction Avancée
+                    </button>
                 </div>
             </div>
         </form>
@@ -1483,4 +1490,475 @@ function debounce(func, wait) {
 // Charger le progrès au démarrage
 document.addEventListener('DOMContentLoaded', loadProgress);
 </script>
+
+<!-- Modal pour la correction avancée -->
+<div class="modal fade" id="advancedCorrectionModal" tabindex="-1" aria-labelledby="advancedCorrectionModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="advancedCorrectionModalLabel">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    Correction Avancée
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Sélecteur de niveau -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="userLevel" class="form-label">Votre niveau :</label>
+                        <select class="form-select" id="userLevel">
+                            <option value="beginner">Débutant</option>
+                            <option value="intermediate" selected>Intermédiaire</option>
+                            <option value="advanced">Avancé</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Type de correction :</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="detailedCorrection" checked>
+                            <label class="form-check-label" for="detailedCorrection">
+                                Correction détaillée ligne par ligne
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="videoExplanation" checked>
+                            <label class="form-check-label" for="videoExplanation">
+                                Explication vidéo
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="comparisonAnswers" checked>
+                            <label class="form-check-label" for="comparisonAnswers">
+                                Comparaison avec d'autres réponses
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Zone de résultats -->
+                <div id="advancedCorrectionResults" style="display: none;">
+                    <!-- Score et feedback général -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Résultats de la Correction</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 text-center">
+                                    <div class="score-circle mx-auto mb-3" id="scoreCircle">
+                                        <span class="score-text" id="scoreText">0</span>
+                                    </div>
+                                    <h6>Score Global</h6>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="feedback-section">
+                                        <h6><i class="fas fa-comment-dots me-2"></i>Feedback Personnalisé</h6>
+                                        <p id="personalizedFeedback" class="feedback-text"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Points forts et domaines d'amélioration -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-thumbs-up me-2"></i>Points Forts</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul id="strengthsList" class="list-unstyled"></ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0"><i class="fas fa-target me-2"></i>Domaines d'Amélioration</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul id="improvementAreasList" class="list-unstyled"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Correction détaillée -->
+                    <div class="card mb-4" id="detailedCorrectionCard">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="fas fa-list-ul me-2"></i>Correction Détaillée</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="detailedCorrectionContent"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comparaison avec d'autres réponses -->
+                    <div class="card mb-4" id="comparisonCard">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0"><i class="fas fa-balance-scale me-2"></i>Comparaison avec d'Autres Réponses</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="comparisonContent"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Explication vidéo -->
+                    <div class="card mb-4" id="videoCard">
+                        <div class="card-header bg-danger text-white">
+                            <h6 class="mb-0"><i class="fas fa-play-circle me-2"></i>Explication Vidéo</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="videoContent">
+                                <p class="text-muted">Une explication vidéo sera bientôt disponible pour cet exercice.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Message de chargement -->
+                <div id="advancedCorrectionLoading" class="text-center py-5" style="display: none;">
+                    <div class="spinner-border text-warning" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Génération de la correction avancée en cours...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-warning" id="generateAdvancedCorrection">
+                    <i class="fas fa-magic me-2"></i>
+                    Générer la Correction Avancée
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles pour la correction avancée -->
+<style>
+.score-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.feedback-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #495057;
+}
+
+.strength-item, .improvement-item {
+    padding: 8px 12px;
+    margin: 5px 0;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.strength-item {
+    background-color: #d4edda;
+    border-left-color: #28a745;
+}
+
+.improvement-item {
+    background-color: #fff3cd;
+    border-left-color: #ffc107;
+}
+
+.detailed-line {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.detailed-line.correct {
+    background-color: #d4edda;
+    border-left-color: #28a745;
+}
+
+.detailed-line.incorrect {
+    background-color: #f8d7da;
+    border-left-color: #dc3545;
+}
+
+.detailed-line.partial {
+    background-color: #fff3cd;
+    border-left-color: #ffc107;
+}
+
+.comparison-answer {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.comparison-answer .level-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.level-badge.beginner {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.level-badge.intermediate {
+    background-color: #6f42c1;
+    color: white;
+}
+
+.level-badge.advanced {
+    background-color: #dc3545;
+    color: white;
+}
+</style>
+
+<script>
+// Gestion de la correction avancée
+document.addEventListener('DOMContentLoaded', function() {
+    const advancedCorrectionBtn = document.getElementById('advancedCorrectionBtn');
+    const generateAdvancedCorrectionBtn = document.getElementById('generateAdvancedCorrection');
+    const advancedCorrectionModal = new bootstrap.Modal(document.getElementById('advancedCorrectionModal'));
+    
+    // Ouvrir le modal de correction avancée
+    advancedCorrectionBtn.addEventListener('click', function() {
+        advancedCorrectionModal.show();
+    });
+    
+    // Générer la correction avancée
+    if (generateAdvancedCorrectionBtn) {
+        console.log('Bouton generateAdvancedCorrection trouve, ajout de l\'evenement');
+        generateAdvancedCorrectionBtn.addEventListener('click', function() {
+            console.log('Clic sur le bouton generateAdvancedCorrection');
+            generateAdvancedCorrection();
+        });
+    } else {
+        console.error('Bouton generateAdvancedCorrection non trouve!');
+    }
+});
+
+// Fonction pour obtenir les cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+async function generateAdvancedCorrection() {
+    console.log('=== DÉBUT CORRECTION AVANCÉE ===');
+    
+    const userAnswer = document.getElementById('userAnswer').value;
+    const userLevel = document.getElementById('userLevel').value;
+    
+    console.log('Réponse utilisateur:', userAnswer);
+    console.log('Niveau utilisateur:', userLevel);
+    
+    if (!userAnswer.trim()) {
+        alert('Veuillez d\'abord saisir votre réponse.');
+        return;
+    }
+    
+    // Afficher le loading
+    document.getElementById('advancedCorrectionLoading').style.display = 'block';
+    document.getElementById('advancedCorrectionResults').style.display = 'none';
+    
+    try {
+        const exerciseId = {{ exercise.id }};
+        const url = `/exercises/api/exercises/${exerciseId}/advanced_correction/`;
+        console.log('URL de l\'API:', url);
+        
+        const csrfToken = getCookie('csrftoken');
+        console.log('CSRF Token:', csrfToken);
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                user_answer: userAnswer,
+                user_level: userLevel
+            })
+        });
+        
+        console.log('Réponse reçue:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erreur HTTP:', errorText);
+            throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Données reçues:', data);
+        
+        if (data.success) {
+            displayAdvancedCorrection(data.advanced_correction);
+        } else {
+            throw new Error(data.error || 'Erreur lors de la correction avancée');
+        }
+    } catch (error) {
+        console.error('Erreur complète:', error);
+        alert('Erreur lors de la génération de la correction avancée: ' + error.message);
+    } finally {
+        document.getElementById('advancedCorrectionLoading').style.display = 'none';
+        console.log('=== FIN CORRECTION AVANCÉE ===');
+    }
+}
+
+function displayAdvancedCorrection(correction) {
+    // Afficher les résultats
+    document.getElementById('advancedCorrectionResults').style.display = 'block';
+    
+    // Score global
+    const score = correction.detailed_correction.overall_score || 0;
+    document.getElementById('scoreText').textContent = score;
+    document.getElementById('scoreCircle').style.background = score >= 70 ? 
+        'linear-gradient(135deg, #28a745, #20c997)' : 
+        'linear-gradient(135deg, #ffc107, #fd7e14)';
+    
+    // Feedback personnalisé
+    document.getElementById('personalizedFeedback').textContent = correction.personalized_feedback;
+    
+    // Points forts
+    const strengthsList = document.getElementById('strengthsList');
+    strengthsList.innerHTML = '';
+    correction.strengths.forEach(strength => {
+        const li = document.createElement('li');
+        li.className = 'strength-item';
+        li.innerHTML = `<i class="fas fa-check-circle me-2 text-success"></i>${strength}`;
+        strengthsList.appendChild(li);
+    });
+    
+    // Domaines d'amélioration
+    const improvementList = document.getElementById('improvementAreasList');
+    improvementList.innerHTML = '';
+    correction.improvement_areas.forEach(area => {
+        const li = document.createElement('li');
+        li.className = 'improvement-item';
+        li.innerHTML = `<i class="fas fa-arrow-up me-2 text-warning"></i>${area}`;
+        improvementList.appendChild(li);
+    });
+    
+    // Correction détaillée
+    if (document.getElementById('detailedCorrection').checked) {
+        displayDetailedCorrection(correction.detailed_correction);
+    }
+    
+    // Comparaison avec d'autres réponses
+    if (document.getElementById('comparisonAnswers').checked) {
+        displayComparisonAnswers(correction.comparison_answers);
+    }
+    
+    // Explication vidéo
+    if (document.getElementById('videoExplanation').checked) {
+        displayVideoExplanation(correction.video_explanation_url);
+    }
+}
+
+function displayDetailedCorrection(detailedCorrection) {
+    const content = document.getElementById('detailedCorrectionContent');
+    content.innerHTML = '';
+    
+    if (detailedCorrection.line_by_line) {
+        detailedCorrection.line_by_line.forEach(line => {
+            const div = document.createElement('div');
+            div.className = `detailed-line ${line.status}`;
+            div.innerHTML = `
+                <strong>Ligne:</strong> ${line.line}<br>
+                <strong>Statut:</strong> ${line.status}<br>
+                <strong>Commentaire:</strong> ${line.comment}
+            `;
+            content.appendChild(div);
+        });
+    }
+    
+    if (detailedCorrection.correct_elements) {
+        const correctDiv = document.createElement('div');
+        correctDiv.className = 'mt-3';
+        correctDiv.innerHTML = `
+            <h6 class="text-success"><i class="fas fa-check me-2"></i>Éléments Corrects</h6>
+            <ul class="list-unstyled">
+                ${detailedCorrection.correct_elements.map(el => `<li><i class="fas fa-check text-success me-2"></i>${el}</li>`).join('')}
+            </ul>
+        `;
+        content.appendChild(correctDiv);
+    }
+    
+    if (detailedCorrection.incorrect_elements) {
+        const incorrectDiv = document.createElement('div');
+        incorrectDiv.className = 'mt-3';
+        incorrectDiv.innerHTML = `
+            <h6 class="text-danger"><i class="fas fa-times me-2"></i>Éléments Incorrects</h6>
+            <ul class="list-unstyled">
+                ${detailedCorrection.incorrect_elements.map(el => `<li><i class="fas fa-times text-danger me-2"></i>${el}</li>`).join('')}
+            </ul>
+        `;
+        content.appendChild(incorrectDiv);
+    }
+}
+
+function displayComparisonAnswers(comparisonAnswers) {
+    const content = document.getElementById('comparisonContent');
+    content.innerHTML = '';
+    
+    comparisonAnswers.forEach(answer => {
+        const div = document.createElement('div');
+        div.className = 'comparison-answer';
+        div.innerHTML = `
+            <span class="level-badge ${answer.level}">${answer.level.toUpperCase()}</span>
+            <p><strong>Réponse:</strong> ${answer.answer}</p>
+            <p><strong>Explication:</strong> ${answer.explanation}</p>
+        `;
+        content.appendChild(div);
+    });
+}
+
+function displayVideoExplanation(videoUrl) {
+    const content = document.getElementById('videoContent');
+    if (videoUrl) {
+        content.innerHTML = `
+            <div class="text-center">
+                <p class="text-muted mb-3">Explication vidéo disponible :</p>
+                <a href="${videoUrl}" target="_blank" class="btn btn-danger">
+                    <i class="fas fa-play me-2"></i>Regarder la Vidéo
+                </a>
+            </div>
+        `;
+    } else {
+        content.innerHTML = '<p class="text-muted">Aucune vidéo d\'explication disponible pour cet exercice.</p>';
+    }
+}
+</script>
+
+<!-- Bootstrap JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
