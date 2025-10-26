@@ -7,7 +7,7 @@
 <style>
     /* Thème rouge et blanc pour la résolution d'exercices */
     .exercise-container {
-        max-width: 900px;
+        max-width: 1400px;
         margin: 0 auto;
         padding: 20px;
     }
@@ -41,12 +41,14 @@
     
     .exercise-content {
         background: white;
-        padding: 40px;
+        padding: 50px;
         border-radius: 20px;
         box-shadow: 0 8px 25px rgba(220, 53, 69, 0.1);
         margin-bottom: 30px;
         border: 2px solid #f8f9fa;
         transition: all 0.3s ease;
+        font-size: 1.1rem;
+        line-height: 1.8;
     }
     
     .exercise-content:hover {
@@ -54,15 +56,94 @@
         transform: translateY(-2px);
     }
     
+    .exercise-question {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+        padding: 30px;
+        border-radius: 15px;
+        border-left: 5px solid #dc3545;
+        margin: 30px 0;
+        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.1);
+    }
+    
+    .exercise-question h4 {
+        color: #dc3545;
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        font-family: 'Arial', 'Helvetica', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .question-content {
+        font-size: 1.3rem;
+        line-height: 1.8;
+        color: #2c3e50;
+        font-weight: 600;
+        font-family: 'Georgia', 'Times New Roman', serif;
+        text-align: justify;
+        letter-spacing: 0.5px;
+    }
+    
+    .exercise-description {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 25px;
+        border-radius: 15px;
+        border-left: 5px solid #6c757d;
+        margin-bottom: 30px;
+    }
+    
+    .exercise-description h4 {
+        color: #495057;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+    
+    /* Mise en évidence des mots importants dans la question */
+    .question-content strong,
+    .question-content b {
+        color: #dc3545;
+        font-weight: 700;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+        padding: 2px 6px;
+        border-radius: 4px;
+        border-left: 3px solid #dc3545;
+    }
+    
+    .question-content em,
+    .question-content i {
+        color: #6c757d;
+        font-style: italic;
+        font-weight: 600;
+    }
+    
+    /* Style pour les listes dans la question */
+    .question-content ul,
+    .question-content ol {
+        margin: 15px 0;
+        padding-left: 25px;
+    }
+    
+    .question-content li {
+        margin: 8px 0;
+        line-height: 1.6;
+    }
+    
     .answer-section {
         background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        padding: 40px;
+        padding: 50px;
         border-radius: 20px;
-        border: 2px solid #dc3545;
-        box-shadow: 0 10px 30px rgba(220, 53, 69, 0.15);
+        border: 3px solid #dc3545;
+        box-shadow: 0 15px 40px rgba(220, 53, 69, 0.2);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
+        margin-top: 40px;
+        width: 100%;
     }
     
     .answer-section::before {
@@ -90,10 +171,13 @@
     .answer-section h4 {
         color: #dc3545;
         font-weight: 700;
-        margin-bottom: 20px;
+        font-size: 1.6rem;
+        margin-bottom: 25px;
         display: flex;
         align-items: center;
         gap: 10px;
+        text-align: center;
+        justify-content: center;
     }
     
     .answer-section h4::before {
@@ -102,16 +186,18 @@
     }
     
     .form-control {
-        border: 2px solid #e9ecef;
+        border: 3px solid #e9ecef;
         border-radius: 15px;
-        padding: 20px;
-        font-size: 1.1rem;
-        line-height: 1.6;
+        padding: 25px;
+        font-size: 1.2rem;
+        line-height: 1.8;
         transition: all 0.3s ease;
         background: #ffffff;
         box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
         resize: vertical;
-        min-height: 200px;
+        min-height: 350px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        width: 100%;
     }
     
     .form-control:focus {
@@ -592,6 +678,67 @@
         margin-top: 15px;
     }
     
+    /* Styles pour la zone de réponse désactivée */
+    .answer-section.disabled {
+        opacity: 0.7;
+        pointer-events: none;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .form-control.disabled {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+    
+    .submit-btn.disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    /* Style pour la bonne réponse */
+    .correct-answer-section {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        padding: 30px;
+        border-radius: 15px;
+        border: 2px solid #28a745;
+        margin-top: 20px;
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+    }
+    
+    .correct-answer-section h5 {
+        color: #155724;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .correct-answer-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 4px solid #28a745;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #333;
+    }
+    
+    /* Style pour le temps écoulé */
+    .time-expired-warning {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        padding: 20px;
+        border-radius: 15px;
+        border: 2px solid #dc3545;
+        margin-bottom: 20px;
+        text-align: center;
+        color: #721c24;
+        font-weight: 600;
+    }
+    
     .suggestion-item {
         padding: 8px 0;
         border-bottom: 1px solid #eee;
@@ -804,17 +951,18 @@
                     <!-- Le score sera affiché ici -->
                 </div>
                 <div class="text-center">
-                    <button class="btn btn-outline-primary" onclick="location.reload()">
-                        <i class="fas fa-redo me-2"></i>Nouvel exercice
-                    </button>
+                    <a href="{% url 'exercises:exercise-dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Retour aux exercices
+                    </a>
                 </div>
             </div>
         </div>
         
-        <div class="suggestions-section mt-4" id="suggestionsSection" style="display: none;">
-            <h5><i class="fas fa-lightbulb me-2"></i>Suggestions d'amélioration</h5>
-            <div class="suggestions-list" id="suggestionsList">
-                <!-- Les suggestions seront insérées ici -->
+        <!-- Section pour afficher la bonne réponse si l'utilisateur s'est trompé -->
+        <div class="correct-answer-section" id="correctAnswerSection" style="display: none;">
+            <h5><i class="fas fa-check-circle me-2"></i>Réponse correcte</h5>
+            <div class="correct-answer-content" id="correctAnswerContent">
+                <!-- La bonne réponse sera affichée ici -->
             </div>
         </div>
     </div>
@@ -847,7 +995,13 @@ let timeInterval;
 
 // Démarrer le chronomètre
 function startTimer() {
-    timeInterval = setInterval(updateTimer, 1000);
+    timeInterval = setInterval(() => {
+        updateTimer();
+        // Vérifier le temps écoulé toutes les 30 secondes
+        if (Math.floor((Date.now() - startTime) / 1000) % 30 === 0) {
+            checkTimeExpired();
+        }
+    }, 1000);
 }
 
 // Mettre à jour le chronomètre
@@ -869,6 +1023,11 @@ function stopTimer() {
 // Soumettre l'exercice
 document.getElementById('exerciseForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+    
+    // Vérifier si le temps est écoulé
+    if (checkTimeExpired()) {
+        return;
+    }
     
     const userAnswer = document.getElementById('userAnswer').value.trim();
     if (!userAnswer) {
@@ -913,6 +1072,9 @@ document.getElementById('exerciseForm').addEventListener('submit', async functio
 
 // Afficher le résultat de la correction
 function displayCorrectionResult(result) {
+    // Désactiver la zone de réponse après soumission
+    disableAnswerArea();
+    
     const correctionDiv = document.getElementById('correctionResult');
     const feedbackDiv = document.getElementById('feedbackContent');
     const scoreDiv = document.getElementById('scoreDisplay');
@@ -952,19 +1114,73 @@ function displayCorrectionResult(result) {
         </div>
     `;
     
-    // Afficher les suggestions si disponibles
-    if (result.suggestions && result.suggestions.length > 0) {
-        suggestionsDiv.innerHTML = result.suggestions.map(suggestion => 
-            `<div class="suggestion-item">
-                <i class="fas fa-arrow-right me-2"></i>${suggestion}
-            </div>`
-        ).join('');
-        suggestionsSection.style.display = 'block';
+    // Afficher la bonne réponse si l'utilisateur s'est trompé
+    if (!result.is_correct && result.score < 50) {
+        showCorrectAnswer();
     }
     
     // Afficher le résultat
     correctionDiv.style.display = 'block';
     correctionDiv.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Désactiver la zone de réponse
+function disableAnswerArea() {
+    const answerSection = document.querySelector('.answer-section');
+    const textarea = document.getElementById('userAnswer');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Ajouter la classe disabled
+    answerSection.classList.add('disabled');
+    textarea.classList.add('disabled');
+    submitBtn.classList.add('disabled');
+    
+    // Désactiver les éléments
+    textarea.disabled = true;
+    submitBtn.disabled = true;
+    
+    // Changer le texte du bouton
+    submitBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Réponse soumise';
+}
+
+// Afficher la bonne réponse
+function showCorrectAnswer() {
+    const correctAnswerSection = document.getElementById('correctAnswerSection');
+    const correctAnswerContent = document.getElementById('correctAnswerContent');
+    
+    // Récupérer la solution de l'exercice depuis les données Django
+    const exerciseSolution = `{{ exercise.solution|safe }}`;
+    
+    if (exerciseSolution && exerciseSolution.trim() !== '') {
+        correctAnswerContent.innerHTML = exerciseSolution;
+        correctAnswerSection.style.display = 'block';
+    }
+}
+
+// Vérifier si le temps est écoulé
+function checkTimeExpired() {
+    const estimatedTime = {{ exercise.estimated_time }}; // en minutes
+    const timeSpent = (Date.now() - startTime) / 1000 / 60; // en minutes
+    
+    if (timeSpent >= estimatedTime) {
+        showTimeExpiredWarning();
+        disableAnswerArea();
+        return true;
+    }
+    return false;
+}
+
+// Afficher l'avertissement de temps écoulé
+function showTimeExpiredWarning() {
+    const warningDiv = document.createElement('div');
+    warningDiv.className = 'time-expired-warning';
+    warningDiv.innerHTML = `
+        <i class="fas fa-clock me-2"></i>
+        Temps écoulé ! Le temps estimé pour cet exercice est dépassé.
+    `;
+    
+    const answerSection = document.querySelector('.answer-section');
+    answerSection.parentNode.insertBefore(warningDiv, answerSection);
 }
 
 // Afficher une erreur

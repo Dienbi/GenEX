@@ -277,83 +277,26 @@
 </div>
 
 <div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar bg-light">
-            <div class="position-sticky pt-3">
-                <h5 class="text-center mb-4">
-                    <i class="fas fa-filter text-danger"></i>
-                    Filtres
-                </h5>
-                
-                <!-- Filtres -->
-                <div class="mb-4">
-                    <h6 class="text-muted">Filtres</h6>
-                    
-                    <!-- Catégories -->
-                    <div class="mb-3">
-                        <label class="form-label small">Catégorie</label>
-                        <select class="form-select form-select-sm" id="categoryFilter">
-                            <option value="">Toutes</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Difficulté -->
-                    <div class="mb-3">
-                        <label class="form-label small">Difficulté</label>
-                        <select class="form-select form-select-sm" id="difficultyFilter">
-                            <option value="">Toutes</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Type -->
-                    <div class="mb-3">
-                        <label class="form-label small">Type</label>
-                        <select class="form-select form-select-sm" id="typeFilter">
-                            <option value="">Tous</option>
-                        </select>
-                    </div>
-                    
-                    <!-- IA Généré -->
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="aiGeneratedFilter">
-                        <label class="form-check-label small" for="aiGeneratedFilter">
-                            IA Généré
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Actions -->
-                <div class="d-grid gap-2">
-                    <button class="btn btn-primary btn-sm" id="generateAI">
-                        <i class="fas fa-robot"></i> Générer avec IA
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm" id="createSession">
-                        <i class="fas fa-play"></i> Nouvelle Session
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Contenu principal -->
-        <div class="col-md-9 col-lg-10">
+        <div class="row">
+            <!-- Contenu principal - Pleine largeur -->
+            <div class="col-12">
             <div class="container-fluid">
                 <!-- En-tête -->
                 <div class="row mb-4">
-                    <div class="col">
+                    <div class="col-md-8">
                         <h2 class="mb-0">
                             <i class="fas fa-graduation-cap text-primary"></i>
                             Exercices Intelligents
                         </h2>
                         <p class="text-muted">Générez et résolvez des exercices adaptés à votre niveau</p>
                     </div>
-                    <div class="col-auto">
+                    <div class="col-md-4 text-end">
                         <div class="btn-group" role="group">
-                            <button class="btn btn-outline-primary" id="gridView">
-                                <i class="fas fa-th"></i>
+                            <button class="btn btn-primary" id="generateAI">
+                                <i class="fas fa-robot"></i> Générer avec IA
                             </button>
-                            <button class="btn btn-outline-primary" id="listView">
-                                <i class="fas fa-list"></i>
+                            <button class="btn btn-outline-secondary" id="createSession">
+                                <i class="fas fa-play"></i> Nouvelle Session
                             </button>
                         </div>
                     </div>
@@ -871,11 +814,7 @@ function updateStatistics() {
 function setupEventListeners() {
     console.log('=== CONFIGURATION DES EVENEMENTS ===');
     
-    // Filtres
-    document.getElementById('categoryFilter').addEventListener('change', applyFilters);
-    document.getElementById('difficultyFilter').addEventListener('change', applyFilters);
-    document.getElementById('typeFilter').addEventListener('change', applyFilters);
-    document.getElementById('aiGeneratedFilter').addEventListener('change', applyFilters);
+    // Filtres supprimés - interface simplifiée
     
     // Recherche
     document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 300));
