@@ -1,0 +1,198 @@
+{% extends 'users/backoffice/base.html' %}
+
+{% block title %}{% if action == 'create' %}Create{% else %}Edit{% endif %} User{% endblock %}
+{% block nav_create_user %}{% if action == 'create' %}active{% endif %}{% endblock %}
+{% block page_title %}{% if action == 'create' %}Create New User{% else %}Edit User{% endif %}{% endblock %}
+{% block page_description %}{% if action == 'create' %}Add a new user to the system{% else %}Update user information{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .backoffice-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .form-container {
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group label .required {
+        color: #dc3545;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 15px;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #dc3545;
+    }
+
+    .form-group small {
+        display: block;
+        margin-top: 5px;
+        color: #666;
+        font-size: 13px;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: auto;
+        margin-right: 10px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #ddd;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="backoffice-container">
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-user-{% if action == 'create' %}plus{% else %}edit{% endif %}"></i>
+            {% if action == 'create' %}Create New User{% else %}Edit User{% endif %}
+        </h1>
+        <a href="{% url 'users:backoffice_user_list' %}" style="color: #dc3545; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i> Back to User List
+        </a>
+    </div>
+
+    <div class="form-container">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="username">Username <span class="required">*</span></label>
+                    <input type="text" id="username" name="username" 
+                           value="{% if action == 'update' %}{{ user_obj.username }}{% endif %}" 
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" 
+                           value="{% if action == 'update' %}{{ user_obj.email }}{% endif %}" 
+                           required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" 
+                           value="{% if action == 'update' %}{{ user_obj.first_name }}{% endif %}">
+                </div>
+
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" 
+                           value="{% if action == 'update' %}{{ user_obj.last_name }}{% endif %}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    Password {% if action == 'create' %}<span class="required">*</span>{% endif %}
+                </label>
+                <input type="password" id="password" name="password" 
+                       {% if action == 'create' %}required{% endif %}>
+                {% if action == 'update' %}
+                    <small>Leave blank to keep current password</small>
+                {% endif %}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="user_type">User Type <span class="required">*</span></label>
+                    <select id="user_type" name="user_type" required>
+                        <option value="student" {% if action == 'update' and user_obj.user_type == 'student' %}selected{% endif %}>Student</option>
+                        <option value="admin" {% if action == 'update' and user_obj.user_type == 'admin' %}selected{% endif %}>Admin</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="level">Level</label>
+                    <select id="level" name="level">
+                        <option value="">-- Select Level --</option>
+                        <option value="weak" {% if action == 'update' and user_obj.level == 'weak' %}selected{% endif %}>Weak</option>
+                        <option value="medium" {% if action == 'update' and user_obj.level == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="advanced" {% if action == 'update' and user_obj.level == 'advanced' %}selected{% endif %}>Advanced</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="student_class">Class</label>
+                <input type="text" id="student_class" name="student_class" 
+                       value="{% if action == 'update' %}{{ user_obj.student_class }}{% endif %}" 
+                       placeholder="e.g., Grade 10, Computer Science">
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="is_active" name="is_active" 
+                       {% if action == 'create' or user_obj.is_active %}checked{% endif %}>
+                <label for="is_active" style="margin-bottom: 0;">Active Account</label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-red">
+                    <i class="fas fa-save"></i> 
+                    {% if action == 'create' %}Create User{% else %}Update User{% endif %}
+                </button>
+                <a href="{% url 'users:backoffice_user_list' %}" class="btn-outline-red">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

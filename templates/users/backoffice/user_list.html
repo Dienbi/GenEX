@@ -1,0 +1,297 @@
+{% extends 'users/backoffice/base.html' %}
+
+{% block title %}User Management{% endblock %}
+{% block nav_users %}active{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block page_description %}View and manage all users in the system{% endblock %}
+
+{% block extra_css %}
+<style>
+    .backoffice-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+        color: #333;
+    }
+
+    .filters-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .filters-form {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: end;
+    }
+
+    .form-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .users-table-container {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .user-table th {
+        background-color: #dc3545;
+        color: white;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .user-table td {
+        padding: 15px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .user-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-admin {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-student {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-active {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-inactive {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .action-buttons a {
+        padding: 5px 10px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .btn-view {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .btn-edit {
+        background-color: #ffc107;
+        color: #333;
+    }
+
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding: 20px;
+        align-items: center;
+    }
+
+    .pagination a, .pagination span {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .pagination a:hover {
+        background-color: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+
+    .pagination .current {
+        background-color: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="backoffice-container">
+    <div class="page-header">
+        <h1><i class="fas fa-users"></i> User Management</h1>
+        <div>
+            <a href="{% url 'users:backoffice_dashboard' %}" class="btn-outline-red" style="margin-right: 10px;">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <a href="{% url 'users:backoffice_user_create' %}" class="btn-red">
+                <i class="fas fa-user-plus"></i> Create New User
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <form method="get" class="filters-form">
+            <div class="form-group">
+                <label for="search">Search</label>
+                <input type="text" id="search" name="search" placeholder="Username, email, name..." value="{{ search_query }}">
+            </div>
+            <div class="form-group">
+                <label for="user_type">User Type</label>
+                <select id="user_type" name="user_type">
+                    <option value="">All Types</option>
+                    <option value="admin" {% if user_type_filter == 'admin' %}selected{% endif %}>Admin</option>
+                    <option value="student" {% if user_type_filter == 'student' %}selected{% endif %}>Student</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn-red"><i class="fas fa-search"></i> Search</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="users-table-container">
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Full Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Date Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user_obj in page_obj %}
+                <tr>
+                    <td>{{ user_obj.id }}</td>
+                    <td><strong>{{ user_obj.username }}</strong></td>
+                    <td>{{ user_obj.email }}</td>
+                    <td>{{ user_obj.get_full_name|default:"-" }}</td>
+                    <td>
+                        <span class="badge badge-{{ user_obj.user_type }}">
+                            {{ user_obj.get_user_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-{% if user_obj.is_active %}active{% else %}inactive{% endif %}">
+                            {% if user_obj.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ user_obj.date_joined|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'users:backoffice_user_detail' user_obj.id %}" class="btn-view" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'users:backoffice_user_update' user_obj.id %}" class="btn-edit" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'users:backoffice_user_delete' user_obj.id %}" class="btn-delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: #999;">
+                        <i class="fas fa-users" style="font-size: 48px; margin-bottom: 10px; display: block;"></i>
+                        No users found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if user_type_filter %}&user_type={{ user_type_filter }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i> First
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if user_type_filter %}&user_type={{ user_type_filter }}{% endif %}">
+                    <i class="fas fa-angle-left"></i> Previous
+                </a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if user_type_filter %}&user_type={{ user_type_filter }}{% endif %}">
+                    Next <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if user_type_filter %}&user_type={{ user_type_filter }}{% endif %}">
+                    Last <i class="fas fa-angle-double-right"></i>
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
