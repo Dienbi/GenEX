@@ -144,6 +144,20 @@
         line-height: 1.8;
     }
     
+    .feature-link {
+        display: inline-block;
+        margin-top: 15px;
+        color: #dc3545;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    
+    .feature-link:hover {
+        color: #c82333;
+        transform: translateX(5px);
+    }
+    
     /* CTA Section */
     .cta-section {
         background: #000;
@@ -254,6 +268,15 @@
             </div>
             <h3>Évaluation Vocale IA</h3>
             <p>Système d'évaluation vocale alimenté par l'IA pour améliorer votre prononciation et vos compétences orales en temps réel.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h3>Exercices Intelligents IA</h3>
+            <p>Générez des exercices personnalisés avec l'intelligence artificielle. Saisissez votre matière et obtenez des exercices adaptés à votre niveau.</p>
+            <a href="{% url 'exercises:exercise-dashboard' %}" class="feature-link">Découvrir →</a>
         </div>
         
         <div class="feature-card">
