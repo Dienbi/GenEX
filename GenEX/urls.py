@@ -27,7 +27,7 @@ urlpatterns = [
     path('exercises/', include('exercises.urls')),
     path('quizzes/', include('quizzes.urls')),
     path('chat/', include('chat_tutor.urls')),
-    path('voice/', include('voice_eval.urls')),
+     path('voice/', include('voice_eval.urls')),
     path('chatbot/', include('chatbot.urls')),
 ]
 

@@ -1,0 +1,1270 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Résoudre l'exercice - {{ exercise.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Thème rouge et blanc pour la résolution d'exercices */
+    .exercise-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .exercise-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 15px 35px rgba(220, 53, 69, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .exercise-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+    
+    .exercise-content {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.1);
+        margin-bottom: 30px;
+        border: 2px solid #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .exercise-content:hover {
+        box-shadow: 0 12px 35px rgba(220, 53, 69, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .answer-section {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        padding: 40px;
+        border-radius: 20px;
+        border: 2px solid #dc3545;
+        box-shadow: 0 10px 30px rgba(220, 53, 69, 0.15);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .answer-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #dc3545 0%, #c82333 50%, #dc3545 100%);
+        animation: shimmer 2s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .answer-section:hover {
+        box-shadow: 0 15px 40px rgba(220, 53, 69, 0.2);
+        transform: translateY(-2px);
+        border-color: #c82333;
+    }
+    
+    .answer-section h4 {
+        color: #dc3545;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .answer-section h4::before {
+        content: '✍️';
+        font-size: 1.2em;
+    }
+    
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 20px;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        transition: all 0.3s ease;
+        background: #ffffff;
+        box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        resize: vertical;
+        min-height: 200px;
+    }
+    
+    .form-control:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25), inset 0 2px 10px rgba(0,0,0,0.05);
+        background: #ffffff;
+    }
+    
+    .form-control::placeholder {
+        color: #6c757d;
+        font-style: italic;
+        opacity: 0.8;
+    }
+    
+    .answer-actions {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 20px;
+        border-radius: 15px;
+        margin-top: 20px;
+        border: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .answer-actions .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+    }
+    
+    .answer-actions .form-check-input {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #dc3545;
+        border-radius: 4px;
+    }
+    
+    .answer-actions .form-check-input:checked {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    
+    .answer-actions .form-check-label {
+        color: #495057;
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .character-count {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .character-count.warning {
+        color: #ffc107;
+    }
+    
+    .character-count.danger {
+        color: #dc3545;
+    }
+    
+    .btn-outline-secondary {
+        border: 2px solid #6c757d;
+        color: #6c757d;
+        border-radius: 25px;
+        padding: 8px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-secondary:hover {
+        background: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+    }
+    
+    .hints-content {
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .hints-content p {
+        margin-bottom: 8px;
+    }
+    
+    .hints-content strong {
+        color: #495057;
+    }
+    
+    /* Animation pour le focus */
+    .form-control:focus {
+        animation: focusPulse 0.3s ease-in-out;
+    }
+    
+    @keyframes focusPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Styles pour les raccourcis clavier */
+    .keyboard-shortcuts {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .keyboard-shortcuts.show {
+        opacity: 1;
+    }
+    
+    .keyboard-shortcuts kbd {
+        background: #333;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        margin: 0 2px;
+    }
+    
+    /* Améliorations supplémentaires */
+    .exercise-progress {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    .progress-bar-custom {
+        height: 8px;
+        border-radius: 10px;
+        background: #e9ecef;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .progress-bar-custom .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+        border-radius: 10px;
+        transition: width 0.5s ease;
+        position: relative;
+    }
+    
+    .progress-bar-custom .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: progressShine 2s ease-in-out infinite;
+    }
+    
+    @keyframes progressShine {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .exercise-timer {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        padding: 15px;
+        border-radius: 10px;
+        border: 2px solid #dc3545;
+        text-align: center;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);
+    }
+    
+    .timer-display {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #dc3545;
+        margin-bottom: 5px;
+    }
+    
+    .timer-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .exercise-hints {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffc107;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1);
+    }
+    
+    .hints-title {
+        color: #856404;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .hints-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .hints-list li {
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(133, 100, 4, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .hints-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .hints-list li::before {
+        content: '💡';
+        font-size: 1.1em;
+    }
+    
+    .exercise-metadata {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: 1px solid #2196f3;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.1);
+    }
+    
+    .metadata-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .metadata-item {
+        text-align: center;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 10px;
+        border: 1px solid rgba(33, 150, 243, 0.2);
+    }
+    
+    .metadata-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1976d2;
+        margin-bottom: 5px;
+    }
+    
+    .metadata-label {
+        font-size: 0.8rem;
+        color: #1565c0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .floating-actions {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .floating-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .floating-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+    
+    .floating-btn.primary {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    
+    .floating-btn.secondary {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+    
+    .floating-btn.info {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+    }
+    
+    .word-count {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 1px solid #28a745;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 15px;
+        text-align: center;
+    }
+    
+    .word-count-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #155724;
+        margin-bottom: 5px;
+    }
+    
+    .word-count-label {
+        font-size: 0.9rem;
+        color: #155724;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .typing-indicator {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .typing-indicator.show {
+        opacity: 1;
+    }
+    
+    .typing-indicator::before {
+        content: '✍️';
+        margin-right: 5px;
+    }
+    
+    .answer-section {
+        position: relative;
+    }
+    
+    .answer-section .typing-indicator {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+    
+    .submit-btn {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        padding: 15px 35px;
+        border-radius: 30px;
+        color: white;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .submit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(220, 53, 69, 0.4);
+    }
+    
+    .submit-btn:hover::before {
+        left: 100%;
+    }
+    
+    .submit-btn:active {
+        transform: translateY(-1px);
+    }
+    
+    .loading-spinner {
+        display: none;
+    }
+    
+    .correction-result {
+        margin-top: 30px;
+        padding: 35px;
+        border-radius: 20px;
+        display: none;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .correction-success {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border-color: #28a745;
+        color: #155724;
+    }
+    
+    .correction-warning {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border-color: #ffc107;
+        color: #856404;
+    }
+    
+    .correction-error {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border-color: #dc3545;
+        color: #721c24;
+    }
+    
+    .score-display {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        margin: 20px 0;
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.1);
+        border: 2px solid #f8f9fa;
+    }
+    
+    .score-value {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #dc3545;
+        margin-bottom: 10px;
+    }
+    
+    .score-label {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .suggestions-list {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+    
+    .suggestion-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exercise-container">
+    <!-- En-tête de l'exercice -->
+    <div class="exercise-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="fas fa-brain me-2"></i>
+                    {{ exercise.title }}
+                </h1>
+                <div class="exercise-meta">
+                    <span class="badge bg-light text-dark me-2">
+                        <i class="fas fa-tag me-1"></i>{{ exercise.category.name }}
+                    </span>
+                    <span class="badge bg-light text-dark me-2">
+                        <i class="fas fa-chart-line me-1"></i>{{ exercise.difficulty.name }}
+                    </span>
+                    <span class="badge bg-light text-dark me-2">
+                        <i class="fas fa-puzzle-piece me-1"></i>{{ exercise.exercise_type.name }}
+                    </span>
+                    {% if exercise.is_ai_generated %}
+                    <span class="badge bg-primary">
+                        <i class="fas fa-robot me-1"></i>Généré par IA
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="exercise-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-clock me-1"></i>
+                        <span id="timeSpent">00:00</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-star me-1"></i>
+                        {{ exercise.points }} points
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contenu de l'exercice -->
+    <div class="exercise-content">
+        <div class="exercise-description mb-4">
+            <h4><i class="fas fa-info-circle me-2"></i>Description</h4>
+            <p>{{ exercise.description|safe }}</p>
+        </div>
+        
+        <div class="exercise-question">
+            <h4><i class="fas fa-question-circle me-2"></i>Question</h4>
+            <div class="question-content">
+                {{ exercise.content|safe }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Métadonnées de l'exercice -->
+    <div class="exercise-metadata">
+        <h5 class="mb-3">
+            <i class="fas fa-info-circle me-2"></i>
+            Informations de l'exercice
+        </h5>
+        <div class="metadata-grid">
+            <div class="metadata-item">
+                <div class="metadata-value" id="difficultyLevel">{{ exercise.difficulty.name }}</div>
+                <div class="metadata-label">Difficulté</div>
+            </div>
+            <div class="metadata-item">
+                <div class="metadata-value" id="exerciseType">{{ exercise.exercise_type.name }}</div>
+                <div class="metadata-label">Type</div>
+            </div>
+            <div class="metadata-item">
+                <div class="metadata-value" id="estimatedTime">{{ exercise.estimated_time }} min</div>
+                <div class="metadata-label">Durée estimée</div>
+            </div>
+            <div class="metadata-item">
+                <div class="metadata-value" id="exercisePoints">{{ exercise.points }} pts</div>
+                <div class="metadata-label">Points</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progrès de l'exercice -->
+    <div class="exercise-progress">
+        <h6 class="mb-3">
+            <i class="fas fa-chart-line me-2"></i>
+            Progrès de l'exercice
+        </h6>
+        <div class="progress-bar-custom">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="mt-2 text-center">
+            <small class="text-muted" id="progressText">Commencez à rédiger votre réponse...</small>
+        </div>
+    </div>
+    
+    <!-- Indices de l'exercice -->
+    {% if exercise.hints %}
+    <div class="exercise-hints">
+        <h6 class="hints-title">
+            <i class="fas fa-lightbulb me-2"></i>
+            Indices pour cet exercice
+        </h6>
+        <ul class="hints-list">
+            {% for hint in exercise.hints %}
+            <li>{{ hint }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    <!-- Section de réponse -->
+    <div class="answer-section">
+        <h4>Votre réponse</h4>
+        <form id="exerciseForm">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="userAnswer" class="form-label visually-hidden">Votre réponse</label>
+                <textarea 
+                    class="form-control" 
+                    id="userAnswer" 
+                    name="user_answer" 
+                    rows="10" 
+                    placeholder="💡 Commencez à rédiger votre réponse ici... Soyez précis et détaillé pour obtenir la meilleure correction de l'IA."
+                    required
+                    maxlength="5000"
+                ></textarea>
+                <div class="character-count mt-2" id="characterCount">
+                    <i class="fas fa-keyboard me-1"></i>
+                    <span id="charCount">0</span> / 5000 caractères
+                </div>
+            </div>
+            
+            <div class="answer-actions">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="saveProgress" checked>
+                        <label class="form-check-label" for="saveProgress">
+                            <i class="fas fa-save me-1"></i>
+                            Sauvegarder automatiquement
+                        </label>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showHints">
+                        <label class="form-check-label" for="showHints">
+                            <i class="fas fa-lightbulb me-1"></i>
+                            Afficher les indices
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="btn btn-outline-secondary" id="clearAnswer">
+                        <i class="fas fa-eraser me-1"></i>
+                        Effacer
+                    </button>
+                    
+                    <button type="submit" class="btn submit-btn" id="submitBtn">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        Soumettre la réponse
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Spinner de chargement -->
+        <div class="loading-spinner text-center mt-3" id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Correction en cours...</span>
+            </div>
+            <p class="mt-2 text-muted">L'IA corrige votre réponse...</p>
+        </div>
+        
+        <!-- Indicateur de frappe -->
+        <div class="typing-indicator" id="typingIndicator">
+            En cours de frappe...
+        </div>
+        
+        <!-- Compteur de mots -->
+        <div class="word-count" id="wordCount" style="display: none;">
+            <div class="word-count-value" id="wordCountValue">0</div>
+            <div class="word-count-label">Mots</div>
+        </div>
+    </div>
+    
+    <!-- Résultat de la correction -->
+    <div class="correction-result" id="correctionResult">
+        <div class="row">
+            <div class="col-md-8">
+                <h4><i class="fas fa-clipboard-check me-2"></i>Résultat de la correction</h4>
+                <div class="feedback-content" id="feedbackContent">
+                    <!-- Le feedback sera inséré ici -->
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="score-display" id="scoreDisplay">
+                    <!-- Le score sera affiché ici -->
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-outline-primary" onclick="location.reload()">
+                        <i class="fas fa-redo me-2"></i>Nouvel exercice
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="suggestions-section mt-4" id="suggestionsSection" style="display: none;">
+            <h5><i class="fas fa-lightbulb me-2"></i>Suggestions d'amélioration</h5>
+            <div class="suggestions-list" id="suggestionsList">
+                <!-- Les suggestions seront insérées ici -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Raccourcis clavier -->
+    <div class="keyboard-shortcuts" id="keyboardShortcuts">
+        <div class="mb-1"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> : Soumettre</div>
+        <div class="mb-1"><kbd>Tab</kbd> : Indentation</div>
+        <div><kbd>F1</kbd> : Afficher/masquer les raccourcis</div>
+    </div>
+    
+    <!-- Boutons flottants -->
+    <div class="floating-actions">
+        <button class="floating-btn primary" id="scrollToTop" title="Retour en haut">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <button class="floating-btn secondary" id="toggleWordCount" title="Afficher/masquer le compteur de mots">
+            <i class="fas fa-calculator"></i>
+        </button>
+        <button class="floating-btn info" id="showHelp" title="Aide et raccourcis">
+            <i class="fas fa-question"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+// Variables globales
+let startTime = Date.now();
+let timeInterval;
+
+// Démarrer le chronomètre
+function startTimer() {
+    timeInterval = setInterval(updateTimer, 1000);
+}
+
+// Mettre à jour le chronomètre
+function updateTimer() {
+    const elapsed = Date.now() - startTime;
+    const minutes = Math.floor(elapsed / 60000);
+    const seconds = Math.floor((elapsed % 60000) / 1000);
+    document.getElementById('timeSpent').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Arrêter le chronomètre
+function stopTimer() {
+    if (timeInterval) {
+        clearInterval(timeInterval);
+    }
+}
+
+// Soumettre l'exercice
+document.getElementById('exerciseForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const userAnswer = document.getElementById('userAnswer').value.trim();
+    if (!userAnswer) {
+        alert('Veuillez saisir votre réponse');
+        return;
+    }
+    
+    // Afficher le spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Correction en cours...';
+    
+    try {
+        const response = await fetch(`/exercises/api/exercises/{{ exercise.id }}/submit/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                user_answer: userAnswer
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayCorrectionResult(result);
+        } else {
+            showError('Erreur lors de la correction: ' + (result.error || 'Erreur inconnue'));
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur de connexion. Veuillez réessayer.');
+    } finally {
+        // Masquer le spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('submitBtn').innerHTML = '<i class="fas fa-check me-2"></i>Soumettre la réponse';
+    }
+});
+
+// Afficher le résultat de la correction
+function displayCorrectionResult(result) {
+    const correctionDiv = document.getElementById('correctionResult');
+    const feedbackDiv = document.getElementById('feedbackContent');
+    const scoreDiv = document.getElementById('scoreDisplay');
+    const suggestionsDiv = document.getElementById('suggestionsList');
+    const suggestionsSection = document.getElementById('suggestionsSection');
+    
+    // Arrêter le chronomètre
+    stopTimer();
+    
+    // Déterminer la classe CSS selon le score
+    let resultClass = 'correction-error';
+    if (result.score >= 80) {
+        resultClass = 'correction-success';
+    } else if (result.score >= 50) {
+        resultClass = 'correction-warning';
+    }
+    
+    correctionDiv.className = `correction-result ${resultClass}`;
+    
+    // Afficher le score
+    scoreDiv.innerHTML = `
+        <div class="score-value">${Math.round(result.score)}/100</div>
+        <div class="score-label">${result.is_correct ? 'Correct !' : 'À améliorer'}</div>
+    `;
+    
+    // Afficher le feedback
+    feedbackDiv.innerHTML = `
+        <div class="feedback-text">
+            <strong>Feedback de l'IA :</strong><br>
+            ${result.feedback}
+        </div>
+        <div class="confidence-score mt-2">
+            <small class="text-muted">
+                <i class="fas fa-chart-line me-1"></i>
+                Confiance: ${Math.round(result.confidence_score * 100)}%
+            </small>
+        </div>
+    `;
+    
+    // Afficher les suggestions si disponibles
+    if (result.suggestions && result.suggestions.length > 0) {
+        suggestionsDiv.innerHTML = result.suggestions.map(suggestion => 
+            `<div class="suggestion-item">
+                <i class="fas fa-arrow-right me-2"></i>${suggestion}
+            </div>`
+        ).join('');
+        suggestionsSection.style.display = 'block';
+    }
+    
+    // Afficher le résultat
+    correctionDiv.style.display = 'block';
+    correctionDiv.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Afficher une erreur
+function showError(message) {
+    const correctionDiv = document.getElementById('correctionResult');
+    const feedbackDiv = document.getElementById('feedbackContent');
+    
+    correctionDiv.className = 'correction-result correction-error';
+    feedbackDiv.innerHTML = `
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            ${message}
+        </div>
+    `;
+    
+    correctionDiv.style.display = 'block';
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    startTimer();
+    initializeAnswerArea();
+    loadProgress();
+    initializeFloatingActions();
+    initializeProgressTracking();
+    initializeTypingIndicator();
+});
+
+// Initialiser la zone de réponse
+function initializeAnswerArea() {
+    const textarea = document.getElementById('userAnswer');
+    const charCount = document.getElementById('charCount');
+    const characterCount = document.getElementById('characterCount');
+    const saveCheckbox = document.getElementById('saveProgress');
+    const clearBtn = document.getElementById('clearAnswer');
+    const showHintsCheckbox = document.getElementById('showHints');
+    
+    // Compteur de caractères
+    textarea.addEventListener('input', function() {
+        const count = this.value.length;
+        charCount.textContent = count;
+        
+        // Changer la couleur selon le nombre de caractères
+        characterCount.className = 'character-count mt-2';
+        if (count > 4000) {
+            characterCount.classList.add('danger');
+        } else if (count > 3000) {
+            characterCount.classList.add('warning');
+        }
+        
+        // Sauvegarder automatiquement si activé
+        if (saveCheckbox.checked) {
+            debounce(saveProgress, 1000)();
+        }
+    });
+    
+    // Bouton effacer
+    clearBtn.addEventListener('click', function() {
+        if (confirm('Êtes-vous sûr de vouloir effacer votre réponse ?')) {
+            textarea.value = '';
+            charCount.textContent = '0';
+            characterCount.className = 'character-count mt-2';
+            textarea.focus();
+        }
+    });
+    
+    // Afficher les indices
+    showHintsCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            showHints();
+        } else {
+            hideHints();
+        }
+    });
+    
+    // Auto-resize du textarea
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.max(200, this.scrollHeight) + 'px';
+    });
+    
+    // Raccourcis clavier
+    textarea.addEventListener('keydown', function(e) {
+        // Ctrl+Enter pour soumettre
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('exerciseForm').dispatchEvent(new Event('submit'));
+        }
+        
+        // Tab pour indentation
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 4;
+        }
+    });
+    
+    // Raccourcis globaux
+    document.addEventListener('keydown', function(e) {
+        // F1 pour afficher/masquer les raccourcis
+        if (e.key === 'F1') {
+            e.preventDefault();
+            toggleKeyboardShortcuts();
+        }
+        
+        // Échap pour masquer les raccourcis
+        if (e.key === 'Escape') {
+            hideKeyboardShortcuts();
+        }
+    });
+}
+
+// Afficher les indices
+function showHints() {
+    const hintsSection = document.createElement('div');
+    hintsSection.id = 'hintsSection';
+    hintsSection.className = 'mt-3 p-3 bg-warning bg-opacity-10 border border-warning rounded';
+    hintsSection.innerHTML = `
+        <h6 class="text-warning mb-2">
+            <i class="fas fa-lightbulb me-2"></i>Indices pour cet exercice
+        </h6>
+        <div class="hints-content">
+            <p class="mb-2">💡 <strong>Conseil :</strong> Lisez attentivement l'énoncé et identifiez les éléments clés.</p>
+            <p class="mb-2">📝 <strong>Structure :</strong> Organisez votre réponse de manière claire et logique.</p>
+            <p class="mb-0">🎯 <strong>Précision :</strong> Soyez précis dans vos explications pour obtenir un meilleur score.</p>
+        </div>
+    `;
+    
+    const answerSection = document.querySelector('.answer-section');
+    answerSection.appendChild(hintsSection);
+}
+
+// Masquer les indices
+function hideHints() {
+    const hintsSection = document.getElementById('hintsSection');
+    if (hintsSection) {
+        hintsSection.remove();
+    }
+}
+
+// Afficher/masquer les raccourcis clavier
+function toggleKeyboardShortcuts() {
+    const shortcuts = document.getElementById('keyboardShortcuts');
+    if (shortcuts.classList.contains('show')) {
+        hideKeyboardShortcuts();
+    } else {
+        showKeyboardShortcuts();
+    }
+}
+
+function showKeyboardShortcuts() {
+    const shortcuts = document.getElementById('keyboardShortcuts');
+    shortcuts.classList.add('show');
+    
+    // Masquer automatiquement après 3 secondes
+    setTimeout(() => {
+        hideKeyboardShortcuts();
+    }, 3000);
+}
+
+function hideKeyboardShortcuts() {
+    const shortcuts = document.getElementById('keyboardShortcuts');
+    shortcuts.classList.remove('show');
+}
+
+// Initialiser les boutons flottants
+function initializeFloatingActions() {
+    const scrollToTopBtn = document.getElementById('scrollToTop');
+    const toggleWordCountBtn = document.getElementById('toggleWordCount');
+    const showHelpBtn = document.getElementById('showHelp');
+    
+    // Bouton retour en haut
+    scrollToTopBtn.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    // Bouton compteur de mots
+    toggleWordCountBtn.addEventListener('click', function() {
+        const wordCount = document.getElementById('wordCount');
+        if (wordCount.style.display === 'none') {
+            wordCount.style.display = 'block';
+            updateWordCount();
+        } else {
+            wordCount.style.display = 'none';
+        }
+    });
+    
+    // Bouton aide
+    showHelpBtn.addEventListener('click', function() {
+        showKeyboardShortcuts();
+    });
+}
+
+// Initialiser le suivi du progrès
+function initializeProgressTracking() {
+    const textarea = document.getElementById('userAnswer');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    textarea.addEventListener('input', function() {
+        const text = this.value.trim();
+        const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+        const charCount = text.length;
+        
+        // Calculer le progrès basé sur la longueur de la réponse
+        let progress = 0;
+        let progressMessage = 'Commencez à rédiger votre réponse...';
+        
+        if (charCount > 0) {
+            progress = Math.min((charCount / 1000) * 100, 100);
+            if (progress < 25) {
+                progressMessage = 'Continuez à développer votre réponse...';
+            } else if (progress < 50) {
+                progressMessage = 'Bonne progression ! Ajoutez plus de détails...';
+            } else if (progress < 75) {
+                progressMessage = 'Excellente réponse ! Finalisez vos idées...';
+            } else {
+                progressMessage = 'Réponse complète ! Prêt pour la soumission.';
+            }
+        }
+        
+        progressFill.style.width = progress + '%';
+        progressText.textContent = progressMessage;
+        
+        // Mettre à jour le compteur de mots si affiché
+        updateWordCount();
+    });
+}
+
+// Initialiser l'indicateur de frappe
+function initializeTypingIndicator() {
+    const textarea = document.getElementById('userAnswer');
+    const typingIndicator = document.getElementById('typingIndicator');
+    let typingTimeout;
+    
+    textarea.addEventListener('input', function() {
+        // Afficher l'indicateur
+        typingIndicator.classList.add('show');
+        
+        // Masquer après 1 seconde d'inactivité
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            typingIndicator.classList.remove('show');
+        }, 1000);
+    });
+}
+
+// Mettre à jour le compteur de mots
+function updateWordCount() {
+    const textarea = document.getElementById('userAnswer');
+    const wordCountValue = document.getElementById('wordCountValue');
+    const text = textarea.value.trim();
+    const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+    
+    wordCountValue.textContent = wordCount;
+}
+
+// Fonction pour afficher/masquer les raccourcis
+function showKeyboardShortcuts() {
+    const shortcuts = document.getElementById('keyboardShortcuts');
+    shortcuts.classList.add('show');
+    
+    // Masquer automatiquement après 5 secondes
+    setTimeout(() => {
+        hideKeyboardShortcuts();
+    }, 5000);
+}
+
+// Sauvegarder le progrès
+function saveProgress() {
+    const userAnswer = document.getElementById('userAnswer').value;
+    if (userAnswer.trim()) {
+        localStorage.setItem('exercise_progress_{{ exercise.id }}', userAnswer);
+    }
+}
+
+// Charger le progrès sauvegardé
+function loadProgress() {
+    const saved = localStorage.getItem('exercise_progress_{{ exercise.id }}');
+    if (saved) {
+        document.getElementById('userAnswer').value = saved;
+    }
+}
+
+// Fonction debounce
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Charger le progrès au démarrage
+document.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+{% endblock %}

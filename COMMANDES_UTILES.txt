@@ -1,0 +1,200 @@
+================================================================
+    COMMANDES UTILES - APPLICATION GENEX COURS IA
+================================================================
+
+📌 DÉMARRAGE RAPIDE
+================================================================
+
+1. Activer l'environnement virtuel :
+   .\venv\Scripts\Activate.ps1
+
+2. Lancer le serveur :
+   python manage.py runserver
+
+3. Ouvrir dans le navigateur :
+   http://127.0.0.1:8000
+
+
+📌 GESTION DES UTILISATEURS
+================================================================
+
+Créer un superutilisateur (admin) :
+   python manage.py createsuperuser
+
+Accéder à l'interface admin :
+   http://127.0.0.1:8000/admin/
+
+
+📌 BASE DE DONNÉES
+================================================================
+
+Créer des migrations :
+   python manage.py makemigrations
+
+Appliquer les migrations :
+   python manage.py migrate
+
+Voir le schéma de la base de données :
+   python manage.py dbshell
+
+
+📌 GESTION DES PACKAGES
+================================================================
+
+Installer un nouveau package :
+   pip install <nom_du_package>
+
+Mettre à jour requirements.txt :
+   pip freeze > requirements.txt
+
+Réinstaller tous les packages :
+   pip install -r requirements.txt
+
+
+📌 URLS DE L'APPLICATION
+================================================================
+
+Page d'accueil :
+   http://127.0.0.1:8000/
+
+Liste des cours :
+   http://127.0.0.1:8000/courses/
+
+Créer un cours :
+   http://127.0.0.1:8000/courses/create/
+
+Interface admin :
+   http://127.0.0.1:8000/admin/
+
+Voice Eval :
+   http://127.0.0.1:8000/voice/
+
+
+📌 DÉPANNAGE
+================================================================
+
+Problème : ModuleNotFoundError
+Solution : 
+   pip install <nom_du_module>
+
+Problème : Port 8000 déjà utilisé
+Solution : 
+   python manage.py runserver 8001
+
+Problème : Migrations non appliquées
+Solution :
+   python manage.py migrate
+
+Problème : Environnement virtuel pas activé
+Solution :
+   .\venv\Scripts\Activate.ps1
+
+Problème : Clé API OpenAI invalide
+Solution :
+   Vérifier OPENAI_API_KEY dans GenEX/settings.py
+
+
+📌 TESTS
+================================================================
+
+Lancer tous les tests :
+   python manage.py test
+
+Tester une app spécifique :
+   python manage.py test courses
+
+Tester avec verbose :
+   python manage.py test --verbosity=2
+
+
+📌 SHELL DJANGO
+================================================================
+
+Ouvrir le shell Django :
+   python manage.py shell
+
+Exemple de commandes dans le shell :
+   >>> from courses.models import Course
+   >>> from users.models import User
+   >>> Course.objects.all()
+   >>> Course.objects.filter(user__username='admin')
+
+
+📌 FICHIERS IMPORTANTS
+================================================================
+
+Configuration :
+   GenEX/settings.py
+
+URLs principales :
+   GenEX/urls.py
+
+Modèles de cours :
+   courses/models.py
+
+Vues de cours :
+   courses/views.py
+
+Templates :
+   templates/courses/
+
+Base de données :
+   db.sqlite3
+
+
+📌 DOCUMENTATION
+================================================================
+
+Documentation complète :
+   COURS_IA_DOCUMENTATION.md
+
+Guide rapide :
+   COURS_IA_QUICK_START.md
+
+Résumé :
+   COURS_IA_RESUME.md
+
+Ce fichier :
+   COMMANDES_UTILES.txt
+
+
+📌 COMMANDES GIT (SI NÉCESSAIRE)
+================================================================
+
+Voir le statut :
+   git status
+
+Ajouter tous les fichiers :
+   git add .
+
+Commit :
+   git commit -m "Ajout fonctionnalité Cours IA"
+
+Push vers GitHub :
+   git push origin master
+
+
+📌 PRODUCTION (PLUS TARD)
+================================================================
+
+Collecter les fichiers statiques :
+   python manage.py collectstatic
+
+Variables d'environnement :
+   - Créer un fichier .env
+   - Y mettre OPENAI_API_KEY=...
+   - Utiliser python-decouple pour les charger
+
+Désactiver DEBUG :
+   Dans settings.py : DEBUG = False
+
+================================================================
+           FIN DES COMMANDES UTILES
+================================================================
+
+Pour toute question, consultez la documentation complète.
+Développé pour GenEX Educational Platform - Octobre 2025
+
+
+
+

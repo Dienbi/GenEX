@@ -1,0 +1,405 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Créer un Cours - GenEX{% endblock %}
+
+{% block nav_my_courses %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .create-hero {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 60px 0;
+        text-align: center;
+    }
+    
+    .create-hero h1 {
+        font-size: 42px;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+    
+    .create-hero p {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+    
+    .create-container {
+        max-width: 800px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
+    
+    .create-card {
+        background: white;
+        border-radius: 12px;
+        padding: 50px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    }
+    
+    .create-card h2 {
+        font-size: 28px;
+        color: #333;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .form-group {
+        margin-bottom: 30px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.3s;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+    }
+    
+    .form-help {
+        color: #666;
+        font-size: 14px;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-help i {
+        color: #dc3545;
+    }
+    
+    .btn-submit {
+        background-color: #dc3545;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 8px;
+        border: none;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .btn-submit:hover {
+        background-color: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    }
+    
+    .btn-submit:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #dc3545;
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 30px;
+        transition: all 0.3s;
+    }
+    
+    .btn-back:hover {
+        gap: 12px;
+    }
+    
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    .loading-spinner.active {
+        display: block;
+    }
+    
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #dc3545;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+    }
+    
+    /* Styles pour la sélection de dossiers */
+    .folders-selection {
+        margin-top: 10px;
+    }
+    
+    .folders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .folder-option {
+        position: relative;
+    }
+    
+    .folder-checkbox {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+    
+    .folder-label {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .folder-label:hover {
+        border-color: #dc3545;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .folder-checkbox:checked + .folder-label {
+        border-color: #dc3545;
+        background: rgba(220, 53, 69, 0.05);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+    }
+    
+    .folder-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+    
+    .folder-name {
+        font-weight: 600;
+        color: #333;
+        flex-grow: 1;
+    }
+    
+    .folder-count {
+        font-size: 12px;
+        color: #666;
+        background: #f8f9fa;
+        padding: 2px 8px;
+        border-radius: 12px;
+    }
+    
+    .no-folders {
+        text-align: center;
+        padding: 30px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 2px dashed #dee2e6;
+    }
+    
+    .no-folders p {
+        color: #666;
+        margin-bottom: 15px;
+    }
+    
+    .btn-create-folder {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #dc3545;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-create-folder:hover {
+        background: #c82333;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .info-box {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .info-box h3 {
+        color: #856404;
+        font-size: 18px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .info-box p {
+        color: #856404;
+        line-height: 1.6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="create-hero">
+    <div class="container">
+        <h1><i class="fas fa-magic"></i> Créer un Cours avec l'IA</h1>
+        <p>Entrez simplement un titre et laissez l'IA générer un cours complet pour vous</p>
+    </div>
+</section>
+
+<!-- Create Form -->
+<div class="create-container">
+    <a href="{% url 'courses:course_list' %}" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Retour à mes cours
+    </a>
+    
+    <div class="create-card">
+        <h2>Générer un nouveau cours</h2>
+        
+        <div class="info-box">
+            <h3><i class="fas fa-lightbulb"></i> Comment ça marche ?</h3>
+            <p>Entrez simplement un titre de cours (par exemple : "Introduction à Python", "Les bases de la comptabilité", "Histoire de l'art moderne") et notre IA générera automatiquement un cours complet et détaillé pour vous !</p>
+        </div>
+        
+        <form method="post" id="courseForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="title">
+                    <i class="fas fa-heading"></i> Titre du cours *
+                </label>
+                <input 
+                    type="text" 
+                    name="title" 
+                    id="title" 
+                    placeholder="Ex: Introduction à la programmation Python"
+                    required
+                    value="{{ title }}"
+                >
+                <div class="form-help">
+                    <i class="fas fa-info-circle"></i>
+                    Soyez précis pour obtenir un cours de meilleure qualité
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="language">
+                    <i class="fas fa-globe"></i> Langue du cours
+                </label>
+                <select name="language" id="language" style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+                    <option value="fr" {% if language == 'fr' %}selected{% endif %}>🇫🇷 Français</option>
+                    <option value="en" {% if language == 'en' %}selected{% endif %}>🇺🇸 English</option>
+                    <option value="es" {% if language == 'es' %}selected{% endif %}>🇪🇸 Español</option>
+                    <option value="de" {% if language == 'de' %}selected{% endif %}>🇩🇪 Deutsch</option>
+                </select>
+                <div class="form-help">
+                    <i class="fas fa-info-circle"></i>
+                    Choisissez la langue dans laquelle vous souhaitez générer le cours
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="folders">
+                    <i class="fas fa-folder"></i> Dossiers (optionnel)
+                </label>
+                <div class="folders-selection">
+                    {% if user_folders %}
+                        <div class="folders-grid">
+                            {% for folder in user_folders %}
+                                <div class="folder-option">
+                                    <input type="checkbox" 
+                                           name="folders" 
+                                           value="{{ folder.pk }}" 
+                                           id="folder_{{ folder.pk }}"
+                                           class="folder-checkbox">
+                                    <label for="folder_{{ folder.pk }}" class="folder-label">
+                                        <span class="folder-color" style="background-color: {{ folder.color }};"></span>
+                                        <span class="folder-name">{{ folder.name }}</span>
+                                        <span class="folder-count">{{ folder.course_count }} cours</span>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-help">
+                            <i class="fas fa-info-circle"></i>
+                            Sélectionnez les dossiers pour organiser votre cours
+                        </div>
+                    {% else %}
+                        <div class="no-folders">
+                            <p>Aucun dossier créé</p>
+                            <a href="{% url 'courses:folder_create' %}" class="btn-create-folder">
+                                <i class="fas fa-plus"></i> Créer un dossier
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-robot"></i> Générer le cours avec l'IA
+            </button>
+            
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p style="color: #dc3545; font-weight: 600;">
+                    L'IA génère votre cours, veuillez patienter...
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('courseForm').addEventListener('submit', function() {
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours...';
+        loadingSpinner.classList.add('active');
+    });
+</script>
+{% endblock %}
+
+

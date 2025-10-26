@@ -1,0 +1,255 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - GenEX{% endblock %}
+
+{% block nav_folders %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+           /* Variables CSS cohérentes avec le projet */
+           :root {
+               --primary-color: #dc3545;
+               --secondary-color: #6c757d;
+               --success-color: #28a745;
+               --info-color: #17a2b8;
+               --warning-color: #ffc107;
+               --danger-color: #dc3545;
+               --light-color: #f8f9fa;
+               --dark-color: #343a40;
+               --border-radius: 8px;
+               --box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+               --transition: all 0.3s ease;
+           }
+           
+           /* Intégration avec le template de base */
+           .page-header {
+               background: linear-gradient(135deg, var(--primary-color), #c82333);
+               color: white;
+               padding: 3rem 0;
+               margin-bottom: 2rem;
+               position: relative;
+               overflow: hidden;
+           }
+           
+           .page-header::before {
+               content: '';
+               position: absolute;
+               top: 0;
+               left: 0;
+               right: 0;
+               bottom: 0;
+               background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+               z-index: 1;
+           }
+           
+           .page-header-content {
+               position: relative;
+               z-index: 2;
+           }
+           
+           .page-title {
+               font-size: 2.5rem;
+               font-weight: 700;
+               margin-bottom: 0.5rem;
+           }
+           
+           .page-subtitle {
+               font-size: 1.1rem;
+               opacity: 0.9;
+               margin-bottom: 0;
+           }
+    
+    /* Form Container */
+    .form-container {
+        max-width: 700px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, var(--primary-color), #c82333);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .form-body {
+        padding: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+    
+    .color-preview {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        display: inline-block;
+        margin-left: 10px;
+        vertical-align: middle;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, var(--primary-color), #0056b3);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,123,255,0.4);
+        color: white;
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-content">
+            <h1 class="page-title">
+                <i class="fas fa-folder me-3"></i>
+                {{ title }}
+            </h1>
+            <p class="page-subtitle">Organisez vos cours en créant des dossiers thématiques</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="form-container">
+        <!-- En-tête du formulaire -->
+        <div class="form-header">
+            <h2 class="mb-0">
+                <i class="fas fa-folder me-2"></i>
+                {{ title }}
+            </h2>
+        </div>
+                
+                <!-- Formulaire -->
+                <div class="form-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Nom du dossier -->
+                        <div class="form-group">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                <i class="fas fa-tag me-1"></i>
+                                {{ form.name.label }}
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.name.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>
+                                {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.description.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Couleur -->
+                        <div class="form-group">
+                            <label for="{{ form.color.id_for_label }}" class="form-label">
+                                <i class="fas fa-palette me-1"></i>
+                                {{ form.color.label }}
+                            </label>
+                            <div class="d-flex align-items-center">
+                                {{ form.color }}
+                                <div class="color-preview" id="colorPreview" style="background-color: {{ form.color.value|default:'#007bff' }};"></div>
+                            </div>
+                            {% if form.color.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.color.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Boutons -->
+                        <div class="d-flex gap-3 justify-content-end mt-4">
+                            <a href="{% url 'courses:folder_list' %}" class="btn btn-cancel">
+                                <i class="fas fa-times me-1"></i>
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn btn-submit">
+                                <i class="fas fa-save me-1"></i>
+                                {{ submit_text }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mise à jour de l'aperçu de couleur
+document.getElementById('{{ form.color.id_for_label }}').addEventListener('input', function() {
+    document.getElementById('colorPreview').style.backgroundColor = this.value;
+});
+</script>
+{% endblock %}

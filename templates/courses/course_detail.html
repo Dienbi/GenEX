@@ -1,0 +1,1632 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ course.title }} - GenEX{% endblock %}
+
+{% block nav_my_courses %}active{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+:root {
+    --primary-color: #dc3545;
+    --primary-dark: #c82333;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --info-color: #17a2b8;
+    --warning-color: #ffc107;
+    --light-bg: #f8f9fa;
+    --dark-text: #2c3e50;
+    --medium-text: #495057;
+    --light-text: #6c757d;
+    --border-radius: 12px;
+    --shadow: 0 4px 20px rgba(0,0,0,0.1);
+    --shadow-hover: 0 8px 30px rgba(0,0,0,0.15);
+    --transition: all 0.3s ease;
+}
+
+/* En-tête du cours */
+.course-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 80px 0 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.course-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="0,0 1000,50 1000,100 0,100"/></svg>') no-repeat bottom;
+    background-size: cover;
+}
+
+.course-header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.course-header h1 {
+    font-size: 2.8rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.course-meta {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.course-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+}
+
+.ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: rgba(255,255,255,0.2);
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    backdrop-filter: blur(10px);
+}
+
+/* Navigation principale */
+.course-navigation {
+    background: white;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.nav-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.nav-btn i {
+    font-size: 1rem;
+}
+
+.btn-back {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-back:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.btn-summary {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-summary:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+.btn-print {
+    background: var(--info-color);
+    color: white;
+}
+
+.btn-print:hover {
+    background: #138496;
+    transform: translateY(-2px);
+}
+
+.btn-organize {
+    background: #6f42c1;
+    color: white;
+}
+
+.btn-organize:hover {
+    background: #5a32a3;
+    transform: translateY(-2px);
+}
+
+.btn-create-folder {
+    background: #28a745;
+    color: white;
+}
+
+.btn-create-folder:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-delete:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* Conteneur principal */
+.course-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 20px;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+/* Sidebar - Table des matières */
+.course-sidebar {
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.sidebar-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+}
+
+.sidebar-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.chapter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.chapter-item {
+    margin-bottom: 0.5rem;
+}
+
+.chapter-link {
+    display: block;
+    padding: 1rem 1.25rem;
+    color: var(--medium-text);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: var(--transition);
+    border-left: 4px solid transparent;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.chapter-link:hover {
+    background: var(--light-bg);
+    border-left-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.chapter-link.active {
+    background: rgba(220, 53, 69, 0.1);
+    border-left-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Styles pour les dossiers dans la sidebar */
+.folders-list {
+    margin-bottom: 1rem;
+}
+
+.folder-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.folder-item:last-child {
+    border-bottom: none;
+}
+
+.folder-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+.folder-link {
+    color: var(--medium-text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.folder-link:hover {
+    color: var(--primary-color);
+}
+
+.btn-organize-small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #6f42c1;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-organize-small:hover {
+    background: #5a32a3;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.chapter-link.level-1 {
+    font-weight: 600;
+    color: var(--dark-text);
+    font-size: 1rem;
+}
+
+.chapter-link.level-2 {
+    padding-left: 1.5rem;
+    font-size: 0.95rem;
+    border-left-color: var(--info-color);
+}
+
+.chapter-link.level-3 {
+    padding-left: 2.5rem;
+    font-size: 0.9rem;
+    color: var(--light-text);
+    border-left-color: var(--success-color);
+}
+
+/* Contenu principal */
+.course-main {
+    min-height: 100vh;
+}
+
+.course-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 3rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    transition: var(--transition);
+    scroll-margin-top: 100px;
+}
+
+.course-section:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+.course-section.level-1 {
+    border-left: 6px solid var(--primary-color);
+    background: linear-gradient(135deg, white 0%, #fff5f5 100%);
+}
+
+.course-section.level-2 {
+    border-left: 6px solid var(--info-color);
+    background: white;
+    margin-left: 1rem;
+    padding: 2.5rem;
+}
+
+.course-section.level-3 {
+    border-left: 6px solid var(--success-color);
+    background: white;
+    margin-left: 2rem;
+    padding: 2rem;
+}
+
+.section-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.section-title {
+    color: var(--primary-color);
+    font-size: 2.2rem;
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.section-title.level-1 {
+    font-size: 2.2rem;
+    color: var(--primary-color);
+}
+
+.section-title.level-2 {
+    font-size: 1.8rem;
+    color: var(--info-color);
+}
+
+.section-title.level-3 {
+    font-size: 1.5rem;
+    color: var(--success-color);
+}
+
+.section-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--light-text);
+    font-size: 0.9rem;
+}
+
+.section-content {
+    line-height: 1.8;
+    font-size: 1.1rem;
+    color: var(--medium-text);
+}
+
+.section-content p {
+    margin-bottom: 1.5rem;
+    text-align: justify;
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
+
+.section-content ul, .section-content ol {
+    margin-left: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-content ul {
+    list-style-type: none;
+}
+
+.section-content ul li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.section-content ul li::before {
+    content: "•";
+    color: var(--primary-color);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    font-size: 1.2rem;
+}
+
+.section-content ol li {
+    margin-bottom: 0.75rem;
+    counter-increment: list-counter;
+}
+
+.section-content ol {
+    counter-reset: list-counter;
+}
+
+.section-content ol li::before {
+    content: counter(list-counter) ".";
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.section-content strong {
+    color: var(--primary-color);
+    font-weight: 600;
+    background: linear-gradient(120deg, rgba(220, 53, 69, 0.1) 0%, transparent 100%);
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+}
+
+.section-content em {
+    color: var(--light-text);
+    font-style: italic;
+    font-weight: 500;
+}
+
+.section-content code:not(.code-content code) {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.section-content blockquote {
+    border-left: 4px solid var(--primary-color);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, rgba(220, 53, 69, 0.02) 100%);
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    font-style: italic;
+    color: var(--medium-text);
+    position: relative;
+}
+
+.section-content blockquote::before {
+    content: "\201C";
+    font-size: 3rem;
+    color: var(--primary-color);
+    position: absolute;
+    top: -0.5rem;
+    left: 1rem;
+    font-family: serif;
+    opacity: 0.3;
+}
+
+/* Styles pour les blocs de code avec bouton copier */
+.code-block {
+    position: relative;
+    margin: 1.5rem 0;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.code-header {
+    background: #1a202c;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #2d3748;
+}
+
+.code-language {
+    color: #68d391;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+}
+
+.copy-code-btn {
+    background: #4299e1;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
+}
+
+.copy-code-btn:hover {
+    background: #3182ce;
+    transform: translateY(-1px);
+}
+
+.copy-code-btn.copied {
+    background: #38a169;
+}
+
+.copy-code-btn.copied:hover {
+    background: #2f855a;
+}
+
+.code-content {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 1.5rem;
+    overflow-x: auto;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    tab-size: 4;
+}
+
+.code-content code {
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+}
+
+/* Coloration syntaxique personnalisée */
+.code-content .keyword { color: #ff79c6; }
+.code-content .string { color: #f1fa8c; }
+.code-content .comment { color: #6272a4; font-style: italic; }
+.code-content .function { color: #50fa7b; }
+.code-content .number { color: #bd93f9; }
+.code-content .class { color: #8be9fd; }
+.code-content .operator { color: #ff79c6; }
+.code-content .variable { color: #f8f8f2; }
+.code-content .constant { color: #bd93f9; }
+.code-content .builtin { color: #50fa7b; }
+
+/* Animation de copie */
+@keyframes copySuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.copy-success {
+    animation: copySuccess 0.3s ease;
+}
+
+/* Amélioration de la scrollbar pour le code */
+.code-content::-webkit-scrollbar {
+    height: 8px;
+}
+
+.code-content::-webkit-scrollbar-track {
+    background: #1a202c;
+    border-radius: 0 0 4px 4px;
+}
+
+.code-content::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 4px;
+}
+
+.code-content::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+}
+
+/* Notifications Toast */
+.copy-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--success-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-hover);
+    z-index: 10000;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    font-weight: 500;
+    max-width: 300px;
+}
+
+.copy-notification.error {
+    background: var(--primary-color);
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.notification-content i {
+    font-size: 1.2rem;
+}
+
+/* Bouton copie pour code inline */
+.inline-code-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.copy-inline-btn {
+    position: absolute;
+    right: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.copy-inline-btn:hover {
+    background: var(--primary-dark);
+}
+
+.inline-code-wrapper:hover .copy-inline-btn {
+    opacity: 1;
+}
+
+/* Modal de résumé */
+.summary-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+}
+
+.summary-modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 800px;
+    max-height: 85vh;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.summary-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+}
+
+.summary-modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.close-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: white;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.close-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: rotate(90deg);
+}
+
+.summary-options {
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.summary-content {
+    padding: 2rem;
+    line-height: 1.7;
+    color: var(--dark-text);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: var(--primary-color);
+}
+
+.loading i {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+.loading p {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Nouveaux styles pour le contenu du résumé */
+.summary-section {
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1rem;
+    position: relative;
+}
+
+.summary-section h3 {
+    color: var(--primary-color);
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.summary-section h3 i {
+    transition: transform 0.3s ease;
+}
+
+.summary-section.collapsed h3 i {
+    transform: rotate(-90deg);
+}
+
+.summary-section-content {
+    display: block;
+    font-size: 1rem;
+    color: var(--medium-text);
+    line-height: 1.6;
+}
+
+.summary-section.collapsed .summary-section-content {
+    display: none;
+}
+
+.summary-section ul {
+    list-style: none;
+    padding-left: 1rem;
+    margin: 0;
+}
+
+.summary-section ul li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.summary-section ul li::before {
+    content: "•";
+    color: var(--primary-color);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    font-size: 1.2rem;
+}
+
+.summary-meta {
+    font-size: 0.9rem;
+    color: var(--light-text);
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.summary-footer {
+    border-top: 1px solid #e9ecef;
+    padding-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--light-text);
+    text-align: center;
+}
+
+/* Scrollbar personnalisée pour le modal */
+.summary-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.summary-content::-webkit-scrollbar-track {
+    background: #f1f3f5;
+    border-radius: 4px;
+}
+
+.summary-content::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.summary-content::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* Animations pour les sections */
+@keyframes slideDown {
+    from { max-height: 0; opacity: 0; }
+    to { max-height: 500px; opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { max-height: 500px; opacity: 1; }
+    to { max-height: 0; opacity: 0; }
+}
+
+.summary-section-content {
+    animation: slideDown 0.3s ease forwards;
+}
+
+.summary-section.collapsed .summary-section-content {
+    animation: slideUp 0.3s ease forwards;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .course-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .course-sidebar {
+        position: static;
+        order: 2;
+        height: auto;
+    }
+    
+    .course-main {
+        order: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .course-header h1 {
+        font-size: 2.2rem;
+    }
+    
+    .course-meta {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .nav-actions {
+        justify-content: center;
+    }
+    
+    .course-section {
+        padding: 2rem;
+    }
+    
+    .course-section.level-2,
+    .course-section.level-3 {
+        margin-left: 0;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+    }
+    
+    .section-title.level-2 {
+        font-size: 1.5rem;
+    }
+    
+    .section-title.level-3 {
+        font-size: 1.3rem;
+    }
+    
+    .summary-modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .course-header {
+        padding: 60px 0 30px;
+    }
+    
+    .course-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .course-section {
+        padding: 1.5rem;
+    }
+    
+    .nav-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .code-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+    
+    .copy-code-btn {
+        align-self: flex-end;
+    }
+    
+    .summary-modal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .modal-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Course Header -->
+<section class="course-header">
+    <div class="course-header-content">
+        <h1><i class="fas fa-book-open"></i> {{ course.title }}</h1>
+        <div class="course-meta">
+            <span><i class="fas fa-user"></i> {{ course.user.username }}</span>
+            <span><i class="fas fa-calendar"></i> {{ course.created_at|date:"d F Y" }}</span>
+            <span><i class="fas fa-clock"></i> {{ course.created_at|date:"H:i" }}</span>
+            <span><i class="fas fa-language"></i> {{ course.get_language_display }}</span>
+        </div>
+        <div class="ai-badge">
+            <i class="fas fa-robot"></i> Généré par Intelligence Artificielle
+        </div>
+    </div>
+</section>
+
+<!-- Navigation -->
+<nav class="course-navigation">
+    <div class="nav-content">
+        <div class="nav-actions">
+            <a href="{% url 'courses:course_list' %}" class="nav-btn btn-back">
+                <i class="fas fa-arrow-left"></i> Retour aux cours
+            </a>
+            <button onclick="window.print()" class="nav-btn btn-print">
+                <i class="fas fa-print"></i> Imprimer
+            </button>
+            <button onclick="generateSummary()" class="nav-btn btn-summary" id="summaryBtn">
+                <i class="fas fa-robot"></i> Résumé IA
+            </button>
+                <a href="{% url 'courses:course_assign_folder' course.pk %}" class="nav-btn btn-organize">
+                    <i class="fas fa-folder-plus"></i> Organiser
+                </a>
+            <a href="{% url 'courses:course_delete' course.pk %}" class="nav-btn btn-delete">
+                <i class="fas fa-trash"></i> Supprimer
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Course Content -->
+<div class="course-container">
+    <!-- Sidebar - Table des matières -->
+    <aside class="course-sidebar">
+        <div class="sidebar-card">
+            <h3><i class="fas fa-list-ol"></i> Table des matières</h3>
+            <nav class="chapter-list" id="tableOfContents">
+                {% for section in sections %}
+                <div class="chapter-item">
+                    <a href="#section-{{ forloop.counter }}"
+                       class="chapter-link level-{{ section.level }}"
+                       onclick="scrollToSection('section-{{ forloop.counter }}')">
+                        {{ section.title }}
+                    </a>
+                </div>
+                {% endfor %}
+            </nav>
+        </div>
+        
+        <div class="sidebar-card">
+            <h3><i class="fas fa-info-circle"></i> Informations</h3>
+            <div style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6;">
+                <p><strong>Nombre de sections:</strong> {{ sections|length }}</p>
+                <p><strong>Langue:</strong> {{ course.get_language_display }}</p>
+                <p><strong>Créé le:</strong> {{ course.created_at|date:"d/m/Y" }}</p>
+            </div>
+        </div>
+        
+        <!-- Dossiers du cours -->
+        <div class="sidebar-card">
+            <h3><i class="fas fa-folder"></i> Dossiers</h3>
+            {% if course.folders.all %}
+                <div class="folders-list">
+                    {% for folder in course.folders.all %}
+                        <div class="folder-item">
+                            <span class="folder-color" style="background-color: {{ folder.color }};"></span>
+                            <a href="{% url 'courses:folder_detail' folder.pk %}" class="folder-link">
+                                {{ folder.name }}
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div style="margin-top: 1rem;">
+                    <a href="{% url 'courses:course_assign_folder' course.pk %}" class="btn-organize-small">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                </div>
+            {% else %}
+                <div style="color: var(--light-text); font-size: 0.9rem; margin-bottom: 1rem;">
+                    <p>Aucun dossier assigné</p>
+                </div>
+                <a href="{% url 'courses:course_assign_folder' course.pk %}" class="btn-organize-small">
+                    <i class="fas fa-plus"></i> Organiser
+                </a>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="course-main">
+        {% for section in sections %}
+        <section id="section-{{ forloop.counter }}" class="course-section level-{{ section.level }}">
+            <div class="section-header">
+                <h2 class="section-title level-{{ section.level }}">
+                    {{ section.title }}
+                </h2>
+                <div class="section-meta">
+                    <span><i class="fas fa-hashtag"></i> Section {{ forloop.counter }}</span>
+                    <span><i class="fas fa-layer-group"></i> Niveau {{ section.level }}</span>
+                </div>
+            </div>
+            
+            <div class="section-content">
+                {{ section.content|linebreaks|safe }}
+            </div>
+        </section>
+        {% endfor %}
+    </main>
+</div>
+
+<!-- Summary Modal -->
+<div id="summaryModal" class="summary-modal" role="dialog" aria-labelledby="summaryModalTitle" aria-hidden="true">
+    <div class="summary-modal-content">
+        <div class="summary-modal-header">
+            <h2 id="summaryModalTitle"><i class="fas fa-robot"></i> Résumé IA du cours</h2>
+            <div class="modal-actions">
+                <button onclick="copySummary()" class="nav-btn btn-summary" aria-label="Copier le résumé">
+                    <i class="far fa-copy"></i> Copier
+                </button>
+                <button onclick="downloadSummary()" class="nav-btn btn-print" aria-label="Télécharger le résumé en PDF">
+                    <i class="fas fa-download"></i> PDF
+                </button>
+                <button class="close-btn" onclick="closeSummary()" aria-label="Fermer le résumé">&times;</button>
+            </div>
+        </div>
+        <div id="summaryContent" class="summary-content" role="region" aria-live="polite">
+            <div class="loading">
+                <i class="fas fa-spinner" aria-hidden="true"></i>
+                <p>Génération du résumé en cours...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+// Test de fonctionnement JavaScript
+console.log('JavaScript loaded successfully');
+
+// Définir la fonction generateSummary globalement
+window.generateSummary = function() {
+    console.log('generateSummary function called');
+    
+    const modal = document.getElementById('summaryModal');
+    const content = document.getElementById('summaryContent');
+    const btn = document.getElementById('summaryBtn');
+    
+    if (!modal || !content || !btn) {
+        console.error('Required elements not found');
+        showCopyNotification('Erreur: Éléments de l\'interface non trouvés', 'error');
+        return;
+    }
+    
+    modal.style.display = 'block';
+    modal.setAttribute('aria-hidden', 'false');
+    content.innerHTML = '<div class="loading"><i class="fas fa-spinner" aria-hidden="true"></i><p>Génération du résumé en cours...</p></div>';
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
+    
+    const url = '{% url "courses:course_summary" course.pk %}';
+    console.log('Making request to:', url);
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            // Parser le résumé pour extraire les sections
+            content.innerHTML = formatSummary(data.summary);
+            content.focus();
+            initCollapsibleSections();
+        } else {
+            content.innerHTML = '<div style="color: var(--primary-color); text-align: center; padding: 2rem;"><i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i><h3>Erreur lors de la génération</h3><p>' + data.error + '</p></div>';
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        content.innerHTML = '<div style="color: var(--primary-color); text-align: center; padding: 2rem;"><i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i><h3>Erreur de connexion</h3><p>' + error.message + '</p></div>';
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-robot"></i> Résumé IA';
+    });
+};
+
+// Formater le résumé pour un affichage structuré
+function formatSummary(summary) {
+    // Supposons que le résumé est structuré avec des sections marquées par <h3>
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(summary, 'text/html');
+    
+    // Extraire les sections
+    const sections = doc.querySelectorAll('.summary-container > h3, .summary-container > div, .summary-container > ul');
+    let formattedHtml = '<div class="summary-container">';
+    
+    let currentSection = null;
+    sections.forEach(node => {
+        if (node.tagName.toLowerCase() === 'h3') {
+            if (currentSection) {
+                formattedHtml += '</div></div>'; // Fermer la section précédente
+            }
+            const sectionId = node.textContent.toLowerCase().replace(/\s/g, '-') + '-' + Math.random().toString(36).substr(2, 9);
+            formattedHtml += `
+                <div class="summary-section" id="${sectionId}">
+                    <h3 onclick="toggleSection('${sectionId}')">
+                        <i class="fas fa-chevron-down"></i> ${node.textContent}
+                    </h3>
+                    <div class="summary-section-content">
+            `;
+            currentSection = sectionId;
+        } else if (currentSection) {
+            // Ajouter le contenu de la section
+            if (node.classList.contains('summary-meta')) {
+                formattedHtml += `<div class="summary-meta">${node.innerHTML}</div>`;
+            } else if (node.classList.contains('summary-footer')) {
+                formattedHtml += `<div class="summary-footer">${node.innerHTML}</div>`;
+            } else if (node.tagName.toLowerCase() === 'ul') {
+                formattedHtml += node.outerHTML;
+            } else {
+                formattedHtml += `<p>${node.innerHTML}</p>`;
+            }
+        }
+    });
+    
+    if (currentSection) {
+        formattedHtml += '</div></div>'; // Fermer la dernière section
+    }
+    
+    formattedHtml += '</div>';
+    return formattedHtml;
+}
+
+// Initialiser les sections rétractables
+function initCollapsibleSections() {
+    const headers = document.querySelectorAll('.summary-section h3');
+    headers.forEach(header => {
+        header.addEventListener('click', () => {
+            const sectionId = header.parentElement.id;
+            toggleSection(sectionId);
+        });
+    });
+}
+
+// Basculer l'affichage des sections
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.classList.toggle('collapsed');
+        const content = section.querySelector('.summary-section-content');
+        content.setAttribute('aria-expanded', !section.classList.contains('collapsed'));
+    }
+}
+
+// Copier le résumé
+function copySummary() {
+    const summaryContent = document.getElementById('summaryContent').textContent;
+    navigator.clipboard.writeText(summaryContent).then(() => {
+        showCopyNotification('Résumé copié dans le presse-papier !');
+    }).catch(err => {
+        showCopyNotification('Erreur lors de la copie du résumé', 'error');
+    });
+}
+
+// Télécharger le résumé en PDF
+function downloadSummary() {
+    const element = document.getElementById('summaryContent');
+    const opt = {
+        margin: 1,
+        filename: `Résumé_${document.querySelector('.course-header h1').textContent}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().from(element).set(opt).save();
+}
+
+// Détecter le langage de programmation
+function detectProgrammingLanguage(code) {
+    if (code.includes('import ') || code.includes('def ') || code.includes('class ')) {
+        return 'python';
+    }
+    if (code.includes('function') || code.includes('const ') || code.includes('let ')) {
+        return 'javascript';
+    }
+    if (code.includes('public ') || code.includes('class ') || code.includes('System.out')) {
+        return 'java';
+    }
+    if (code.includes('#include') || code.includes('int main')) {
+        return 'cpp';
+    }
+    if (code.includes('<!DOCTYPE') || code.includes('<html')) {
+        return 'html';
+    }
+    if (code.includes('SELECT') || code.includes('INSERT')) {
+        return 'sql';
+    }
+    return 'text';
+}
+
+// Améliorer l'affichage des blocs de code
+function enhanceCodeBlocks() {
+    const sectionContents = document.querySelectorAll('.section-content');
+    
+    sectionContents.forEach(section => {
+        const preElements = section.querySelectorAll('pre');
+        
+        preElements.forEach((pre, index) => {
+            if (pre.classList.contains('enhanced-code-block')) {
+                return;
+            }
+            
+            const code = pre.textContent || pre.innerText;
+            const language = detectProgrammingLanguage(code);
+            
+            const codeBlock = document.createElement('div');
+            codeBlock.className = 'code-block enhanced-code-block';
+            
+            const header = document.createElement('div');
+            header.className = 'code-header';
+            
+            const languageSpan = document.createElement('div');
+            languageSpan.className = 'code-language';
+            languageSpan.innerHTML = `<i class="fas fa-code"></i> ${language.toUpperCase()}`;
+            
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-code-btn';
+            copyBtn.innerHTML = '<i class="far fa-copy"></i> Copier';
+            copyBtn.setAttribute('aria-label', 'Copier le code');
+            copyBtn.onclick = () => copyCodeToClipboard(code, copyBtn);
+            
+            header.appendChild(languageSpan);
+            header.appendChild(copyBtn);
+            
+            const codeContent = document.createElement('div');
+            codeContent.className = 'code-content';
+            
+            const codeElement = document.createElement('code');
+            codeElement.textContent = code;
+            applyBasicSyntaxHighlighting(codeElement, language);
+            
+            codeContent.appendChild(codeElement);
+            codeBlock.appendChild(header);
+            codeBlock.appendChild(codeContent);
+            
+            pre.parentNode.replaceChild(codeBlock, pre);
+        });
+    });
+}
+
+// Coloration syntaxique basique
+function applyBasicSyntaxHighlighting(codeElement, language) {
+    let code = codeElement.textContent;
+    
+    const patterns = {
+        'python': {
+            'keywords': /\b(def|class|if|else|elif|for|while|return|import|from|as|try|except|finally|with)\b/g,
+            'strings': /('.*?'|".*?")/g,
+            'comments': /(#.*$)/gm,
+            'numbers': /\b\d+\b/g,
+            'builtins': /\b(print|len|range|str|int|float|list|dict|set)\b/g
+        },
+        'javascript': {
+            'keywords': /\b(function|const|let|var|if|else|for|while|return|class|import|export|from|default)\b/g,
+            'strings': /('.*?'|".*?"|`.*?`)/g,
+            'comments': /(\/\/.*$|\/\*[\s\S]*?\*\/)/gm,
+            'numbers': /\b\d+\b/g,
+            'functions': /\b(console|document|window|alert|prompt)\b/g
+        },
+        'java': {
+            'keywords': /\b(public|private|class|static|void|int|String|if|else|for|while|return|import)\b/g,
+            'strings': /(".*?")/g,
+            'comments': /(\/\/.*$|\/\*[\s\S]*?\*\/)/gm,
+            'numbers': /\b\d+\b/g,
+            'system': /\b(System\.out\.print)\b/g
+        },
+        'html': {
+            'tags': /(&lt;\/?[a-zA-Z][^>]*&gt;)/g,
+            'attributes': /([a-zA-Z-]+)=/g,
+            'comments': /(&lt;!--[\s\S]*?--&gt;)/g
+        },
+        'css': {
+            'properties': /([a-zA-Z-]+):/g,
+            'selectors': /(\.[a-zA-Z][^{]*\{|#[a-zA-Z][^{]*\{|[a-zA-Z][^{]*\{)/g,
+            'comments': /(\/\*[\s\S]*?\*\/)/g
+        }
+    };
+    
+    if (patterns[language]) {
+        const langPatterns = patterns[language];
+        for (const [type, pattern] of Object.entries(langPatterns)) {
+            code = code.replace(pattern, match => {
+                return `<span class="${type}">${match}</span>`;
+            });
+        }
+    }
+    
+    codeElement.innerHTML = code;
+}
+
+// Copier le code dans le presse-papier
+function copyCodeToClipboard(code, button) {
+    const cleanCode = code.replace(/<span class="[^"]*">([^<]*)<\/span>/g, '$1');
+    
+    navigator.clipboard.writeText(cleanCode).then(() => {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> Copié !';
+        button.classList.add('copied');
+        button.classList.add('copy-success');
+        showCopyNotification('Code copié dans le presse-papier !');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('copied');
+            button.classList.remove('copy-success');
+        }, 2000);
+    }).catch(err => {
+        console.error('Erreur lors de la copie:', err);
+        showCopyNotification('Erreur lors de la copie', 'error');
+    });
+}
+
+// Notification toast
+function showCopyNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `copy-notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'var(--success-color)' : 'var(--primary-color)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-hover);
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        font-weight: 500;
+        max-width: 300px;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(400px)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Améliorer le code inline
+function enhanceInlineCode() {
+    const sectionContents = document.querySelectorAll('.section-content');
+    
+    sectionContents.forEach(section => {
+        const inlineCodeElements = section.querySelectorAll('code:not(.code-content code)');
+        
+        inlineCodeElements.forEach(codeElement => {
+            if (codeElement.textContent.includes('\n')) {
+                return;
+            }
+            
+            if (codeElement.textContent.length > 20) {
+                const wrapper = document.createElement('span');
+                wrapper.className = 'inline-code-wrapper';
+                wrapper.style.cssText = 'position: relative; display: inline-block;';
+                
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-inline-btn';
+                copyBtn.innerHTML = '<i class="far fa-copy"></i>';
+                copyBtn.setAttribute('aria-label', 'Copier le code inline');
+                copyBtn.style.cssText = `
+                    position: absolute;
+                    right: -25px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: var(--primary-color);
+                    color: white;
+                    border: none;
+                    border-radius: 3px;
+                    padding: 2px 6px;
+                    font-size: 0.7rem;
+                    cursor: pointer;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                `;
+                
+                copyBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    copyCodeToClipboard(codeElement.textContent, copyBtn);
+                };
+                
+                wrapper.appendChild(codeElement.cloneNode(true));
+                wrapper.appendChild(copyBtn);
+                
+                wrapper.addEventListener('mouseenter', () => {
+                    copyBtn.style.opacity = '1';
+                });
+                
+                wrapper.addEventListener('mouseleave', () => {
+                    copyBtn.style.opacity = '0';
+                });
+                
+                codeElement.parentNode.replaceChild(wrapper, codeElement);
+            }
+        });
+    });
+}
+
+// Navigation entre les sections
+function scrollToSection(sectionId) {
+    const element = document.getElementById(sectionId);
+    if (element) {
+        const offsetTop = element.offsetTop - 100;
+        window.scrollTo({
+            top: offsetTop,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// Mettre à jour la navigation active
+function updateActiveSection() {
+    const sections = document.querySelectorAll('.course-section');
+    const links = document.querySelectorAll('.chapter-link');
+    
+    let activeSection = null;
+    
+    sections.forEach(section => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= 150 && rect.bottom >= 150) {
+            activeSection = section.id;
+        }
+    });
+    
+    links.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${activeSection}`) {
+            link.classList.add('active');
+        }
+    });
+}
+
+// Fermer le modal
+function closeSummary() {
+    const modal = document.getElementById('summaryModal');
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+    document.getElementById('summaryBtn').focus();
+}
+
+
+
+// Fermer le modal en cliquant à l'extérieur
+window.onclick = function(event) {
+    const modal = document.getElementById('summaryModal');
+    if (event.target == modal) {
+        closeSummary();
+    }
+}
+
+// Écouter le scroll pour mettre à jour la navigation
+window.addEventListener('scroll', updateActiveSection);
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    updateActiveSection();
+    enhanceCodeBlocks();
+    enhanceInlineCode();
+    
+    if (typeof Prism !== 'undefined') {
+        Prism.highlightAll();
+    }
+});
+</script>
+{% endblock %}
