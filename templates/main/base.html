@@ -308,9 +308,6 @@
                 <li><a href="{% url 'voice_eval:home' %}" class="{% block nav_voice %}{% endblock %}">Voice Eval</a></li>
                 
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'chatbot:chat' %}" class="{% block nav_chatbot %}{% endblock %}">
-                        <i class="fas fa-robot"></i> Assistant IA
-                    </a></li>
                     <li><a href="{% url 'main:dashboard' %}">Dashboard</a></li>
                     <li><a href="{% url 'main:signout' %}" class="btn-outline-red">Déconnexion</a></li>
                 {% else %}
@@ -396,10 +393,5 @@
     </footer>
 
     {% block extra_js %}{% endblock %}
-    
-    <!-- Chatbot Widget -->
-    {% if user.is_authenticated %}
-        {% include 'chatbot/widget.html' %}
-    {% endif %}
 </body>
 </html>

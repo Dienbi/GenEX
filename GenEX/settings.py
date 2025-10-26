@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'quizzes',
     'chat_tutor',
     'voice_eval',
-    'chatbot',
+    'chatbot',  # Added chatbot app
 ]
 
 MIDDLEWARE = [
