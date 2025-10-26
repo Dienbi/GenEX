@@ -163,4 +163,4 @@ LOGIN_URL = '/users/login/'
 
 # Site URL for QR codes and certificates
 SITE_URL = 'http://127.0.0.1:8000'
-
+GROQ_API_KEY = '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'
