@@ -507,6 +507,398 @@ Format de réponse requis (JSON strict):
         
         return category
 
+    def generate_rich_exercise(
+        self,
+        user: User,
+        subject: str,
+        difficulty: DifficultyLevel,
+        exercise_type: ExerciseType,
+        custom_prompt: str = ""
+    ) -> Optional[Exercise]:
+        """Génère un exercice enrichi avec des fonctionnalités avancées"""
+        
+        if not self.client:
+            return self._generate_test_rich_exercise(user, subject, difficulty, exercise_type)
+        
+        try:
+            # Construire le prompt spécialisé selon le type d'exercice
+            prompt = self._build_rich_exercise_prompt(subject, difficulty, exercise_type, custom_prompt)
+            
+            # Générer avec l'IA
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "Tu es un expert en création d'exercices pédagogiques enrichis. Tu crées des exercices interactifs et engageants."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=2000
+            )
+            
+            # Parser la réponse JSON
+            content = response.choices[0].message.content
+            exercise_data = json.loads(content)
+            
+            # Créer l'exercice
+            exercise = self._create_rich_exercise_from_data(
+                user, subject, difficulty, exercise_type, exercise_data
+            )
+            
+            return exercise
+            
+        except Exception as e:
+            print(f"Erreur génération exercice enrichi: {e}")
+            return self._generate_test_rich_exercise(user, subject, difficulty, exercise_type)
+
+    def _build_rich_exercise_prompt(
+        self,
+        subject: str,
+        difficulty: DifficultyLevel,
+        exercise_type: ExerciseType,
+        custom_prompt: str
+    ) -> str:
+        """Construit un prompt spécialisé pour le type d'exercice"""
+        
+        base_prompt = f"""
+        Crée un exercice de type "{exercise_type.name}" pour le sujet "{subject}" 
+        au niveau de difficulté "{difficulty.name}".
+        
+        Type d'exercice: {exercise_type.name}
+        Description: {exercise_type.description}
+        Supports: Images={exercise_type.supports_images}, Audio={exercise_type.supports_audio}, 
+        Vidéo={exercise_type.supports_video}, Dessin={exercise_type.supports_drawing}
+        
+        {custom_prompt}
+        
+        Retourne la réponse au format JSON suivant:
+        """
+        
+        # Ajouter le template spécifique selon le type
+        if exercise_type.name == "QCM avec Images":
+            base_prompt += """
+            {
+                "title": "string",
+                "description": "string",
+                "question": {
+                    "text": "string",
+                    "image_url": "string (URL d'image générée ou placeholder)",
+                    "image_alt": "string"
+                },
+                "options": [
+                    {
+                        "text": "string",
+                        "image_url": "string (optionnel)",
+                        "is_correct": boolean
+                    }
+                ],
+                "explanation": "string",
+                "hints": ["string"],
+                "estimated_time": number
+            }
+            """
+        elif exercise_type.name == "Exercice de Correspondance":
+            base_prompt += """
+            {
+                "title": "string",
+                "description": "string",
+                "instruction": "string",
+                "left_column": {
+                    "title": "string",
+                    "items": [
+                        {
+                            "id": "string",
+                            "text": "string",
+                            "image_url": "string (optionnel)"
+                        }
+                    ]
+                },
+                "right_column": {
+                    "title": "string",
+                    "items": [
+                        {
+                            "id": "string",
+                            "text": "string",
+                            "image_url": "string (optionnel)"
+                        }
+                    ]
+                },
+                "correct_matches": [
+                    {"left_id": "string", "right_id": "string"}
+                ],
+                "explanation": "string"
+            }
+            """
+        elif exercise_type.name == "Exercice de Remplissage":
+            base_prompt += """
+            {
+                "title": "string",
+                "description": "string",
+                "instruction": "string",
+                "text": "string avec {{blank1}}, {{blank2}} pour les espaces",
+                "blanks": [
+                    {
+                        "id": "blank1",
+                        "correct_answer": "string",
+                        "alternatives": ["string"],
+                        "hint": "string"
+                    }
+                ],
+                "explanation": "string",
+                "supports_math": boolean
+            }
+            """
+        elif exercise_type.name == "Exercice de Tri":
+            base_prompt += """
+            {
+                "title": "string",
+                "description": "string",
+                "instruction": "string",
+                "sorting_criteria": "string",
+                "items": [
+                    {
+                        "id": "string",
+                        "text": "string",
+                        "image_url": "string (optionnel)",
+                        "metadata": "object"
+                    }
+                ],
+                "correct_order": ["string (IDs)"],
+                "explanation": "string"
+            }
+            """
+        elif exercise_type.name == "Exercice de Dessin":
+            base_prompt += """
+            {
+                "title": "string",
+                "description": "string",
+                "instruction": "string",
+                "canvas": {
+                    "width": number,
+                    "height": number,
+                    "background_image": "string (optionnel)",
+                    "grid": boolean
+                },
+                "tools": ["pen", "line", "circle", "rectangle", "text", "arrow"],
+                "reference_image": "string (URL optionnel)",
+                "evaluation_criteria": [
+                    {
+                        "element": "string",
+                        "required": boolean,
+                        "description": "string"
+                    }
+                ],
+                "explanation": "string"
+            }
+            """
+        elif exercise_type.name == "QCM Audio":
+            base_prompt += """
+            {
+                "title": "string",
+                "description": "string",
+                "question": {
+                    "text": "string",
+                    "audio_url": "string (URL ou placeholder)",
+                    "video_url": "string (optionnel)",
+                    "transcript": "string"
+                },
+                "options": [
+                    {
+                        "text": "string",
+                        "audio_url": "string (optionnel)",
+                        "is_correct": boolean
+                    }
+                ],
+                "explanation": "string",
+                "audio_hints": ["string (URLs optionnels)"]
+            }
+            """
+        elif exercise_type.name == "Exercice de Simulation":
+            base_prompt += """
+            {
+                "title": "string",
+                "description": "string",
+                "instruction": "string",
+                "simulation": {
+                    "type": "string",
+                    "parameters": "object",
+                    "initial_state": "object",
+                    "target_state": "object"
+                },
+                "controls": [
+                    {
+                        "name": "string",
+                        "type": "slider|button|input",
+                        "min": number,
+                        "max": number,
+                        "step": number
+                    }
+                ],
+                "feedback": {
+                    "real_time": boolean,
+                    "final_evaluation": boolean
+                },
+                "explanation": "string"
+            }
+            """
+        elif exercise_type.name == "Exercice de Cas Pratique":
+            base_prompt += """
+            {
+                "title": "string",
+                "description": "string",
+                "scenario": {
+                    "title": "string",
+                    "description": "string",
+                    "context": "string",
+                    "data": "object",
+                    "documents": ["string (URLs)"]
+                },
+                "questions": [
+                    {
+                        "type": "analysis|synthesis|evaluation",
+                        "question": "string",
+                        "expected_elements": ["string"],
+                        "evaluation_criteria": ["string"]
+                    }
+                ],
+                "resources": [
+                    {
+                        "type": "document|image|video|audio",
+                        "url": "string",
+                        "description": "string"
+                    }
+                ],
+                "explanation": "string"
+            }
+            """
+        else:
+            # Template générique
+            base_prompt += """
+            {
+                "title": "string",
+                "description": "string",
+                "content": "string (HTML)",
+                "solution": "string",
+                "hints": ["string"],
+                "explanation": "string"
+            }
+            """
+        
+        return base_prompt
+
+    def _create_rich_exercise_from_data(
+        self,
+        user: User,
+        subject: str,
+        difficulty: DifficultyLevel,
+        exercise_type: ExerciseType,
+        exercise_data: dict
+    ) -> Exercise:
+        """Crée un exercice à partir des données générées par l'IA"""
+        
+        # Récupérer ou créer la catégorie
+        category = self._get_or_create_category(subject)
+        
+        # Créer l'exercice
+        exercise = Exercise.objects.create(
+            title=exercise_data.get('title', f'Exercice {exercise_type.name}'),
+            description=exercise_data.get('description', ''),
+            content=exercise_data,
+            solution=exercise_data.get('solution', exercise_data),
+            hints=exercise_data.get('hints', []),
+            category=category,
+            exercise_type=exercise_type,
+            difficulty=difficulty,
+            created_by=user,
+            is_ai_generated=True,
+            ai_prompt=f"Génération enrichie - {exercise_type.name}",
+            tags=[subject.lower(), exercise_type.name.lower()],
+            estimated_time=exercise_data.get('estimated_time', 15),
+            points=exercise_data.get('points', 10),
+            is_public=True
+        )
+        
+        return exercise
+
+    def _generate_test_rich_exercise(
+        self,
+        user: User,
+        subject: str,
+        difficulty: DifficultyLevel,
+        exercise_type: ExerciseType
+    ) -> Exercise:
+        """Génère un exercice de test enrichi (mode sans API)"""
+        
+        category = self._get_or_create_category(subject)
+        
+        # Créer un exercice de test selon le type
+        if exercise_type.name == "QCM avec Images":
+            content = {
+                "type": "qcm_with_images",
+                "question": {
+                    "text": f"Question de test sur {subject}",
+                    "image": "https://via.placeholder.com/400x300?text=Image+de+test",
+                    "image_alt": "Image illustrative"
+                },
+                "options": [
+                    {"text": "Option A", "is_correct": True},
+                    {"text": "Option B", "is_correct": False},
+                    {"text": "Option C", "is_correct": False},
+                    {"text": "Option D", "is_correct": False}
+                ],
+                "explanation": "Explication de la réponse correcte"
+            }
+        elif exercise_type.name == "Exercice de Correspondance":
+            content = {
+                "type": "matching",
+                "instruction": "Reliez les éléments des deux colonnes",
+                "left_column": {
+                    "title": "Termes",
+                    "items": [
+                        {"id": "1", "text": "Terme 1"},
+                        {"id": "2", "text": "Terme 2"}
+                    ]
+                },
+                "right_column": {
+                    "title": "Définitions",
+                    "items": [
+                        {"id": "A", "text": "Définition A"},
+                        {"id": "B", "text": "Définition B"}
+                    ]
+                },
+                "correct_matches": [
+                    {"left_id": "1", "right_id": "A"},
+                    {"left_id": "2", "right_id": "B"}
+                ]
+            }
+        else:
+            # Template générique
+            content = {
+                "type": exercise_type.name.lower().replace(" ", "_"),
+                "question": f"Question de test sur {subject}",
+                "solution": "Solution de test",
+                "explanation": "Explication de test"
+            }
+        
+        exercise = Exercise.objects.create(
+            title=f"Test {exercise_type.name} - {subject}",
+            description=f"Exercice de test pour {exercise_type.name}",
+            content=content,
+            solution=content,
+            hints=["Indice de test"],
+            category=category,
+            exercise_type=exercise_type,
+            difficulty=difficulty,
+            created_by=user,
+            is_ai_generated=True,
+            ai_prompt="Mode test",
+            tags=[subject.lower(), "test"],
+            estimated_time=10,
+            points=5,
+            is_public=False
+        )
+        
+        return exercise
+
 
 # Instance globale du service
 exercise_ai_service = ExerciseAIService()

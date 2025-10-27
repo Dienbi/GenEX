@@ -27,12 +27,19 @@ class ExerciseType(models.Model):
     description = models.TextField(blank=True)
     template = models.TextField(help_text="Template JSON pour la structure de l'exercice")
     is_interactive = models.BooleanField(default=False)
+    icon = models.CharField(max_length=50, default='fas fa-question-circle', help_text="Icône FontAwesome")
+    color = models.CharField(max_length=7, default='#007bff', help_text="Couleur hexadécimale")
+    supports_images = models.BooleanField(default=False, help_text="Supporte les images")
+    supports_drawing = models.BooleanField(default=False, help_text="Supporte le dessin")
+    supports_audio = models.BooleanField(default=False, help_text="Supporte l'audio")
+    supports_video = models.BooleanField(default=False, help_text="Supporte la vidéo")
+    difficulty_level = models.IntegerField(default=1, help_text="Niveau de complexité (1-5)")
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         verbose_name = "Type d'exercice"
         verbose_name_plural = "Types d'exercices"
-        ordering = ['name']
+        ordering = ['difficulty_level', 'name']
     
     def __str__(self):
         return self.name

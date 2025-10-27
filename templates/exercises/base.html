@@ -433,10 +433,16 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Type d'exercice</label>
-                                <select class="form-select" name="exercise_type" required>
+                                <label class="form-label">
+                                    <i class="fas fa-puzzle-piece me-2"></i>Type d'exercice
+                                </label>
+                                <select class="form-select" name="exercise_type" required id="exerciseTypeSelect">
                                     <option value="">Sélectionner un type</option>
                                 </select>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <span id="exerciseTypeDescription">Choisissez un type d'exercice pour voir sa description</span>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -463,6 +469,16 @@
                         <label class="form-label">Sujets spécifiques (optionnel)</label>
                         <input type="text" class="form-control" name="specific_topics" 
                                placeholder="Ex: équations, géométrie, algèbre (séparés par des virgules)">
+                    </div>
+                    
+                    <!-- Capacités du type d'exercice sélectionné -->
+                    <div class="mb-3" id="exerciseTypeCapabilities" style="display: none;">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-cogs me-2"></i>Capacités de ce type d'exercice</h6>
+                            <div class="row" id="capabilitiesList">
+                                <!-- Les capacités seront ajoutées dynamiquement -->
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -848,9 +864,24 @@ async function loadTypes() {
                 const option = document.createElement('option');
                 option.value = type.id;
                 option.textContent = type.name;
+                option.dataset.icon = type.icon || 'fas fa-question-circle';
+                option.dataset.color = type.color || '#007bff';
+                option.dataset.description = type.description || '';
+                option.dataset.supportsImages = type.supports_images || false;
+                option.dataset.supportsAudio = type.supports_audio || false;
+                option.dataset.supportsVideo = type.supports_video || false;
+                option.dataset.supportsDrawing = type.supports_drawing || false;
                 select.appendChild(option);
             });
         });
+        
+        // Ajouter l'événement pour afficher les capacités
+        const exerciseTypeSelect = document.getElementById('exerciseTypeSelect');
+        if (exerciseTypeSelect) {
+            exerciseTypeSelect.addEventListener('change', function() {
+                updateExerciseTypeCapabilities(this);
+            });
+        }
         console.log('Types ajoutés aux sélecteurs');
     } catch (error) {
         console.error('Erreur lors du chargement des types:', error);
@@ -1874,6 +1905,69 @@ function showError(message) {
             alertDiv.parentNode.removeChild(alertDiv);
         }
     }, 5000);
+}
+
+// Fonction pour mettre à jour les capacités du type d'exercice
+function updateExerciseTypeCapabilities(selectElement) {
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const capabilitiesDiv = document.getElementById('exerciseTypeCapabilities');
+    const descriptionSpan = document.getElementById('exerciseTypeDescription');
+    const capabilitiesList = document.getElementById('capabilitiesList');
+    
+    if (selectedOption.value) {
+        // Mettre à jour la description
+        descriptionSpan.textContent = selectedOption.dataset.description || 'Aucune description disponible';
+        
+        // Afficher les capacités
+        capabilitiesDiv.style.display = 'block';
+        capabilitiesList.innerHTML = '';
+        
+        const capabilities = [
+            {
+                name: 'Images',
+                icon: 'fas fa-images',
+                supported: selectedOption.dataset.supportsimages === 'true',
+                color: selectedOption.dataset.supportsimages === 'true' ? '#28a745' : '#6c757d'
+            },
+            {
+                name: 'Audio',
+                icon: 'fas fa-volume-up',
+                supported: selectedOption.dataset.supportsaudio === 'true',
+                color: selectedOption.dataset.supportsaudio === 'true' ? '#28a745' : '#6c757d'
+            },
+            {
+                name: 'Vidéo',
+                icon: 'fas fa-video',
+                supported: selectedOption.dataset.supportsvideo === 'true',
+                color: selectedOption.dataset.supportsvideo === 'true' ? '#28a745' : '#6c757d'
+            },
+            {
+                name: 'Dessin',
+                icon: 'fas fa-paint-brush',
+                supported: selectedOption.dataset.supportsdrawing === 'true',
+                color: selectedOption.dataset.supportsdrawing === 'true' ? '#28a745' : '#6c757d'
+            }
+        ];
+        
+        capabilities.forEach(capability => {
+            const col = document.createElement('div');
+            col.className = 'col-md-3 col-sm-6 mb-2';
+            col.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="${capability.icon} me-2" style="color: ${capability.color}"></i>
+                    <span style="color: ${capability.color}; font-weight: ${capability.supported ? '600' : '400'}">
+                        ${capability.name}
+                        ${capability.supported ? '<i class="fas fa-check ms-1"></i>' : '<i class="fas fa-times ms-1"></i>'}
+                    </span>
+                </div>
+            `;
+            capabilitiesList.appendChild(col);
+        });
+    } else {
+        // Masquer les capacités
+        capabilitiesDiv.style.display = 'none';
+        descriptionSpan.textContent = 'Choisissez un type d\'exercice pour voir sa description';
+    }
 }
 
 </script>
