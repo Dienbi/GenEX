@@ -83,8 +83,10 @@ def preload_models():
         for model_name in models_to_preload.values():
             executor.submit(load_model, model_name)
 
-# Lancer le préchargement au démarrage
-if TRANSFORMERS_AVAILABLE:
+# Lancer le préchargement au démarrage (désactivé en production pour économiser la mémoire)
+# Le chargement se fera à la demande lors de la première utilisation
+if TRANSFORMERS_AVAILABLE and not os.environ.get('RENDER'):
+    # Uniquement en développement local, pas sur Render
     preload_models()
 
 # Dictionnaire des langues

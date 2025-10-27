@@ -14,19 +14,30 @@ class PronunciationService:
     
     def __init__(self):
         self.models = {}
-        self._load_models()
+        # Lazy loading: don't load models at init to save memory
+        # Models will be loaded on first use
+        self.model_paths = None
     
     def _load_models(self):
-        """Load Vosk models for supported languages"""
+        """Load Vosk models for supported languages (lazy loading)"""
+        # Skip loading on production (Render) to save memory
+        if os.environ.get('RENDER'):
+            print("Skipping Vosk model loading on Render (memory constrained)")
+            return
+            
         # Models should be downloaded and placed in ml_models/vosk/
         vosk_path = os.path.join(settings.BASE_DIR, 'ml_models', 'vosk')
         
-        model_paths = {
-            'en': os.path.join(vosk_path, 'vosk-model-small-en-us-0.15'),
-            'fr': os.path.join(vosk_path, 'vosk-model-small-fr-0.22'),
-        }
+        if self.model_paths is None:
+            self.model_paths = {
+                'en': os.path.join(vosk_path, 'vosk-model-small-en-us-0.15'),
+                'fr': os.path.join(vosk_path, 'vosk-model-small-fr-0.22'),
+            }
         
-        for lang, path in model_paths.items():
+        for lang, path in self.model_paths.items():
+            if lang in self.models:  # Already loaded
+                continue
+                
             if os.path.exists(path):
                 try:
                     self.models[lang] = Model(path)
