@@ -749,6 +749,27 @@
     .suggestion-item:last-child {
         border-bottom: none;
     }
+    
+    /* Animation pour le bouton de correction avancée */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Style pour le bouton de correction avancée désactivé */
+    .btn.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    /* S'assurer que le bouton de correction avancée reste cliquable même si la section est désactivée */
+    .answer-section.disabled #advancedCorrectionBtn:not(.disabled) {
+        opacity: 1;
+        cursor: pointer;
+        pointer-events: auto;
+    }
 </style>
 {% endblock %}
 
@@ -915,11 +936,6 @@
                         <i class="fas fa-paper-plane me-2"></i>
                         Soumettre la réponse
                     </button>
-                    
-                    <button type="button" class="btn btn-warning" id="advancedCorrectionBtn">
-                        <i class="fas fa-graduation-cap me-2"></i>
-                        Correction Avancée
-                    </button>
                 </div>
             </div>
         </form>
@@ -963,6 +979,14 @@
                     </a>
                 </div>
             </div>
+        </div>
+        
+        <!-- Bouton de correction avancée -->
+        <div class="text-center mt-4">
+            <button type="button" class="btn btn-warning btn-lg" id="advancedCorrectionBtn">
+                <i class="fas fa-graduation-cap me-2"></i>
+                Correction Avancée
+            </button>
         </div>
         
         <!-- Section pour afficher la bonne réponse si l'utilisateur s'est trompé -->
@@ -1126,6 +1150,9 @@ function displayCorrectionResult(result) {
         showCorrectAnswer();
     }
     
+    // Activer le bouton de correction avancée après soumission
+    enableAdvancedCorrectionButton();
+    
     // Afficher le résultat
     correctionDiv.style.display = 'block';
     correctionDiv.scrollIntoView({ behavior: 'smooth' });
@@ -1148,6 +1175,30 @@ function disableAnswerArea() {
     
     // Changer le texte du bouton
     submitBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Réponse soumise';
+}
+
+// Activer le bouton de correction avancée
+function enableAdvancedCorrectionButton() {
+    console.log('Activation du bouton de correction avancée...');
+    const advancedCorrectionBtn = document.getElementById('advancedCorrectionBtn');
+    
+    if (advancedCorrectionBtn) {
+        console.log('Bouton trouvé, activation en cours...');
+        // Afficher le bouton
+        advancedCorrectionBtn.style.display = 'inline-block';
+        advancedCorrectionBtn.disabled = false;
+        advancedCorrectionBtn.classList.remove('disabled');
+        
+        // Ajouter un effet visuel pour indiquer que le bouton est maintenant actif
+        advancedCorrectionBtn.style.animation = 'pulse 1s ease-in-out';
+        setTimeout(() => {
+            advancedCorrectionBtn.style.animation = '';
+        }, 1000);
+        
+        console.log('Bouton activé avec succès');
+    } else {
+        console.error('Bouton de correction avancée non trouvé!');
+    }
 }
 
 // Afficher la bonne réponse
@@ -1214,7 +1265,18 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFloatingActions();
     initializeProgressTracking();
     initializeTypingIndicator();
+    initializeAdvancedCorrectionButton();
 });
+
+// Initialiser le bouton de correction avancée
+function initializeAdvancedCorrectionButton() {
+    const advancedCorrectionBtn = document.getElementById('advancedCorrectionBtn');
+    
+    if (advancedCorrectionBtn) {
+        // Masquer le bouton au démarrage
+        advancedCorrectionBtn.style.display = 'none';
+    }
+}
 
 // Initialiser la zone de réponse
 function initializeAnswerArea() {
