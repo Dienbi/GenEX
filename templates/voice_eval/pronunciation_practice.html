@@ -408,7 +408,7 @@ async function submitRecording(audioBlob) {
     {% if evaluation %}
     formData.append('evaluation_id', '{{ evaluation.id }}');
     {% endif %}
-    
+
     try {
         const response = await fetch('{% url "voice_eval:process-pronunciation" %}', {
             method: 'POST',

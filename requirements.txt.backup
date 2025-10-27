@@ -1,0 +1,47 @@
+
+# Django and REST Framework
+Django>=4.2.0
+djangorestframework>=3.14.0
+
+# AI and NLP Libraries
+openai-whisper>=20231117
+spacy>=3.7.0
+sentence-transformers>=2.2.2,<3.0.0
+google-generativeai>=0.3.0
+
+# Audio Processing
+librosa>=0.10.0
+soundfile>=0.12.1
+audioread>=3.0.0
+vosk>=0.3.45
+pyttsx3>=2.90
+gTTS>=2.3.0
+pydub>=0.25.1
+
+# Numerical Computing
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Other Dependencies
+torch>=2.0.0
+transformers>=4.34.0,<4.41.0
+regex>=2021.8.3
+
+# PDF and Document Generation
+reportlab>=4.0.0
+qrcode>=7.0
+PyPDF2
+openpyxl
+pandas
+
+# Maps and Visualization
+folium>=0.14.0
+
+# API and Web
+openai>=1.0.0
+pillow>=9.0.0
+
+# Django Extensions
+django-filter>=23.0
+django-cors-headers>=4.0.0
+

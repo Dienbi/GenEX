@@ -78,15 +78,18 @@
         padding: 25px;
     }
     
-    /* Search and Filters */
+    /* Search and Filters - Enhanced */
     .search-filters {
         background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
         border: none;
-        border-radius: 15px;
+        border-radius: 20px;
         color: white;
         margin-bottom: 30px;
         position: relative;
         overflow: hidden;
+        box-shadow: 
+            0 10px 40px rgba(220, 53, 69, 0.25),
+            0 0 0 1px rgba(255, 255, 255, 0.1) inset;
     }
     
     .search-filters::before {
@@ -96,53 +99,165 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+        background: linear-gradient(45deg, rgba(255,255,255,0.15) 0%, transparent 50%);
         pointer-events: none;
     }
     
     .search-filters .card-header {
         background: transparent;
         border: none;
-        padding: 25px 25px 15px;
+        padding: 30px 30px 20px;
         position: relative;
         z-index: 1;
+    }
+    
+    .search-filters .card-header h5 {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .search-filters .card-header h5 i {
+        font-size: 22px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
     }
     
     .search-filters .card-body {
-        padding: 0 25px 25px;
+        padding: 0 30px 30px;
         position: relative;
         z-index: 1;
     }
     
-    .search-filters .form-control {
-        border: none;
-        border-radius: 10px;
-        padding: 12px 15px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-        background: rgba(255,255,255,0.95);
+    .search-filters .form-label {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        letter-spacing: 0.3px;
     }
     
-    .search-filters .form-control:focus {
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        transform: translateY(-2px);
+    .search-filters .form-label i {
+        font-size: 12px;
+        opacity: 0.9;
+    }
+    
+    .search-filters .form-control,
+    .search-filters .form-select {
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 14px 18px;
+        box-shadow: 
+            0 4px 15px rgba(0,0,0,0.15),
+            0 0 0 1px rgba(255,255,255,0.05) inset;
+        transition: all 0.3s ease;
+        background: rgba(255,255,255,0.98);
+        font-size: 15px;
+        font-weight: 500;
+        color: #2d3436;
+    }
+    
+    .search-filters .form-control::placeholder {
+        color: #95a5a6;
+        font-weight: 400;
+    }
+    
+    .search-filters .form-control:focus,
+    .search-filters .form-select:focus {
+        box-shadow: 
+            0 8px 25px rgba(0,0,0,0.2),
+            0 0 0 3px rgba(255,255,255,0.3);
+        transform: translateY(-3px);
         background: white;
+        border-color: rgba(255,255,255,0.4);
+        outline: none;
     }
     
     .search-filters .btn-primary {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-        border: none;
-        border-radius: 10px;
-        padding: 12px 25px;
-        font-weight: 600;
+        background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 12px;
+        padding: 14px 30px;
+        font-weight: 700;
+        font-size: 15px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        color: #dc3545;
+        box-shadow: 
+            0 4px 15px rgba(0,0,0,0.15),
+            0 0 0 1px rgba(255,255,255,0.1) inset;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        width: 100%;
     }
     
     .search-filters .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 
+            0 8px 25px rgba(0,0,0,0.25),
+            0 0 0 1px rgba(255,255,255,0.2) inset;
+        background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+        border-color: rgba(255,255,255,0.5);
+        color: #c82333;
+    }
+    
+    .search-filters .btn-primary:active {
+        transform: translateY(-1px);
+    }
+    
+    .search-filters .btn-primary i {
+        margin-right: 8px;
+        font-size: 16px;
+    }
+    
+    /* Filter Reset Button */
+    .search-filters .btn-secondary {
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 14px 30px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        color: white;
+        width: 100%;
+    }
+    
+    .search-filters .btn-secondary:hover {
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.3);
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-        background: linear-gradient(135deg, #ee5a24 0%, #d63031 100%);
+    }
+    
+    /* Responsive Filter Grid */
+    .search-filters .row.g-3 {
+        row-gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .search-filters .card-header {
+            padding: 25px 20px 15px;
+        }
+        
+        .search-filters .card-body {
+            padding: 0 20px 25px;
+        }
+        
+        .search-filters .form-control,
+        .search-filters .form-select {
+            padding: 12px 15px;
+            font-size: 14px;
+        }
+        
+        .search-filters .btn-primary {
+            padding: 12px 20px;
+            font-size: 14px;
+        }
     }
     
     /* Table Design */
@@ -906,66 +1021,219 @@
     /* Enhanced Pagination */
     .pagination-container {
         background: linear-gradient(135deg, #ffffff 0%, #fef7f7 100%);
-        border-radius: 20px;
-        padding: 25px;
-        margin-top: 30px;
-        box-shadow: 0 8px 30px rgba(220, 53, 69, 0.1);
-        border: 1px solid rgba(220, 53, 69, 0.05);
+        border-radius: 25px;
+        padding: 35px 30px;
+        margin-top: 40px;
+        box-shadow: 
+            0 10px 40px rgba(220, 53, 69, 0.15),
+            0 0 0 1px rgba(220, 53, 69, 0.08) inset;
+        border: 2px solid rgba(220, 53, 69, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .pagination-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.03) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+    }
+    
+    .pagination-container > * {
+        position: relative;
+        z-index: 1;
     }
     
     .pagination {
         justify-content: center;
-        margin: 0 0 15px 0;
+        margin: 0 0 20px 0;
         flex-wrap: wrap;
+        gap: 6px;
+        display: flex;
+        flex-direction: row;
+    }
+    
+    .page-item {
+        margin: 0;
+        display: inline-block;
     }
     
     .page-link {
-        border: none;
+        border: 2px solid rgba(220, 53, 69, 0.15);
         color: #721c24;
-        padding: 10px 16px;
-        margin: 2px;
+        padding: 8px 14px;
+        margin: 0;
         border-radius: 10px;
         font-weight: 600;
         font-size: 14px;
-        transition: all 0.3s ease;
-        background: linear-gradient(135deg, #fef7f7 0%, #f8d7da 100%);
-        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.1);
-        min-width: 40px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(135deg, #ffffff 0%, #fef7f7 100%);
+        box-shadow: 
+            0 2px 8px rgba(220, 53, 69, 0.1),
+            0 0 0 1px rgba(255,255,255,0.5) inset;
+        min-width: 36px;
+        height: 36px;
         text-align: center;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, transparent 50%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
     
     .page-link:hover {
         background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
         color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 
+            0 8px 25px rgba(220, 53, 69, 0.35),
+            0 0 0 1px rgba(255,255,255,0.2) inset;
         text-decoration: none;
+        border-color: rgba(220, 53, 69, 0.3);
+    }
+    
+    .page-link:hover::before {
+        opacity: 1;
     }
     
     .page-item.active .page-link {
         background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
         color: white;
-        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
-        transform: translateY(-2px);
+        box-shadow: 
+            0 6px 20px rgba(220, 53, 69, 0.45),
+            0 0 0 1px rgba(255,255,255,0.2) inset;
+        transform: translateY(-4px) scale(1.08);
+        border-color: rgba(220, 53, 69, 0.4);
+        font-weight: 800;
     }
     
     .page-item.disabled .page-link {
-        background: #f8f9fa;
-        color: #6c757d;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        color: #adb5bd;
         cursor: not-allowed;
-        opacity: 0.5;
+        opacity: 0.6;
+        border-color: rgba(220, 53, 69, 0.05);
+        box-shadow: none;
+    }
+    
+    .page-item.disabled .page-link:hover {
+        transform: none;
+        box-shadow: none;
     }
     
     .pagination-info {
         text-align: center;
         color: #721c24;
-        font-size: 14px;
-        font-weight: 500;
-        opacity: 0.8;
-        margin-top: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        opacity: 0.85;
+        margin-top: 15px;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, transparent 100%);
+        border-radius: 12px;
+        border: 1px solid rgba(220, 53, 69, 0.08);
+        letter-spacing: 0.3px;
+    }
+    
+    .pagination-info span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .pagination-info strong {
+        color: #dc3545;
+        font-weight: 800;
+    }
+    
+    /* Pagination Navigation Buttons */
+    .page-link i {
+        font-size: 16px;
+        transition: transform 0.3s ease;
+    }
+    
+    .page-item:not(.disabled) .page-link:hover i.fa-angle-left,
+    .page-item:not(.disabled) .page-link:hover i.fa-angle-double-left {
+        transform: translateX(-3px);
+    }
+    
+    .page-item:not(.disabled) .page-link:hover i.fa-angle-right,
+    .page-item:not(.disabled) .page-link:hover i.fa-angle-double-right {
+        transform: translateX(3px);
+    }
+    
+    /* Responsive Pagination */
+    @media (max-width: 768px) {
+        .pagination-container {
+            padding: 25px 20px;
+            border-radius: 20px;
+        }
+        
+        .pagination {
+            gap: 4px;
+        }
+        
+        .page-link {
+            padding: 7px 12px;
+            font-size: 13px;
+            min-width: 34px;
+            height: 34px;
+        }
+        
+        .pagination-info {
+            font-size: 13px;
+            padding: 12px 15px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .pagination-container {
+            padding: 20px 15px;
+        }
+        
+        .pagination {
+            gap: 3px;
+        }
+        
+        .page-link {
+            padding: 6px 10px;
+            font-size: 12px;
+            min-width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+        
+        .pagination-info {
+            font-size: 12px;
+            padding: 10px 12px;
+            margin-top: 12px;
+        }
+        
+        /* Hide text in pagination on very small screens */
+        .page-link span:not(.d-none) {
+            display: none;
+        }
+        
+        .page-link i {
+            margin: 0;
+        }
     }
     
     /* Responsive Design for Cards */
@@ -1070,18 +1338,22 @@
 <!-- Search and Filters -->
 <div class="card search-filters mb-4">
     <div class="card-header">
-        <h5><i class="fas fa-search"></i> Search & Filters</h5>
+        <h5><i class="fas fa-filter"></i> Search & Filters</h5>
     </div>
     <div class="card-body">
-        <form method="GET" class="row g-3">
-            <div class="col-md-4">
-                <label for="search" class="form-label">Search</label>
+        <form method="GET" class="row g-3" id="filterForm">
+            <div class="col-lg-4 col-md-6">
+                <label for="search" class="form-label">
+                    <i class="fas fa-search"></i> Search Exercises
+                </label>
                 <input type="text" class="form-control" id="search" name="search" 
-                       value="{{ search_query }}" placeholder="Search by title, description...">
+                       value="{{ search_query }}" placeholder="Search by title, description or content...">
             </div>
-            <div class="col-md-2">
-                <label for="category" class="form-label">Category</label>
-                <select class="form-control" id="category" name="category">
+            <div class="col-lg-2 col-md-6">
+                <label for="category" class="form-label">
+                    <i class="fas fa-folder"></i> Category
+                </label>
+                <select class="form-control form-select" id="category" name="category">
                     <option value="">All Categories</option>
                     {% for category in categories %}
                         <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
@@ -1090,9 +1362,11 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
-                <label for="difficulty" class="form-label">Difficulty</label>
-                <select class="form-control" id="difficulty" name="difficulty">
+            <div class="col-lg-2 col-md-4">
+                <label for="difficulty" class="form-label">
+                    <i class="fas fa-signal"></i> Difficulty
+                </label>
+                <select class="form-control form-select" id="difficulty" name="difficulty">
                     <option value="">All Levels</option>
                     {% for difficulty in difficulties %}
                         <option value="{{ difficulty.id }}" {% if difficulty_filter == difficulty.id|stringformat:"s" %}selected{% endif %}>
@@ -1101,9 +1375,11 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
-                <label for="type" class="form-label">Type</label>
-                <select class="form-control" id="type" name="type">
+            <div class="col-lg-2 col-md-4">
+                <label for="type" class="form-label">
+                    <i class="fas fa-tag"></i> Type
+                </label>
+                <select class="form-control form-select" id="type" name="type">
                     <option value="">All Types</option>
                     {% for type in types %}
                         <option value="{{ type.id }}" {% if type_filter == type.id|stringformat:"s" %}selected{% endif %}>
@@ -1112,14 +1388,23 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-lg-2 col-md-4">
                 <label class="form-label">&nbsp;</label>
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Search
+                        <i class="fas fa-search"></i> Apply
                     </button>
                 </div>
             </div>
+            {% if search_query or category_filter or difficulty_filter or type_filter %}
+            <div class="col-12">
+                <div class="d-grid">
+                    <a href="{% url 'users:backoffice_exercise_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times-circle"></i> Clear All Filters
+                    </a>
+                </div>
+            </div>
+            {% endif %}
         </form>
     </div>
 </div>
@@ -1325,7 +1610,11 @@
     </nav>
     
     <div class="pagination-info">
-        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} • Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} exercises</span>
+        <span>
+            <strong>Page {{ page_obj.number }}</strong> of <strong>{{ page_obj.paginator.num_pages }}</strong> 
+            • Showing <strong>{{ page_obj.start_index }}</strong> to <strong>{{ page_obj.end_index }}</strong> 
+            of <strong>{{ page_obj.paginator.count }}</strong> exercise{{ page_obj.paginator.count|pluralize }}
+        </span>
     </div>
 </div>
 {% endif %}
