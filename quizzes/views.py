@@ -9,11 +9,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Quiz, Question, QuizAttempt
+from .models import Quiz, Question, QuizAttempt, GameRoom, GameAnswer
 from .serializers import QuizSerializer, QuestionSerializer, QuizAttemptSerializer
 from .ai_service import GeminiQuizGenerator
 from .streak_utils import check_and_update_streak, update_streak_on_quiz_completion, get_streak_status_message, get_time_until_streak_expires
 import json
+from django.utils import timezone
 
 
 # ============= Web Views (HTML) =============
@@ -262,3 +263,484 @@ class QuizAttemptViewSet(viewsets.ModelViewSet):
         attempt = serializer.save(user=self.request.user)
         attempt.calculate_score()
         return attempt
+
+
+# ============= 1vs1 Challenge Views =============
+
+@login_required
+def challenge_home(request):
+    """Page d'accueil du mode Challenge - Créer ou rejoindre une room"""
+    from django.db.models import Q
+    
+    # Get user's active rooms
+    active_rooms = GameRoom.objects.filter(
+        status__in=['waiting', 'ready', 'playing']
+    ).filter(
+        Q(player1=request.user) | Q(player2=request.user)
+    ).select_related('quiz', 'player1', 'player2').order_by('-created_at')
+    
+    # Get available quizzes for challenge
+    available_quizzes = Quiz.objects.filter(
+        is_active=True
+    ).filter(
+        Q(created_by__user_type='admin') | Q(created_by__is_superuser=True)
+    ).order_by('-created_at')
+    
+    context = {
+        'active_rooms': active_rooms,
+        'available_quizzes': available_quizzes,
+    }
+    return render(request, 'quizzes/challenge_home.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def create_game_room(request):
+    """Create a new game room"""
+    quiz_id = request.POST.get('quiz_id')
+    
+    if not quiz_id:
+        messages.error(request, 'Please select a quiz.')
+        return redirect('quizzes:challenge_home')
+    
+    try:
+        quiz = Quiz.objects.get(id=quiz_id, is_active=True)
+        
+        # Check if user already has an active room with this quiz
+        existing_room = GameRoom.objects.filter(
+            player1=request.user,
+            quiz=quiz,
+            status__in=['waiting', 'ready']
+        ).first()
+        
+        if existing_room:
+            messages.info(request, f'You already have an active room: {existing_room.room_code}')
+            return redirect('quizzes:game_room', room_code=existing_room.room_code)
+        
+        # Create new room
+        room = GameRoom.objects.create(
+            quiz=quiz,
+            player1=request.user,
+            status='waiting'
+        )
+        
+        messages.success(request, f'Room created! Share code: {room.room_code}')
+        return redirect('quizzes:game_room', room_code=room.room_code)
+        
+    except Quiz.DoesNotExist:
+        messages.error(request, 'Quiz not found.')
+        return redirect('quizzes:challenge_home')
+
+
+@login_required
+@require_http_methods(["POST"])
+def join_game_room(request):
+    """Join an existing game room"""
+    room_code = request.POST.get('room_code', '').strip().upper()
+    
+    if not room_code:
+        messages.error(request, 'Please enter a room code.')
+        return redirect('quizzes:challenge_home')
+    
+    try:
+        room = GameRoom.objects.get(room_code=room_code)
+        
+        # Check if room is full
+        if room.is_full():
+            messages.error(request, 'This room is already full.')
+            return redirect('quizzes:challenge_home')
+        
+        # Check if user is trying to join their own room
+        if room.player1 == request.user:
+            messages.info(request, 'This is your room!')
+            return redirect('quizzes:game_room', room_code=room.room_code)
+        
+        # Check if room is in waiting status
+        if room.status != 'waiting':
+            messages.error(request, 'This room is not available.')
+            return redirect('quizzes:challenge_home')
+        
+        # Join the room
+        room.player2 = request.user
+        room.status = 'ready'
+        room.save()
+        
+        messages.success(request, 'Joined room successfully!')
+        return redirect('quizzes:game_room', room_code=room.room_code)
+        
+    except GameRoom.DoesNotExist:
+        messages.error(request, f'Room "{room_code}" not found.')
+        return redirect('quizzes:challenge_home')
+
+
+@login_required
+def game_room(request, room_code):
+    """Game room interface"""
+    try:
+        room = get_object_or_404(GameRoom, room_code=room_code)
+        
+        # Check if user is part of this room
+        if request.user not in [room.player1, room.player2]:
+            messages.error(request, 'You are not part of this room.')
+            return redirect('quizzes:challenge_home')
+        
+        # Get quiz questions
+        questions = room.quiz.questions.all().order_by('order')
+        
+        # Prepare questions data for JavaScript
+        questions_json = [
+            {
+                'id': q.id,
+                'order': q.order,
+                'text': q.question_text,
+                'options': {
+                    'A': q.option_a,
+                    'B': q.option_b,
+                    'C': q.option_c,
+                    'D': q.option_d
+                }
+            }
+            for q in questions
+        ]
+        
+        # Check if user is player 1 or 2
+        is_player1 = request.user == room.player1
+        player_number = room.get_player_number(request.user)
+        opponent = room.get_opponent(request.user)
+        
+        context = {
+            'room': room,
+            'quiz': room.quiz,
+            'questions': questions,
+            'questions_json': questions_json,
+            'is_player1': is_player1,
+            'player_number': player_number,
+            'opponent': opponent,
+            'total_questions': questions.count(),
+        }
+        return render(request, 'quizzes/game_room.html', context)
+        
+    except GameRoom.DoesNotExist:
+        messages.error(request, 'Room not found.')
+        return redirect('quizzes:challenge_home')
+
+
+# ============= 1vs1 Challenge API Endpoints =============
+
+@login_required
+@require_http_methods(["GET"])
+def api_room_status(request, room_code):
+    """API: Get current room status (for polling)"""
+    try:
+        room = GameRoom.objects.select_related('player1', 'player2', 'quiz', 'winner').get(room_code=room_code)
+        
+        # Check if user is part of this room
+        if request.user not in [room.player1, room.player2]:
+            return JsonResponse({'error': 'Unauthorized'}, status=403)
+        
+        # Get user's answers for this room
+        user_answers = GameAnswer.objects.filter(
+            game_room=room,
+            player=request.user
+        ).values_list('question_id', flat=True)
+        
+        # Get opponent's progress
+        opponent = room.get_opponent(request.user)
+        opponent_answers_count = 0
+        if opponent:
+            opponent_answers_count = GameAnswer.objects.filter(
+                game_room=room,
+                player=opponent
+            ).count()
+        
+        data = {
+            'status': room.status,
+            'current_question': room.current_question,
+            'player1_score': room.player1_score,
+            'player2_score': room.player2_score,
+            'player1_username': room.player1.username if room.player1 else None,
+            'player2_username': room.player2.username if room.player2 else None,
+            'opponent_progress': opponent_answers_count,
+            'your_answers': list(user_answers),
+            'winner': room.winner.username if room.winner else None,
+        }
+        
+        return JsonResponse(data)
+        
+    except GameRoom.DoesNotExist:
+        return JsonResponse({'error': 'Room not found'}, status=404)
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_start_game(request, room_code):
+    """API: Start the game (when both players are ready)"""
+    try:
+        room = GameRoom.objects.get(room_code=room_code)
+        
+        # Check if user is part of this room
+        if request.user not in [room.player1, room.player2]:
+            return JsonResponse({'error': 'Unauthorized'}, status=403)
+        
+        # Check if both players are present
+        if not room.is_full():
+            return JsonResponse({'error': 'Waiting for second player'}, status=400)
+        
+        # Check if room is ready
+        if room.status != 'ready':
+            return JsonResponse({'error': 'Room is not ready'}, status=400)
+        
+        # Start the game
+        room.status = 'playing'
+        room.started_at = timezone.now()
+        room.current_question = 1
+        room.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Game started!',
+            'started_at': room.started_at.isoformat()
+        })
+        
+    except GameRoom.DoesNotExist:
+        return JsonResponse({'error': 'Room not found'}, status=404)
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_submit_answer(request, room_code):
+    """API: Submit an answer for a question"""
+    try:
+        data = json.loads(request.body)
+        question_id = data.get('question_id')
+        answer = data.get('answer', '').upper()
+        time_taken = float(data.get('time_taken', 0))
+        
+        room = GameRoom.objects.select_related('quiz').get(room_code=room_code)
+        
+        # Check if user is part of this room
+        if request.user not in [room.player1, room.player2]:
+            return JsonResponse({'error': 'Unauthorized'}, status=403)
+        
+        # Check if game is in progress
+        if room.status != 'playing':
+            return JsonResponse({'error': 'Game is not in progress'}, status=400)
+        
+        # Get the question
+        question = Question.objects.get(id=question_id, quiz=room.quiz)
+        
+        # Check if answer is valid
+        if answer not in ['A', 'B', 'C', 'D']:
+            return JsonResponse({'error': 'Invalid answer'}, status=400)
+        
+        # Check if user already answered this question
+        existing_answer = GameAnswer.objects.filter(
+            game_room=room,
+            player=request.user,
+            question=question
+        ).first()
+        
+        if existing_answer:
+            return JsonResponse({'error': 'Already answered this question'}, status=400)
+        
+        # Check if answer is correct
+        is_correct = answer == question.correct_answer
+        
+        # Calculate points (base 10 points, bonus for speed)
+        points = 0
+        if is_correct:
+            points = 10
+            # Bonus points for fast answers (max 5 bonus points)
+            if time_taken < 5:
+                points += 5
+            elif time_taken < 10:
+                points += 3
+            elif time_taken < 15:
+                points += 1
+        
+        # Save the answer
+        game_answer = GameAnswer.objects.create(
+            game_room=room,
+            player=request.user,
+            question=question,
+            answer=answer,
+            is_correct=is_correct,
+            time_taken=time_taken,
+            points_earned=points
+        )
+        
+        # Update room score
+        room.update_score(request.user, points)
+        
+        # Check if both players have answered all questions
+        total_questions = room.quiz.questions.count()
+        player1_answers = GameAnswer.objects.filter(game_room=room, player=room.player1).count()
+        player2_answers = GameAnswer.objects.filter(game_room=room, player=room.player2).count() if room.player2 else 0
+        
+        game_finished = (player1_answers >= total_questions and player2_answers >= total_questions)
+        
+        if game_finished:
+            room.determine_winner()
+        
+        return JsonResponse({
+            'success': True,
+            'is_correct': is_correct,
+            'correct_answer': question.correct_answer,
+            'points_earned': points,
+            'your_score': room.get_player_score(request.user),
+            'game_finished': game_finished
+        })
+        
+    except (GameRoom.DoesNotExist, Question.DoesNotExist) as e:
+        return JsonResponse({'error': str(e)}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+def game_results(request, room_code):
+    """View game results"""
+    try:
+        room = get_object_or_404(GameRoom, room_code=room_code)
+        
+        # Check if user is part of this room
+        if request.user not in [room.player1, room.player2]:
+            messages.error(request, 'You are not part of this room.')
+            return redirect('quizzes:challenge_home')
+        
+        # Get all answers for both players
+        player1_answers = GameAnswer.objects.filter(
+            game_room=room,
+            player=room.player1
+        ).select_related('question').order_by('question__order')
+        
+        player2_answers = GameAnswer.objects.filter(
+            game_room=room,
+            player=room.player2
+        ).select_related('question').order_by('question__order') if room.player2 else []
+        
+        # Combine answers by question
+        questions_data = []
+        for question in room.quiz.questions.all().order_by('order'):
+            p1_answer = player1_answers.filter(question=question).first()
+            p2_answer = player2_answers.filter(question=question).first() if player2_answers else None
+            
+            questions_data.append({
+                'question': question,
+                'player1_answer': p1_answer,
+                'player2_answer': p2_answer,
+            })
+        
+        context = {
+            'room': room,
+            'questions_data': questions_data,
+            'is_winner': room.winner == request.user if room.winner else False,
+            'is_tie': room.winner is None and room.status == 'finished',
+        }
+        return render(request, 'quizzes/game_results.html', context)
+        
+    except GameRoom.DoesNotExist:
+        messages.error(request, 'Room not found.')
+        return redirect('quizzes:challenge_home')
+
+
+@login_required
+def my_matches(request):
+    """Page d'historique des matchs de l'utilisateur"""
+    from django.db.models import Q
+    
+    # Get all finished games for the user
+    matches = GameRoom.objects.filter(
+        Q(player1=request.user) | Q(player2=request.user),
+        status='finished'
+    ).select_related('quiz', 'player1', 'player2', 'winner').order_by('-finished_at')
+    
+    # Calculate statistics
+    total_matches = matches.count()
+    wins = matches.filter(winner=request.user).count()
+    losses = matches.filter(winner__isnull=False).exclude(winner=request.user).count()
+    ties = matches.filter(winner__isnull=True).count()
+    
+    win_rate = round((wins / total_matches * 100), 1) if total_matches > 0 else 0
+    
+    # Prepare match data with additional info
+    matches_data = []
+    for match in matches:
+        is_player1 = match.player1 == request.user
+        opponent = match.player2 if is_player1 else match.player1
+        user_score = match.player1_score if is_player1 else match.player2_score
+        opponent_score = match.player2_score if is_player1 else match.player1_score
+        
+        # Determine result
+        if match.winner == request.user:
+            result = 'won'
+        elif match.winner is None:
+            result = 'tie'
+        else:
+            result = 'lost'
+        
+        matches_data.append({
+            'room': match,
+            'opponent': opponent,
+            'user_score': user_score,
+            'opponent_score': opponent_score,
+            'result': result,
+            'quiz': match.quiz,
+            'date': match.finished_at,
+        })
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(matches_data, 10)  # 10 matches per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'total_matches': total_matches,
+        'wins': wins,
+        'losses': losses,
+        'ties': ties,
+        'win_rate': win_rate,
+    }
+    return render(request, 'quizzes/my_matches.html', context)
+
+
+@login_required
+def rematch(request, room_code):
+    """Create a rematch with the same opponent and quiz"""
+    try:
+        # Get the original room
+        original_room = get_object_or_404(GameRoom, room_code=room_code)
+        
+        # Check if user was part of this room
+        if request.user not in [original_room.player1, original_room.player2]:
+            messages.error(request, 'You were not part of this match.')
+            return redirect('quizzes:my_matches')
+        
+        # Get the opponent
+        opponent = original_room.get_opponent(request.user)
+        
+        if not opponent:
+            messages.error(request, 'Cannot create rematch: opponent not found.')
+            return redirect('quizzes:my_matches')
+        
+        # Create new room with same quiz
+        new_room = GameRoom.objects.create(
+            quiz=original_room.quiz,
+            player1=request.user,
+            player2=None,  # Opponent will join
+            status='waiting'
+        )
+        
+        messages.success(
+            request, 
+            f'Rematch room created! Share code <strong>{new_room.room_code}</strong> with {opponent.username}.'
+        )
+        
+        # Redirect to the new room
+        return redirect('quizzes:game_room', room_code=new_room.room_code)
+        
+    except GameRoom.DoesNotExist:
+        messages.error(request, 'Original match not found.')
+        return redirect('quizzes:my_matches')

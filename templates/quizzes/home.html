@@ -94,6 +94,56 @@
         font-weight: 800;
     }
 
+    .challenge-btn {
+        display: inline-block;
+        background: #dc3545;
+        color: #fff;
+        padding: 15px 40px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 18px;
+        transition: all 0.3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        border: 2px solid #dc3545;
+    }
+
+    .challenge-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        background: #c82333;
+        border-color: #c82333;
+    }
+
+    .challenge-btn i {
+        margin-right: 10px;
+    }
+
+    .matches-btn {
+        display: inline-block;
+        background: #6f42c1;
+        color: #fff;
+        padding: 15px 40px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 18px;
+        transition: all 0.3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        border: 2px solid #6f42c1;
+    }
+
+    .matches-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        background: #5a32a3;
+        border-color: #5a32a3;
+    }
+
+    .matches-btn i {
+        margin-right: 10px;
+    }
+
     .section-title {
         font-size: 28px;
         font-weight: 700;
@@ -480,6 +530,12 @@
                 <span class="badge">{{ available_quizzes|length }}</span>
             </a>
             {% endif %}
+            <a href="{% url 'quizzes:my_matches' %}" class="matches-btn">
+                <i class="fas fa-history"></i> My Matches
+            </a>
+            <a href="{% url 'quizzes:challenge_home' %}" class="challenge-btn">
+                <i class="fas fa-trophy"></i> Challenge Friend
+            </a>
         </div>
     </div>
 

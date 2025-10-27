@@ -1,0 +1,388 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}1vs1 Challenge - Quiz Arena{% endblock %}
+
+{% block extra_css %}
+<style>
+    .challenge-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+
+    .challenge-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .challenge-header h1 {
+        font-size: 2.5rem;
+        color: #dc3545;
+        margin-bottom: 10px;
+    }
+
+    .challenge-header p {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .header-action-btn {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .header-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(102, 126, 234, 0.5);
+    }
+
+    .header-action-btn i {
+        margin-right: 8px;
+    }
+
+    .challenge-modes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .mode-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border: 2px solid #eee;
+    }
+
+    .mode-card h2 {
+        color: #dc3545;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .mode-card p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .quiz-select {
+        margin-bottom: 20px;
+    }
+
+    .quiz-select label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .quiz-select select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        background: white;
+        cursor: pointer;
+    }
+
+    .quiz-select select:focus {
+        outline: none;
+        border-color: #dc3545;
+    }
+
+    .room-code-input {
+        margin-bottom: 20px;
+    }
+
+    .room-code-input label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .room-code-input input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        font-weight: 700;
+    }
+
+    .room-code-input input:focus {
+        outline: none;
+        border-color: #dc3545;
+    }
+
+    .action-btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .create-btn {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .create-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(220,53,69,0.3);
+    }
+
+    .join-btn {
+        background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        color: white;
+    }
+
+    .join-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+    }
+
+    .active-rooms {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .active-rooms h2 {
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .room-item {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 2px solid #eee;
+    }
+
+    .room-info h3 {
+        color: #dc3545;
+        margin-bottom: 5px;
+        font-size: 1.3rem;
+    }
+
+    .room-info p {
+        color: #666;
+        margin: 5px 0;
+    }
+
+    .room-status {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+    .status-waiting {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-ready {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-playing {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .enter-room-btn {
+        padding: 12px 30px;
+        background: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .enter-room-btn:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+    }
+
+    .no-rooms {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+
+    .back-btn {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 10px 20px;
+        background: #6c757d;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+    .back-btn:hover {
+        background: #5a6268;
+    }
+
+    @media (max-width: 768px) {
+        .challenge-modes {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="challenge-container">
+    <a href="{% url 'quizzes:home' %}" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Quiz Hub
+    </a>
+
+    <div class="challenge-header">
+        <h1><i class="fas fa-trophy"></i> 1vs1 Challenge Arena</h1>
+        <p>Challenge your friends to a real-time quiz battle!</p>
+        <a href="{% url 'quizzes:my_matches' %}" class="header-action-btn">
+            <i class="fas fa-history"></i> View My Match History
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" style="margin-bottom: 20px; padding: 15px; border-radius: 8px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="challenge-modes">
+        <!-- Create Room -->
+        <div class="mode-card">
+            <h2><i class="fas fa-plus-circle"></i> Create Room</h2>
+            <p>Create a private room and share the code with your friend</p>
+            
+            <form method="POST" action="{% url 'quizzes:create_game_room' %}">
+                {% csrf_token %}
+                <div class="quiz-select">
+                    <label for="quiz_id">Select a Quiz:</label>
+                    <select name="quiz_id" id="quiz_id" required>
+                        <option value="">-- Choose a Quiz --</option>
+                        {% for quiz in available_quizzes %}
+                            <option value="{{ quiz.id }}">{{ quiz.title }} ({{ quiz.subject }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="action-btn create-btn">
+                    <i class="fas fa-plus"></i> Create Room
+                </button>
+            </form>
+        </div>
+
+        <!-- Join Room -->
+        <div class="mode-card">
+            <h2><i class="fas fa-sign-in-alt"></i> Join Room</h2>
+            <p>Enter the room code shared by your friend</p>
+            
+            <form method="POST" action="{% url 'quizzes:join_game_room' %}">
+                {% csrf_token %}
+                <div class="room-code-input">
+                    <label for="room_code">Room Code:</label>
+                    <input type="text" name="room_code" id="room_code" maxlength="6" placeholder="ABC123" required>
+                </div>
+                <button type="submit" class="action-btn join-btn">
+                    <i class="fas fa-door-open"></i> Join Room
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Active Rooms -->
+    <div class="active-rooms">
+        <h2><i class="fas fa-gamepad"></i> Your Active Rooms</h2>
+        
+        {% if active_rooms %}
+            {% for room in active_rooms %}
+                <div class="room-item">
+                    <div class="room-info">
+                        <h3>{{ room.quiz.title }}</h3>
+                        <p><strong>Code:</strong> <span style="color: #dc3545; font-weight: 700; letter-spacing: 2px;">{{ room.room_code }}</span></p>
+                        <p>
+                            <strong>Players:</strong> 
+                            {{ room.player1.username }}
+                            {% if room.player2 %}
+                                vs {{ room.player2.username }}
+                            {% else %}
+                                <span style="color: #999;">(Waiting for opponent...)</span>
+                            {% endif %}
+                        </p>
+                        <span class="room-status status-{{ room.status }}">
+                            {% if room.status == 'waiting' %}
+                                <i class="fas fa-clock"></i> Waiting for Player 2
+                            {% elif room.status == 'ready' %}
+                                <i class="fas fa-check"></i> Both Players Ready
+                            {% elif room.status == 'playing' %}
+                                <i class="fas fa-play"></i> Game in Progress
+                            {% endif %}
+                        </span>
+                    </div>
+                    <a href="{% url 'quizzes:game_room' room.room_code %}" class="enter-room-btn">
+                        <i class="fas fa-arrow-right"></i> Enter Room
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-rooms">
+                <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px; display: block;"></i>
+                <p>No active rooms. Create one to start playing!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Auto-uppercase room code input
+    document.getElementById('room_code').addEventListener('input', function(e) {
+        this.value = this.value.toUpperCase();
+    });
+</script>
+{% endblock %}
+

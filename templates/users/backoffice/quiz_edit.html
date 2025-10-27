@@ -178,34 +178,96 @@
     .btn-secondary:hover {
         background: #5a6268;
     }
+
+    /* Error Styles */
+    .form-group.has-error input,
+    .form-group.has-error textarea {
+        border-color: #dc3545;
+        background-color: #fff5f5;
+    }
+
+    .question-card.has-error {
+        border-left-color: #dc3545;
+        border-left-width: 6px;
+        background: #fff5f5;
+    }
+
+    .error-message {
+        display: none;
+        color: #dc3545;
+        font-size: 13px;
+        margin-top: 5px;
+        font-weight: 500;
+        animation: slideDown 0.3s ease;
+    }
+
+    .error-message i {
+        margin-right: 5px;
+    }
+
+    .form-group.has-error .error-message,
+    .question-card.has-error .error-message {
+        display: block;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-group.has-success input,
+    .form-group.has-success textarea {
+        border-color: #28a745;
+    }
+
+    .option-row.has-error input {
+        border-color: #dc3545;
+        background-color: #fff5f5;
+    }
+
+    .option-row.has-success input {
+        border-color: #28a745;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="form-container">
-    <form method="post">
+    <form method="post" id="editQuizForm" novalidate>
         {% csrf_token %}
 
         <!-- Basic Info Section -->
         <div class="form-section">
             <h3><i class="fas fa-info-circle"></i> Basic Information</h3>
             
-            <div class="form-group">
-                <label for="title">Quiz Title</label>
+            <div class="form-group" id="titleGroup">
+                <label for="title">Quiz Title <span style="color: #dc3545;">*</span></label>
                 <input type="text" 
                        id="title" 
                        name="title" 
-                       value="{{ quiz.title }}"
-                       required>
+                       value="{{ quiz.title }}">
+                <div class="error-message" id="titleError">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="titleErrorText"></span>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="subject">Subject</label>
+            <div class="form-group" id="subjectGroup">
+                <label for="subject">Subject <span style="color: #dc3545;">*</span></label>
                 <input type="text" 
                        id="subject" 
                        name="subject" 
-                       value="{{ quiz.subject }}"
-                       required>
+                       value="{{ quiz.subject }}">
+                <div class="error-message" id="subjectError">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="subjectErrorText"></span>
+                </div>
             </div>
 
             <div class="form-group">
@@ -316,5 +378,174 @@
         </div>
     </form>
 </div>
+
+<script>
+    // Form validation logic
+    const form = document.getElementById('editQuizForm');
+    const titleInput = document.getElementById('title');
+    const subjectInput = document.getElementById('subject');
+
+    // Validation functions
+    function showError(groupId, errorId, message) {
+        const group = document.getElementById(groupId);
+        const errorText = document.getElementById(errorId);
+        
+        if (group && errorText) {
+            group.classList.remove('has-success');
+            group.classList.add('has-error');
+            errorText.textContent = message;
+        }
+    }
+
+    function showSuccess(groupId) {
+        const group = document.getElementById(groupId);
+        
+        if (group) {
+            group.classList.remove('has-error');
+            group.classList.add('has-success');
+        }
+    }
+
+    function clearValidation(groupId) {
+        const group = document.getElementById(groupId);
+        
+        if (group) {
+            group.classList.remove('has-error', 'has-success');
+        }
+    }
+
+    function validateTextField(value, minLength) {
+        const trimmed = value.trim();
+        return trimmed.length >= minLength;
+    }
+
+    // Real-time validation for title
+    titleInput.addEventListener('input', function() {
+        const value = this.value;
+        if (value.trim() === '') {
+            clearValidation('titleGroup');
+        } else if (validateTextField(value, 5)) {
+            showSuccess('titleGroup');
+        } else {
+            showError('titleGroup', 'titleErrorText', 'Le titre doit contenir au moins 5 caractères');
+        }
+    });
+
+    // Real-time validation for subject
+    subjectInput.addEventListener('input', function() {
+        const value = this.value;
+        if (value.trim() === '') {
+            clearValidation('subjectGroup');
+        } else if (validateTextField(value, 3)) {
+            showSuccess('subjectGroup');
+        } else {
+            showError('subjectGroup', 'subjectErrorText', 'Le sujet doit contenir au moins 3 caractères');
+        }
+    });
+
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let hasErrors = false;
+        const errors = [];
+
+        // Validate title
+        if (!validateTextField(titleInput.value, 5)) {
+            showError('titleGroup', 'titleErrorText', 'Le titre doit contenir au moins 5 caractères');
+            hasErrors = true;
+            errors.push({ element: titleInput, message: 'Titre invalide' });
+        } else {
+            showSuccess('titleGroup');
+        }
+
+        // Validate subject
+        if (!validateTextField(subjectInput.value, 3)) {
+            showError('subjectGroup', 'subjectErrorText', 'Le sujet doit contenir au moins 3 caractères');
+            hasErrors = true;
+            errors.push({ element: subjectInput, message: 'Sujet invalide' });
+        } else {
+            showSuccess('subjectGroup');
+        }
+
+        // Validate all questions
+        const questionCards = document.querySelectorAll('.question-card');
+        questionCards.forEach((card, index) => {
+            const questionNum = index + 1;
+            let questionHasError = false;
+            
+            // Get all inputs in this question
+            const questionTextarea = card.querySelector('textarea');
+            const optionInputs = card.querySelectorAll('.option-row input[type="text"]');
+            const correctRadios = card.querySelectorAll('input[type="radio"]');
+            
+            // Validate question text
+            if (questionTextarea && !validateTextField(questionTextarea.value, 10)) {
+                questionTextarea.style.borderColor = '#dc3545';
+                questionTextarea.style.backgroundColor = '#fff5f5';
+                questionHasError = true;
+            } else if (questionTextarea) {
+                questionTextarea.style.borderColor = '#28a745';
+                questionTextarea.style.backgroundColor = 'white';
+            }
+            
+            // Validate options
+            optionInputs.forEach(input => {
+                if (!validateTextField(input.value, 1)) {
+                    input.style.borderColor = '#dc3545';
+                    input.style.backgroundColor = '#fff5f5';
+                    questionHasError = true;
+                } else {
+                    input.style.borderColor = '#28a745';
+                    input.style.backgroundColor = 'white';
+                }
+            });
+            
+            // Check if correct answer is selected
+            const hasCorrectAnswer = Array.from(correctRadios).some(radio => radio.checked);
+            if (!hasCorrectAnswer) {
+                questionHasError = true;
+            }
+            
+            if (questionHasError) {
+                card.classList.add('has-error');
+                
+                // Add or update error message
+                let errorMsg = card.querySelector('.error-message');
+                if (!errorMsg) {
+                    errorMsg = document.createElement('div');
+                    errorMsg.className = 'error-message';
+                    errorMsg.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span></span>';
+                    card.querySelector('.question-header').after(errorMsg);
+                }
+                errorMsg.querySelector('span').textContent = 'Veuillez remplir correctement tous les champs et sélectionner la réponse correcte';
+                errorMsg.style.display = 'block';
+                
+                hasErrors = true;
+                errors.push({ element: card, message: `Question ${questionNum} invalide` });
+            } else {
+                card.classList.remove('has-error');
+                const errorMsg = card.querySelector('.error-message');
+                if (errorMsg) {
+                    errorMsg.style.display = 'none';
+                }
+            }
+        });
+
+        // If errors, scroll to first error and show alert
+        if (hasErrors) {
+            const firstError = document.querySelector('.has-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            alert('❌ Veuillez corriger les erreurs dans le formulaire avant de sauvegarder');
+            return false;
+        }
+        
+        // All valid - submit
+        this.submit();
+    });
+</script>
 {% endblock %}
 

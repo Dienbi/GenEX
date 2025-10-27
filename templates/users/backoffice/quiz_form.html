@@ -63,6 +63,56 @@
         margin-top: 5px;
     }
 
+    /* Error Styles */
+    .form-group.has-error input,
+    .form-group.has-error textarea {
+        border-color: #dc3545;
+        background-color: #fff5f5;
+    }
+
+    .error-message {
+        display: none;
+        color: #dc3545;
+        font-size: 13px;
+        margin-top: 5px;
+        font-weight: 500;
+        animation: slideDown 0.3s ease;
+    }
+
+    .error-message i {
+        margin-right: 5px;
+    }
+
+    .form-group.has-error .error-message {
+        display: block;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-group.has-success input,
+    .form-group.has-success textarea {
+        border-color: #28a745;
+    }
+
+    .success-icon {
+        display: none;
+        color: #28a745;
+        margin-left: 5px;
+    }
+
+    .form-group.has-success .success-icon {
+        display: inline;
+    }
+
     .example-prompts {
         background: #f8f9fa;
         padding: 20px;
@@ -167,43 +217,55 @@
 
 {% block content %}
 <div class="form-container">
-    <form method="post" id="quizForm">
+    <form method="post" id="quizForm" novalidate>
         {% csrf_token %}
 
-        <div class="form-group">
+        <div class="form-group" id="titleGroup">
             <label for="title">
                 Quiz Title <span class="required">*</span>
+                <span class="success-icon"><i class="fas fa-check-circle"></i></span>
             </label>
             <input type="text" 
                    id="title" 
                    name="title" 
                    value="{{ title }}"
-                   placeholder="e.g., Python Programming Basics"
-                   required>
+                   placeholder="e.g., Python Programming Basics">
+            <div class="error-message" id="titleError">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="titleErrorText"></span>
+            </div>
             <div class="help-text">Give your quiz a descriptive title</div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="subjectGroup">
             <label for="subject">
                 Subject <span class="required">*</span>
+                <span class="success-icon"><i class="fas fa-check-circle"></i></span>
             </label>
             <input type="text" 
                    id="subject" 
                    name="subject" 
                    value="{{ subject }}"
-                   placeholder="e.g., Programming, Mathematics, Science"
-                   required>
+                   placeholder="e.g., Programming, Mathematics, Science">
+            <div class="error-message" id="subjectError">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="subjectErrorText"></span>
+            </div>
             <div class="help-text">The main subject area of this quiz</div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="promptGroup">
             <label for="user_prompt">
                 Quiz Description / Prompt <span class="required">*</span>
+                <span class="success-icon"><i class="fas fa-check-circle"></i></span>
             </label>
             <textarea id="user_prompt" 
                       name="user_prompt" 
-                      placeholder="Describe what topics should be covered in this quiz..."
-                      required>{{ user_prompt }}</textarea>
+                      placeholder="Describe what topics should be covered in this quiz...">{{ user_prompt }}</textarea>
+            <div class="error-message" id="promptError">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="promptErrorText"></span>
+            </div>
             <div class="help-text">
                 Describe what you want the quiz to cover. The AI will generate 10 questions based on your description.
             </div>
@@ -239,10 +301,178 @@
 </div>
 
 <script>
-    document.getElementById('quizForm').addEventListener('submit', function() {
+    // Form validation logic
+    const form = document.getElementById('quizForm');
+    const titleInput = document.getElementById('title');
+    const subjectInput = document.getElementById('subject');
+    const promptInput = document.getElementById('user_prompt');
+
+    // Validation rules
+    const validationRules = {
+        title: {
+            required: true,
+            minLength: 5,
+            maxLength: 200,
+            messages: {
+                required: 'Le titre du quiz est obligatoire',
+                minLength: 'Le titre doit contenir au moins 5 caractères',
+                maxLength: 'Le titre ne peut pas dépasser 200 caractères'
+            }
+        },
+        subject: {
+            required: true,
+            minLength: 3,
+            maxLength: 100,
+            messages: {
+                required: 'Le sujet est obligatoire',
+                minLength: 'Le sujet doit contenir au moins 3 caractères',
+                maxLength: 'Le sujet ne peut pas dépasser 100 caractères'
+            }
+        },
+        user_prompt: {
+            required: true,
+            minLength: 20,
+            maxLength: 1000,
+            messages: {
+                required: 'La description du quiz est obligatoire',
+                minLength: 'La description doit contenir au moins 20 caractères pour que l\'IA puisse générer un bon quiz',
+                maxLength: 'La description ne peut pas dépasser 1000 caractères'
+            }
+        }
+    };
+
+    // Validate individual field
+    function validateField(fieldName, value) {
+        const rules = validationRules[fieldName];
+        
+        // Check required
+        if (rules.required && (!value || value.trim() === '')) {
+            return { valid: false, message: rules.messages.required };
+        }
+        
+        // Check min length
+        if (rules.minLength && value.trim().length < rules.minLength) {
+            return { valid: false, message: rules.messages.minLength };
+        }
+        
+        // Check max length
+        if (rules.maxLength && value.trim().length > rules.maxLength) {
+            return { valid: false, message: rules.messages.maxLength };
+        }
+        
+        return { valid: true };
+    }
+
+    // Show error
+    function showError(fieldName, message) {
+        const group = document.getElementById(fieldName + 'Group');
+        const errorText = document.getElementById(fieldName + 'ErrorText');
+        
+        group.classList.remove('has-success');
+        group.classList.add('has-error');
+        errorText.textContent = message;
+    }
+
+    // Show success
+    function showSuccess(fieldName) {
+        const group = document.getElementById(fieldName + 'Group');
+        
+        group.classList.remove('has-error');
+        group.classList.add('has-success');
+    }
+
+    // Clear validation
+    function clearValidation(fieldName) {
+        const group = document.getElementById(fieldName + 'Group');
+        
+        group.classList.remove('has-error', 'has-success');
+    }
+
+    // Real-time validation on input
+    titleInput.addEventListener('input', function() {
+        const result = validateField('title', this.value);
+        if (this.value.trim() === '') {
+            clearValidation('title');
+        } else if (result.valid) {
+            showSuccess('title');
+        } else {
+            showError('title', result.message);
+        }
+    });
+
+    subjectInput.addEventListener('input', function() {
+        const result = validateField('subject', this.value);
+        if (this.value.trim() === '') {
+            clearValidation('subject');
+        } else if (result.valid) {
+            showSuccess('subject');
+        } else {
+            showError('subject', result.message);
+        }
+    });
+
+    promptInput.addEventListener('input', function() {
+        const result = validateField('user_prompt', this.value);
+        if (this.value.trim() === '') {
+            clearValidation('prompt');
+        } else if (result.valid) {
+            showSuccess('prompt');
+        } else {
+            showError('prompt', result.message);
+        }
+    });
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate all fields
+        const titleResult = validateField('title', titleInput.value);
+        const subjectResult = validateField('subject', subjectInput.value);
+        const promptResult = validateField('user_prompt', promptInput.value);
+        
+        let hasErrors = false;
+        
+        // Check title
+        if (!titleResult.valid) {
+            showError('title', titleResult.message);
+            hasErrors = true;
+        } else {
+            showSuccess('title');
+        }
+        
+        // Check subject
+        if (!subjectResult.valid) {
+            showError('subject', subjectResult.message);
+            hasErrors = true;
+        } else {
+            showSuccess('subject');
+        }
+        
+        // Check prompt
+        if (!promptResult.valid) {
+            showError('prompt', promptResult.message);
+            hasErrors = true;
+        } else {
+            showSuccess('prompt');
+        }
+        
+        // If errors, scroll to first error
+        if (hasErrors) {
+            const firstError = document.querySelector('.has-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+        }
+        
+        // All valid - show loading and submit
         document.getElementById('loadingIndicator').classList.add('active');
         document.getElementById('submitBtn').disabled = true;
         document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        
+        // Submit the form
+        this.submit();
     });
 </script>
 {% endblock %}

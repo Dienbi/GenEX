@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Quiz, Question, QuizAttempt
+from .models import Quiz, Question, QuizAttempt, GameRoom, GameAnswer
 
 
 class QuestionInline(admin.TabularInline):
@@ -74,4 +74,61 @@ class QuizAttemptAdmin(admin.ModelAdmin):
     
     def has_add_permission(self, request):
         # Prevent manual creation of attempts through admin
+        return False
+
+
+class GameAnswerInline(admin.TabularInline):
+    model = GameAnswer
+    extra = 0
+    fields = ['player', 'question', 'answer', 'is_correct', 'time_taken', 'points_earned']
+    readonly_fields = ['player', 'question', 'answer', 'is_correct', 'time_taken', 'points_earned', 'answered_at']
+
+
+@admin.register(GameRoom)
+class GameRoomAdmin(admin.ModelAdmin):
+    list_display = ['room_code', 'quiz', 'player1', 'player2', 'status', 'player1_score', 'player2_score', 'winner', 'created_at']
+    list_filter = ['status', 'created_at']
+    search_fields = ['room_code', 'quiz__title', 'player1__username', 'player2__username']
+    readonly_fields = ['room_code', 'created_at', 'started_at', 'finished_at']
+    ordering = ['-created_at']
+    inlines = [GameAnswerInline]
+    
+    fieldsets = (
+        ('Room Information', {
+            'fields': ('room_code', 'quiz', 'status')
+        }),
+        ('Players', {
+            'fields': ('player1', 'player2')
+        }),
+        ('Game Progress', {
+            'fields': ('current_question', 'player1_score', 'player2_score', 'winner')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'started_at', 'finished_at')
+        }),
+    )
+
+
+@admin.register(GameAnswer)
+class GameAnswerAdmin(admin.ModelAdmin):
+    list_display = ['game_room', 'player', 'question', 'answer', 'is_correct', 'points_earned', 'time_taken', 'answered_at']
+    list_filter = ['is_correct', 'answered_at', 'game_room']
+    search_fields = ['game_room__room_code', 'player__username', 'question__question_text']
+    readonly_fields = ['answered_at']
+    ordering = ['-answered_at']
+    
+    fieldsets = (
+        ('Answer Information', {
+            'fields': ('game_room', 'player', 'question')
+        }),
+        ('Response', {
+            'fields': ('answer', 'is_correct', 'time_taken', 'points_earned')
+        }),
+        ('Timestamp', {
+            'fields': ('answered_at',)
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        # Prevent manual creation of game answers through admin
         return False

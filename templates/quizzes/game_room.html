@@ -1,0 +1,729 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Game Room {{ room.room_code }} - 1vs1 Challenge{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .game-container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+
+    .game-header {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .room-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .room-code {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #dc3545;
+        letter-spacing: 3px;
+    }
+
+    .quiz-title {
+        font-size: 1.3rem;
+        color: #333;
+    }
+
+    .players-bar {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .player-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+    }
+
+    .player-card.you {
+        border: 3px solid #007bff;
+    }
+
+    .player-card.opponent {
+        border: 3px solid #dc3545;
+    }
+
+    .player-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .player-score {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #dc3545;
+    }
+
+    .vs-badge {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #666;
+    }
+
+    .game-status {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .waiting-message {
+        font-size: 1.3rem;
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .start-btn {
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .start-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(40,167,69,0.4);
+    }
+
+    .start-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    .question-container {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        display: none;
+    }
+
+    .question-container.active {
+        display: block;
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #eee;
+    }
+
+    .question-number {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #007bff;
+    }
+
+    .timer {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #dc3545;
+    }
+
+    .question-text {
+        font-size: 1.3rem;
+        color: #333;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .option {
+        padding: 20px;
+        background: #f8f9fa;
+        border: 3px solid #ddd;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 1.1rem;
+    }
+
+    .option:hover {
+        background: #e9ecef;
+        border-color: #007bff;
+        transform: translateY(-2px);
+    }
+
+    .option.selected {
+        background: #007bff;
+        color: white;
+        border-color: #0056b3;
+    }
+
+    .option.correct {
+        background: #28a745;
+        color: white;
+        border-color: #1e7e34;
+    }
+
+    .option.incorrect {
+        background: #dc3545;
+        color: white;
+        border-color: #bd2130;
+    }
+
+    .option.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .option-letter {
+        font-weight: 700;
+        margin-right: 10px;
+    }
+
+    .submit-answer-btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: all 0.3s;
+    }
+
+    .submit-answer-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0,123,255,0.4);
+    }
+
+    .submit-answer-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    .answer-feedback {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-align: center;
+        display: none;
+    }
+
+    .answer-feedback.correct {
+        background: #d4edda;
+        color: #155724;
+        border: 2px solid #c3e6cb;
+        display: block;
+    }
+
+    .answer-feedback.incorrect {
+        background: #f8d7da;
+        color: #721c24;
+        border: 2px solid #f5c6cb;
+        display: block;
+    }
+
+    .progress-bar {
+        background: #eee;
+        height: 10px;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .progress-fill {
+        background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+        height: 100%;
+        transition: width 0.3s;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 40px;
+        font-size: 1.2rem;
+        color: #666;
+    }
+
+    .finished-message {
+        text-align: center;
+        padding: 40px;
+    }
+
+    .finished-message h2 {
+        font-size: 2rem;
+        color: #28a745;
+        margin-bottom: 20px;
+    }
+
+    .results-btn {
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        display: inline-block;
+        transition: all 0.3s;
+    }
+
+    .results-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(220,53,69,0.4);
+    }
+
+    @media (max-width: 768px) {
+        .options {
+            grid-template-columns: 1fr;
+        }
+
+        .players-bar {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <div class="game-header">
+        <div class="room-info">
+            <div>
+                <div class="quiz-title">{{ quiz.title }}</div>
+                <small style="color: #666;">Subject: {{ quiz.subject }}</small>
+            </div>
+            <div class="room-code">{{ room.room_code }}</div>
+        </div>
+
+        <div class="players-bar">
+            <div class="player-card you">
+                <div class="player-name">
+                    <i class="fas fa-user"></i> You ({{ request.user.username }})
+                </div>
+                <div class="player-score" id="yourScore">
+                    {% if is_player1 %}{{ room.player1_score }}{% else %}{{ room.player2_score }}{% endif %}
+                </div>
+                <small>Score</small>
+            </div>
+
+            <div class="vs-badge">VS</div>
+
+            <div class="player-card opponent">
+                <div class="player-name">
+                    {% if opponent %}
+                        <i class="fas fa-user"></i> {{ opponent.username }}
+                    {% else %}
+                        <i class="fas fa-clock"></i> Waiting...
+                    {% endif %}
+                </div>
+                <div class="player-score" id="opponentScore">
+                    {% if opponent %}
+                        {% if is_player1 %}{{ room.player2_score }}{% else %}{{ room.player1_score }}{% endif %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+                <small>Score</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting for players -->
+    <div class="game-status" id="waitingArea" style="{% if room.status != 'waiting' %}display:none;{% endif %}">
+        <div class="waiting-message">
+            {% if not opponent %}
+                <i class="fas fa-hourglass-half"></i> Waiting for second player to join...
+                <p style="margin-top: 15px;">Share this code with your friend: <strong style="color: #dc3545; font-size: 1.5rem; letter-spacing: 3px;">{{ room.room_code }}</strong></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Ready to start -->
+    <div class="game-status" id="readyArea" style="{% if room.status != 'ready' %}display:none;{% endif %}">
+        <div class="waiting-message">
+            <i class="fas fa-check-circle" style="color: #28a745;"></i> Both players are here!
+        </div>
+        <button id="startGameBtn" class="start-btn">
+            <i class="fas fa-play"></i> Start Game
+        </button>
+    </div>
+
+    <!-- Game playing -->
+    <div id="gameArea" style="{% if room.status != 'playing' %}display:none;{% endif %}">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 0%;"></div>
+        </div>
+
+        <div class="question-container" id="questionContainer">
+            <div class="question-header">
+                <div class="question-number" id="questionNumber">Question 1 of {{ total_questions }}</div>
+                <div class="timer" id="timer"><i class="fas fa-clock"></i> <span id="timeLeft">0</span>s</div>
+            </div>
+
+            <div class="question-text" id="questionText"></div>
+
+            <div class="options" id="optionsContainer">
+                <!-- Options will be populated by JavaScript -->
+            </div>
+
+            <button id="submitAnswerBtn" class="submit-answer-btn" disabled>
+                <i class="fas fa-check"></i> Submit Answer
+            </button>
+
+            <div class="answer-feedback" id="answerFeedback"></div>
+        </div>
+
+        <div class="finished-message" id="finishedArea" style="display: none;">
+            <h2><i class="fas fa-flag-checkered"></i> Quiz Completed!</h2>
+            <p style="font-size: 1.2rem; color: #666; margin-bottom: 30px;">
+                Waiting for your opponent to finish...
+            </p>
+            <div id="waitingSpinner">
+                <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #007bff;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data passed safely to JavaScript -->
+{{ questions_json|json_script:"questions-data" }}
+
+<script>
+    // Get CSRF token from cookie - Define first
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const roomCode = "{{ room.room_code }}";
+    const totalQuestions = {{ total_questions }};
+    const csrfToken = getCookie('csrftoken');
+    console.log('Initialized - Room:', roomCode, 'CSRF:', csrfToken ? 'Found' : 'Not found');
+    
+    let currentQuestionIndex = 0;
+    let selectedAnswer = null;
+    let questionStartTime = null;
+    let timerInterval = null;
+
+    // Poll room status every 2 seconds
+    let pollInterval = setInterval(pollRoomStatus, 2000);
+
+    // Questions data - Parse from JSON
+    const questionsData = JSON.parse(document.getElementById('questions-data').textContent);
+    console.log('Loaded', questionsData.length, 'questions');
+
+    let lastStatus = '{{ room.status }}';
+    let lastPlayer2Username = '{{ opponent.username|default:"" }}';
+    
+    function pollRoomStatus() {
+        fetch(`/quizzes/api/challenge/room/${roomCode}/status/`)
+            .then(res => res.json())
+            .then(data => {
+                console.log('🔄 Poll:', {
+                    status: data.status,
+                    player2: data.player2_username,
+                    lastStatus: lastStatus,
+                    lastPlayer2: lastPlayer2Username
+                });
+                
+                const isPlayer1 = {{ is_player1|yesno:"true,false" }};
+                
+                // Update scores always
+                if (data.player1_score !== undefined) {
+                    document.getElementById('yourScore').textContent = 
+                        isPlayer1 ? data.player1_score : data.player2_score;
+                    document.getElementById('opponentScore').textContent = 
+                        isPlayer1 ? data.player2_score : data.player1_score;
+                }
+
+                // CRITICAL: Update opponent info when player 2 joins or changes
+                if (data.player2_username && data.player2_username !== lastPlayer2Username) {
+                    console.log('🎯 Player 2 detected:', data.player2_username);
+                    lastPlayer2Username = data.player2_username;
+                    
+                    const opponentNameEl = document.querySelector('.player-card.opponent .player-name');
+                    const opponentScoreEl = document.getElementById('opponentScore');
+                    
+                    if (opponentNameEl) {
+                        opponentNameEl.innerHTML = '<i class="fas fa-user"></i> ' + data.player2_username;
+                        console.log('✅ Updated opponent name to:', data.player2_username);
+                    }
+                    
+                    if (opponentScoreEl) {
+                        opponentScoreEl.textContent = data.player2_score || '0';
+                        console.log('✅ Updated opponent score to:', data.player2_score || '0');
+                    }
+                }
+
+                // Update game status
+                if (data.status !== lastStatus) {
+                    console.log('🔄 Status changed from', lastStatus, 'to', data.status);
+                    lastStatus = data.status;
+                    
+                    const waitingArea = document.getElementById('waitingArea');
+                    const readyArea = document.getElementById('readyArea');
+                    const gameArea = document.getElementById('gameArea');
+                    
+                    if (data.status === 'ready') {
+                        console.log('✅ Both players ready - Showing ready area');
+                        if (waitingArea) waitingArea.style.display = 'none';
+                        if (readyArea) readyArea.style.display = 'block';
+                        if (gameArea) gameArea.style.display = 'none';
+                    }
+
+                    if (data.status === 'playing') {
+                        console.log('✅ Game started - Loading questions');
+                        if (waitingArea) waitingArea.style.display = 'none';
+                        if (readyArea) readyArea.style.display = 'none';
+                        if (gameArea) gameArea.style.display = 'block';
+                        if (currentQuestionIndex === 0 && !document.getElementById('questionContainer').classList.contains('active')) {
+                            loadQuestion(0);
+                        }
+                    }
+
+                    if (data.status === 'finished') {
+                        clearInterval(pollInterval);
+                        console.log('✅ Game finished - Redirecting to results');
+                        window.location.href = `/quizzes/challenge/room/${roomCode}/results/`;
+                    }
+                }
+            })
+            .catch(err => console.error('❌ Poll error:', err));
+    }
+
+    // Start game - Use setTimeout to ensure DOM is loaded
+    setTimeout(() => {
+        const startGameBtn = document.getElementById('startGameBtn');
+        if (startGameBtn) {
+            startGameBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Start Game clicked!');
+                console.log('CSRF Token:', csrfToken);
+                
+                const btn = this;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+                
+                fetch(`/quizzes/api/challenge/room/${roomCode}/start/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(res => {
+                    console.log('Response status:', res.status);
+                    if (!res.ok) {
+                        return res.text().then(text => {
+                            throw new Error('HTTP error ' + res.status + ': ' + text);
+                        });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    console.log('Start game response:', data);
+                    if (data.success) {
+                        document.getElementById('readyArea').style.display = 'none';
+                        document.getElementById('gameArea').style.display = 'block';
+                        loadQuestion(0);
+                    } else {
+                        alert('Error: ' + (data.error || 'Could not start game'));
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-play"></i> Start Game';
+                    }
+                })
+                .catch(err => {
+                    console.error('Start game error:', err);
+                    alert('Error starting game: ' + err.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-play"></i> Start Game';
+                });
+            });
+            console.log('Start button event listener attached');
+        } else {
+            console.error('Start button not found!');
+        }
+    }, 100);
+
+    function loadQuestion(index) {
+        if (index >= questionsData.length) {
+            showFinished();
+            return;
+        }
+
+        const question = questionsData[index];
+        currentQuestionIndex = index;
+        selectedAnswer = null;
+        questionStartTime = Date.now();
+
+        // Update UI
+        document.getElementById('questionNumber').textContent = `Question ${index + 1} of ${totalQuestions}`;
+        document.getElementById('questionText').textContent = question.text;
+        document.getElementById('progressBar').style.width = `${((index + 1) / totalQuestions) * 100}%`;
+
+        // Populate options
+        const optionsContainer = document.getElementById('optionsContainer');
+        optionsContainer.innerHTML = '';
+        
+        ['A', 'B', 'C', 'D'].forEach(letter => {
+            const option = document.createElement('div');
+            option.className = 'option';
+            option.innerHTML = `<span class="option-letter">${letter}.</span> ${question.options[letter]}`;
+            option.onclick = () => selectOption(letter, option);
+            optionsContainer.appendChild(option);
+        });
+
+        // Reset submit button
+        document.getElementById('submitAnswerBtn').disabled = true;
+        document.getElementById('answerFeedback').style.display = 'none';
+        document.getElementById('answerFeedback').className = 'answer-feedback';
+        document.getElementById('questionContainer').classList.add('active');
+
+        // Start timer
+        startTimer();
+    }
+
+    function selectOption(letter, element) {
+        // Remove previous selection
+        document.querySelectorAll('.option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+
+        // Add selection
+        element.classList.add('selected');
+        selectedAnswer = letter;
+        document.getElementById('submitAnswerBtn').disabled = false;
+    }
+
+    function startTimer() {
+        let timeElapsed = 0;
+        document.getElementById('timeLeft').textContent = timeElapsed;
+
+        if (timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+            timeElapsed++;
+            document.getElementById('timeLeft').textContent = timeElapsed;
+        }, 1000);
+    }
+
+    // Submit answer
+    document.getElementById('submitAnswerBtn').addEventListener('click', function() {
+        if (!selectedAnswer) return;
+
+        const timeTaken = (Date.now() - questionStartTime) / 1000;
+        const question = questionsData[currentQuestionIndex];
+
+        // Disable further selection
+        document.querySelectorAll('.option').forEach(opt => {
+            opt.classList.add('disabled');
+            opt.onclick = null;
+        });
+        this.disabled = true;
+
+        // Submit answer
+        fetch(`/quizzes/api/challenge/room/${roomCode}/answer/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                question_id: question.id,
+                answer: selectedAnswer,
+                time_taken: timeTaken
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            clearInterval(timerInterval);
+
+            // Show feedback
+            const feedback = document.getElementById('answerFeedback');
+            if (data.is_correct) {
+                feedback.className = 'answer-feedback correct';
+                feedback.innerHTML = `<i class="fas fa-check-circle"></i> Correct! +${data.points_earned} points`;
+                // Highlight correct option
+                document.querySelectorAll('.option')[['A','B','C','D'].indexOf(selectedAnswer)].classList.add('correct');
+            } else {
+                feedback.className = 'answer-feedback incorrect';
+                feedback.innerHTML = `<i class="fas fa-times-circle"></i> Incorrect. The correct answer was ${data.correct_answer}`;
+                // Highlight incorrect and correct
+                document.querySelectorAll('.option')[['A','B','C','D'].indexOf(selectedAnswer)].classList.add('incorrect');
+                document.querySelectorAll('.option')[['A','B','C','D'].indexOf(data.correct_answer)].classList.add('correct');
+            }
+
+            // Update score
+            document.getElementById('yourScore').textContent = data.your_score;
+
+            // Move to next question after 3 seconds
+            setTimeout(() => {
+                if (data.game_finished) {
+                    showFinished();
+                } else {
+                    loadQuestion(currentQuestionIndex + 1);
+                }
+            }, 3000);
+        })
+        .catch(err => console.error('Submit answer error:', err));
+    });
+
+    function showFinished() {
+        document.getElementById('questionContainer').style.display = 'none';
+        document.getElementById('finishedArea').style.display = 'block';
+        
+        // Keep polling to check if opponent finished
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(pollRoomStatus, 2000);
+    }
+</script>
+{% endblock %}
+
