@@ -750,12 +750,54 @@
         border-bottom: none;
     }
     
-    /* Animation pour le bouton de correction avancée */
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
+/* Animation pour le bouton de correction avancée */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Styles pour la vidéo d'explication */
+.video-explanation-container {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+.video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+.video-info {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.video-info h6 {
+    color: #dc3545;
+    margin-bottom: 10px;
+}
+
+.video-info .btn {
+    margin-top: 10px;
+}
     
     /* Style pour le bouton de correction avancée désactivé */
     .btn.disabled {
@@ -2007,16 +2049,45 @@ function displayComparisonAnswers(comparisonAnswers) {
 function displayVideoExplanation(videoUrl) {
     const content = document.getElementById('videoContent');
     if (videoUrl) {
+        // Extraire l'ID de la vidéo YouTube pour l'embed
+        const videoId = videoUrl.includes('watch?v=') ? videoUrl.split('watch?v=')[1].split('&')[0] : '';
+        
         content.innerHTML = `
-            <div class="text-center">
-                <p class="text-muted mb-3">Explication vidéo disponible :</p>
-                <a href="${videoUrl}" target="_blank" class="btn btn-danger">
-                    <i class="fas fa-play me-2"></i>Regarder la Vidéo
-                </a>
+            <div class="video-explanation-container">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="video-wrapper">
+                            <iframe 
+                                width="100%" 
+                                height="315" 
+                                src="https://www.youtube.com/embed/${videoId}" 
+                                title="Explication vidéo" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="video-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Vidéo d'explication</h6>
+                            <p class="text-muted small">Cette vidéo éducative est sélectionnée automatiquement en fonction du sujet de votre exercice pour vous aider à mieux comprendre les concepts.</p>
+                            <a href="${videoUrl}" target="_blank" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-external-link-alt me-1"></i>Ouvrir sur YouTube
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     } else {
-        content.innerHTML = '<p class="text-muted">Aucune vidéo d\'explication disponible pour cet exercice.</p>';
+        content.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-video-slash fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Aucune vidéo d'explication disponible pour cet exercice.</p>
+                <p class="text-muted small">Les explications textuelles ci-dessus vous fournissent toutes les informations nécessaires.</p>
+            </div>
+        `;
     }
 }
 </script>
