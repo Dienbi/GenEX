@@ -4,7 +4,7 @@ from .models import (
     ExerciseCategory, ExerciseType, DifficultyLevel, Exercise,
     ExerciseAttempt, ExerciseSession, SessionExercise, AIExerciseGeneration,
     ExerciseSubmission, ExerciseCollection, ExerciseFavorite, ExerciseHistory, 
-    ExerciseWishlist, ExerciseInCollection
+    ExerciseWishlist, ExerciseInCollection, UserExerciseStatus
 )
 
 User = get_user_model()
@@ -328,3 +328,62 @@ class AdvancedCorrectionSerializer(serializers.ModelSerializer):
             'comparison_answers', 'personalized_feedback', 'improvement_areas',
             'strengths', 'correction_time', 'ai_model', 'confidence_score'
         ]
+
+
+class UserExerciseStatusSerializer(serializers.ModelSerializer):
+    """Sérialiseur pour le statut des exercices utilisateur"""
+    exercise_title = serializers.CharField(source='exercise.title', read_only=True)
+    exercise_category = serializers.CharField(source='exercise.category.name', read_only=True)
+    exercise_difficulty = serializers.CharField(source='exercise.difficulty.name', read_only=True)
+    
+    class Meta:
+        model = UserExerciseStatus
+        fields = [
+            'id', 'exercise', 'exercise_title', 'exercise_category', 'exercise_difficulty',
+            'is_favorite', 'is_wishlist', 'is_completed', 'is_in_progress',
+            'added_to_favorites_at', 'added_to_wishlist_at', 'completed_at', 'started_at',
+            'score', 'notes', 'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'added_to_favorites_at', 'added_to_wishlist_at', 
+            'completed_at', 'started_at', 'created_at', 'updated_at'
+        ]
+
+
+class ExerciseWithStatusSerializer(serializers.ModelSerializer):
+    """Sérialiseur pour les exercices avec le statut utilisateur"""
+    user_status = serializers.SerializerMethodField()
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    difficulty_name = serializers.CharField(source='difficulty.name', read_only=True)
+    exercise_type_name = serializers.CharField(source='exercise_type.name', read_only=True)
+    
+    class Meta:
+        model = Exercise
+        fields = [
+            'id', 'title', 'description', 'content', 'solution', 'hints',
+            'category', 'category_name', 'difficulty', 'difficulty_name',
+            'exercise_type', 'exercise_type_name', 'estimated_time', 'points',
+            'is_public', 'is_ai_generated', 'tags', 'created_by', 'created_by_username',
+            'created_at', 'updated_at', 'user_status'
+        ]
+    
+    def get_user_status(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            try:
+                status = UserExerciseStatus.objects.get(user=request.user, exercise=obj)
+                return UserExerciseStatusSerializer(status).data
+            except UserExerciseStatus.DoesNotExist:
+                return {
+                    'is_favorite': False,
+                    'is_wishlist': False,
+                    'is_completed': False,
+                    'is_in_progress': False
+                }
+        return {
+            'is_favorite': False,
+            'is_wishlist': False,
+            'is_completed': False,
+            'is_in_progress': False
+        }

@@ -1,0 +1,903 @@
+{% extends 'users/backoffice/base.html' %}
+
+{% block title %}{{ exercise.title }} - Exercise Details{% endblock %}
+{% block page_title %}{{ exercise.title }}{% endblock %}
+{% block page_description %}Exercise details and statistics{% endblock %}
+{% block nav_exercises %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Card Design with Neumorphism */
+    .detail-card {
+        background: linear-gradient(135deg, #fef7f7 0%, #ffffff 100%);
+        border: none;
+        border-radius: 25px;
+        box-shadow: 
+            20px 20px 60px rgba(220, 53, 69, 0.1),
+            -20px -20px 60px rgba(255, 255, 255, 0.8),
+            inset 0 0 0 1px rgba(220, 53, 69, 0.05);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        margin-bottom: 25px;
+        position: relative;
+    }
+    
+    .detail-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.02) 0%, transparent 50%);
+        border-radius: 25px;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .detail-card:hover {
+        transform: translateY(-5px) scale(1.01);
+        box-shadow: 
+            25px 25px 70px rgba(220, 53, 69, 0.15),
+            -25px -25px 70px rgba(255, 255, 255, 0.9),
+            inset 0 0 0 1px rgba(220, 53, 69, 0.1);
+    }
+    
+    .detail-card:hover::before {
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, transparent 50%);
+    }
+    
+    .detail-card .card-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+        padding: 25px 30px;
+        border-radius: 20px 20px 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .detail-card .card-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .detail-card .card-body {
+        padding: 30px;
+    }
+    
+    /* Exercise Content */
+    .exercise-content, .exercise-solution, .exercise-hints, .exercise-explanation {
+        background: linear-gradient(135deg, #fef7f7 0%, #f8d7da 100%);
+        padding: 25px;
+        border-radius: 15px;
+        border-left: 5px solid #dc3545;
+        margin: 15px 0;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);
+        position: relative;
+    }
+    
+    .exercise-content::before, .exercise-solution::before, .exercise-hints::before, .exercise-explanation::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(220, 53, 69, 0.05) 0%, transparent 50%);
+        border-radius: 15px;
+        pointer-events: none;
+    }
+    
+    /* Statistics Cards */
+    .stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #fef7f7 100%);
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 6px 25px rgba(220, 53, 69, 0.1);
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        border: 2px solid rgba(220, 53, 69, 0.08);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 35px rgba(220, 53, 69, 0.15);
+        border-color: rgba(220, 53, 69, 0.15);
+    }
+    
+    .stat-card .card-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+        padding: 20px 25px;
+        border-radius: 15px 15px 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card .card-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .stat-card .card-body {
+        padding: 25px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .stat-item h3 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-item h4 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .stat-item p {
+        color: #6c757d;
+        font-size: 14px;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+    
+    /* Submission Items */
+    .submission-item {
+        background: linear-gradient(135deg, #fef7f7 0%, #f8d7da 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border-left: 4px solid #dc3545;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .submission-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(220, 53, 69, 0.05) 0%, transparent 50%);
+        border-radius: 12px;
+        pointer-events: none;
+    }
+    
+    .submission-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);
+    }
+    
+    .submission-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Badges */
+    .badge {
+        padding: 8px 15px;
+        border-radius: 25px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .badge-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+    
+    .badge-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        color: white;
+    }
+    
+    .badge-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    
+    .badge-info {
+        background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+        color: white;
+    }
+    
+    .badge-secondary {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+    
+    /* Action Buttons */
+    .btn-group .btn {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 20px;
+        margin: 0 5px;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+    
+    .btn-info {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        color: white;
+    }
+    
+    .btn-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(116,185,255,0.4);
+    }
+    
+    .btn-warning {
+        background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        color: white;
+    }
+    
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(253,203,110,0.4);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #e84393 0%, #d63031 100%);
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(232,67,147,0.4);
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99,110,114,0.4);
+    }
+    
+    /* Enhanced Detail Header */
+    .detail-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 30px rgba(220, 53, 69, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .detail-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 30%),
+            radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .detail-header-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    
+    .detail-title h1 {
+        color: white;
+        font-weight: 700;
+        font-size: 36px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .detail-title h1 i {
+        font-size: 32px;
+        animation: pulse 2s infinite;
+    }
+    
+    .detail-meta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .meta-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .meta-badge.category {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .meta-badge.difficulty-easy {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+    
+    .meta-badge.difficulty-medium {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+    
+    .meta-badge.difficulty-hard {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+    
+    .meta-badge.type {
+        background: rgba(23, 162, 184, 0.2);
+        color: #17a2b8;
+        border: 1px solid rgba(23, 162, 184, 0.3);
+    }
+    
+    .meta-badge.points {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .detail-actions {
+        display: flex;
+        align-items: center;
+    }
+    
+    .action-group {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-group .btn {
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 12px;
+        transition: all 0.3s ease;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .action-group .btn:hover {
+        background: white;
+        color: #dc3545;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Enhanced Card Header with Stats */
+    .detail-card .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .header-stats {
+        display: flex;
+        gap: 20px;
+    }
+    
+    .header-stats .stat-item {
+        text-align: center;
+        padding: 10px 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .header-stats .stat-value {
+        display: block;
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 4px;
+    }
+    
+    .header-stats .stat-label {
+        display: block;
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.8);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* Enhanced Content Sections */
+    .exercise-content, .exercise-solution, .exercise-hints, .exercise-explanation {
+        position: relative;
+        padding: 30px;
+        border-radius: 15px;
+        margin: 20px 0;
+        background: linear-gradient(135deg, #fef7f7 0%, #f8d7da 100%);
+        border-left: 5px solid #dc3545;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);
+    }
+    
+    .exercise-content::before, .exercise-solution::before, .exercise-hints::before, .exercise-explanation::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(220, 53, 69, 0.02) 0%, transparent 50%);
+        border-radius: 15px;
+        pointer-events: none;
+    }
+    
+    .exercise-content h6, .exercise-solution h6, .exercise-hints h6, .exercise-explanation h6 {
+        color: #dc3545;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 14px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Enhanced Statistics Cards */
+    .stat-card {
+        position: sticky;
+        top: 20px;
+    }
+    
+    .stat-card .card-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card .card-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 30%),
+            radial-gradient(circle at 30% 70%, rgba(255,255,255,0.1) 0%, transparent 60%);
+        pointer-events: none;
+    }
+    
+    /* Enhanced Submission Items */
+    .submission-item {
+        position: relative;
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #fef7f7 0%, #f8d7da 100%);
+        border-left: 5px solid #dc3545;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .submission-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(220, 53, 69, 0.02) 0%, transparent 50%);
+        border-radius: 15px;
+        pointer-events: none;
+    }
+    
+    .submission-item:hover {
+        transform: translateX(8px);
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.15);
+    }
+    
+    .submission-item .badge {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Enhanced Responsive Design */
+    @media (max-width: 768px) {
+        .detail-header {
+            padding: 30px 20px;
+        }
+        
+        .detail-header-content {
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .detail-title h1 {
+            font-size: 28px;
+        }
+        
+        .detail-meta {
+            gap: 8px;
+        }
+        
+        .meta-badge {
+            padding: 6px 12px;
+            font-size: 10px;
+        }
+        
+        .action-group {
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .action-group .btn {
+            padding: 8px 12px;
+            font-size: 10px;
+        }
+        
+        .header-stats {
+            gap: 15px;
+        }
+        
+        .header-stats .stat-item {
+            padding: 8px 12px;
+        }
+        
+        .header-stats .stat-value {
+            font-size: 16px;
+        }
+    }
+    
+    /* Video Button */
+    .btn-outline-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+    }
+    
+    /* Info Sections */
+    .info-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .info-section h6 {
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 14px;
+    }
+    
+    .info-section strong {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .info-section small {
+        color: #6c757d;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .detail-card .card-body {
+            padding: 20px;
+        }
+        
+        .stat-item h3 {
+            font-size: 2rem;
+        }
+        
+        .btn-group {
+            flex-direction: column;
+        }
+        
+        .btn-group .btn {
+            margin: 5px 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="btn-group">
+    <a href="{% url 'users:backoffice_exercise_edit' exercise.id %}" class="btn btn-warning">
+        <i class="fas fa-edit"></i> Edit
+    </a>
+    <a href="{% url 'users:backoffice_exercise_delete' exercise.id %}" class="btn btn-danger">
+        <i class="fas fa-trash"></i> Delete
+    </a>
+    <a href="{% url 'users:backoffice_exercise_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Enhanced Header with Quick Actions -->
+<div class="detail-header">
+    <div class="detail-header-content">
+        <div class="detail-title">
+            <h1><i class="fas fa-dumbbell"></i> {{ exercise.title }}</h1>
+            <div class="detail-meta">
+                <span class="meta-badge category">{{ exercise.category.name }}</span>
+                <span class="meta-badge difficulty difficulty-{{ exercise.difficulty.name|lower }}">{{ exercise.difficulty.name }}</span>
+                <span class="meta-badge type">{{ exercise.exercise_type.name }}</span>
+                <span class="meta-badge points">{{ exercise.points }} pts</span>
+            </div>
+        </div>
+        <div class="detail-actions">
+            <div class="action-group">
+                <button class="btn btn-outline-light" id="shareBtn">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
+                <button class="btn btn-outline-light" id="duplicateBtn">
+                    <i class="fas fa-copy"></i> Duplicate
+                </button>
+                <button class="btn btn-outline-light" id="exportBtn">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Exercise Information -->
+    <div class="col-lg-8">
+        <div class="card detail-card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Exercise Information</h5>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ total_submissions|default:0 }}</span>
+                        <span class="stat-label">Submissions</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ success_rate|floatformat:0|default:0 }}%</span>
+                        <span class="stat-label">Success Rate</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Title:</strong><br>
+                        {{ exercise.title }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Category:</strong><br>
+                        <span class="badge badge-secondary">{{ exercise.category.name }}</span>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Difficulty:</strong><br>
+                        <span class="badge badge-{% if exercise.difficulty.name == 'Easy' %}success{% elif exercise.difficulty.name == 'Medium' %}warning{% else %}danger{% endif %}">
+                            {{ exercise.difficulty.name }}
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Type:</strong><br>
+                        <span class="badge badge-info">{{ exercise.exercise_type.name }}</span>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Points:</strong> {{ exercise.points }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Estimated Time:</strong> {{ exercise.estimated_time }} minutes
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Status:</strong>
+                        {% if exercise.is_public %}
+                            <span class="badge badge-success">Public</span>
+                        {% else %}
+                            <span class="badge badge-warning">Private</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Created:</strong> {{ exercise.created_at|date:"M d, Y H:i" }}
+                    </div>
+                </div>
+                
+                {% if exercise.description %}
+                <div class="mb-3">
+                    <strong>Description:</strong><br>
+                    <p class="text-muted">{{ exercise.description }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <strong>Content:</strong><br>
+                    <div class="exercise-content">
+                        {{ exercise.content|linebreaks }}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Solution:</strong><br>
+                    <div class="exercise-solution">
+                        {{ exercise.solution|linebreaks }}
+                    </div>
+                </div>
+                
+                {% if exercise.hints %}
+                <div class="mb-3">
+                    <strong>Hints:</strong><br>
+                    <div class="exercise-hints">
+                        {{ exercise.hints|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                
+                {% if exercise.explanation_video_url %}
+                <div class="mb-3">
+                    <strong>Video Explanation:</strong><br>
+                    <a href="{{ exercise.explanation_video_url }}" target="_blank" class="btn btn-outline-primary">
+                        <i class="fas fa-play"></i> Watch Video
+                    </a>
+                    <small class="text-muted">({{ exercise.get_explanation_video_type_display }})</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics and Recent Submissions -->
+    <div class="col-lg-4">
+        <!-- Statistics -->
+        <div class="card stat-card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <h3 class="text-primary">{{ total_submissions }}</h3>
+                            <p class="text-muted">Total Submissions</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <h3 class="text-success">{{ correct_submissions }}</h3>
+                            <p class="text-muted">Correct</p>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <div class="stat-item">
+                        <h3 class="text-info">{{ success_rate|floatformat:1 }}%</h3>
+                        <p class="text-muted">Success Rate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Submissions -->
+        <div class="card stat-card">
+            <div class="card-header">
+                <h5><i class="fas fa-history"></i> Recent Submissions</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_submissions %}
+                    {% for submission in recent_submissions %}
+                    <div class="submission-item mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>User:</strong> {{ submission.user.username }}<br>
+                                <small class="text-muted">{{ submission.submission_time|date:"M d, Y H:i" }}</small>
+                            </div>
+                            <div class="text-right">
+                                {% if submission.is_correct %}
+                                    <span class="badge badge-success">Correct</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Incorrect</span>
+                                {% endif %}
+                                <br>
+                                <small class="text-muted">{{ submission.score }}/{{ exercise.points }} pts</small>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <strong>Answer:</strong><br>
+                            <small class="text-muted">{{ submission.user_answer|truncatechars:100 }}</small>
+                        </div>
+                    </div>
+                    {% if not forloop.last %}<hr>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No submissions yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.exercise-content, .exercise-solution, .exercise-hints, .exercise-explanation {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #007bff;
+}
+
+.stat-item h3 {
+    margin-bottom: 5px;
+}
+
+.submission-item {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,1512 @@
+{% extends 'users/backoffice/base.html' %}
+
+{% block title %}Exercises Management{% endblock %}
+{% block page_title %}Exercises Management{% endblock %}
+{% block page_description %}Manage all exercises in the system{% endblock %}
+{% block nav_exercises %}active{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'users:backoffice_exercise_create' %}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Create Exercise
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Card Design with Glassmorphism */
+    .exercise-card {
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(220, 53, 69, 0.1);
+        border-radius: 20px;
+        box-shadow: 
+            0 8px 32px rgba(220, 53, 69, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .exercise-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, transparent 50%);
+        border-radius: 20px;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .exercise-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 
+            0 20px 40px rgba(220, 53, 69, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        border-color: rgba(220, 53, 69, 0.2);
+    }
+    
+    .exercise-card:hover::before {
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.08) 0%, transparent 50%);
+    }
+    
+    .exercise-card .card-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+        padding: 20px 25px;
+        border-radius: 15px 15px 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .exercise-card .card-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .exercise-card .card-body {
+        padding: 25px;
+    }
+    
+    /* Search and Filters */
+    .search-filters {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        border-radius: 15px;
+        color: white;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .search-filters::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .search-filters .card-header {
+        background: transparent;
+        border: none;
+        padding: 25px 25px 15px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .search-filters .card-body {
+        padding: 0 25px 25px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .search-filters .form-control {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        background: rgba(255,255,255,0.95);
+    }
+    
+    .search-filters .form-control:focus {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        transform: translateY(-2px);
+        background: white;
+    }
+    
+    .search-filters .btn-primary {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 12px 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    }
+    
+    .search-filters .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        background: linear-gradient(135deg, #ee5a24 0%, #d63031 100%);
+    }
+    
+    /* Table Design */
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(220, 53, 69, 0.08);
+        border: 2px solid rgba(220, 53, 69, 0.05);
+    }
+    
+    .table-container .card-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+        padding: 20px 25px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .table-container .card-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .table-container .card-body {
+        padding: 0;
+    }
+    
+    .table {
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    
+    .table thead th {
+        background: linear-gradient(135deg, #fef7f7 0%, #f8d7da 100%);
+        border: none;
+        padding: 20px 15px;
+        font-weight: 600;
+        color: #721c24;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+    
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f8d7da;
+    }
+    
+    .table tbody tr:hover {
+        background: linear-gradient(135deg, #fef7f7 0%, #f8d7da 100%);
+        transform: scale(1.01);
+    }
+    
+    .table tbody td {
+        padding: 20px 15px;
+        border: none;
+        vertical-align: middle;
+    }
+    
+    /* Exercise Title */
+    .exercise-title {
+        max-width: 300px;
+    }
+    
+    .exercise-title strong {
+        color: #721c24;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .exercise-title small {
+        color: #721c24;
+        font-size: 13px;
+        line-height: 1.4;
+        opacity: 0.8;
+    }
+    
+    /* Badges */
+    .badge {
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .badge-success {
+        background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+    }
+    
+    .badge-warning {
+        background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+    }
+    
+    .badge-danger {
+        background: linear-gradient(135deg, #e84393 0%, #d63031 100%);
+    }
+    
+    .badge-info {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    }
+    
+    .badge-secondary {
+        background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
+    }
+    
+    /* Action Buttons */
+    .btn-group .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin: 0 2px;
+        transition: all 0.3s ease;
+        font-size: 12px;
+    }
+    
+    .btn-outline-primary {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        color: white;
+    }
+    
+    .btn-outline-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(116,185,255,0.4);
+    }
+    
+    .btn-outline-warning {
+        background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        color: white;
+    }
+    
+    .btn-outline-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(253,203,110,0.4);
+    }
+    
+    .btn-outline-danger {
+        background: linear-gradient(135deg, #e84393 0%, #d63031 100%);
+        color: white;
+    }
+    
+    .btn-outline-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(232,67,147,0.4);
+    }
+    
+    /* Pagination */
+    .pagination {
+        justify-content: center;
+        margin: 30px 0;
+    }
+    
+    .page-link {
+        border: none;
+        color: #667eea;
+        padding: 12px 18px;
+        margin: 0 5px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+    
+    .page-link:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        margin: 20px 0;
+    }
+    
+    .empty-state i {
+        font-size: 64px;
+        color: #adb5bd;
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h4 {
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+    
+    .empty-state .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .empty-state .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+    }
+    
+    /* Enhanced Content Header */
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        padding: 30px 0;
+        background: linear-gradient(135deg, #fef7f7 0%, #ffffff 100%);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 30px rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.05);
+    }
+    
+    .content-header-left h3 {
+        color: #721c24;
+        font-weight: 700;
+        margin-bottom: 8px;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .content-header-left h3 i {
+        color: #dc3545;
+        font-size: 24px;
+    }
+    
+    .content-header-left p {
+        color: #721c24;
+        margin: 0;
+        font-size: 16px;
+        opacity: 0.8;
+    }
+    
+    .stats-container {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #ffffff 0%, #fef7f7 100%);
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.1);
+        min-width: 80px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.15);
+    }
+    
+    .stat-number {
+        display: block;
+        font-size: 24px;
+        font-weight: 700;
+        color: #dc3545;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        display: block;
+        font-size: 12px;
+        color: #721c24;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .table-responsive {
+            border-radius: 15px;
+        }
+        
+        .exercise-title {
+            max-width: 200px;
+        }
+        
+        .btn-group {
+            flex-direction: column;
+        }
+        
+        .btn-group .btn {
+            margin: 2px 0;
+        }
+    }
+    
+    /* Advanced Loading Animations */
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(220, 53, 69, 0.1);
+        border-top: 3px solid #dc3545;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    .loading-dots {
+        display: inline-block;
+        position: relative;
+        width: 80px;
+        height: 20px;
+    }
+    
+    .loading-dots div {
+        position: absolute;
+        top: 0;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: #dc3545;
+        animation-timing-function: cubic-bezier(0, 1, 1, 0);
+    }
+    
+    .loading-dots div:nth-child(1) {
+        left: 8px;
+        animation: loading-dots1 0.6s infinite;
+    }
+    
+    .loading-dots div:nth-child(2) {
+        left: 8px;
+        animation: loading-dots2 0.6s infinite;
+    }
+    
+    .loading-dots div:nth-child(3) {
+        left: 32px;
+        animation: loading-dots2 0.6s infinite;
+    }
+    
+    .loading-dots div:nth-child(4) {
+        left: 56px;
+        animation: loading-dots3 0.6s infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes loading-dots1 {
+        0% { transform: scale(0); }
+        100% { transform: scale(1); }
+    }
+    
+    @keyframes loading-dots3 {
+        0% { transform: scale(1); }
+        100% { transform: scale(0); }
+    }
+    
+    @keyframes loading-dots2 {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(24px, 0); }
+    }
+    
+    /* Status Indicators */
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-indicator.loading {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+    }
+    
+    .status-indicator.success {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+    }
+    
+    .status-indicator.error {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        color: #721c24;
+    }
+    
+    .status-indicator.info {
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        color: #0c5460;
+    }
+    
+    /* Pulse animation for status */
+    .status-indicator.pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    /* Skeleton loading */
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s infinite;
+        border-radius: 4px;
+    }
+    
+    @keyframes skeleton-loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    .skeleton-text {
+        height: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .skeleton-text:last-child {
+        margin-bottom: 0;
+        width: 60%;
+    }
+    
+    /* Modern Exercise Cards */
+    .exercises-container {
+        background: linear-gradient(135deg, #ffffff 0%, #fef7f7 100%);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 30px rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.05);
+    }
+    
+    .exercises-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid rgba(220, 53, 69, 0.1);
+    }
+    
+    .exercises-header h5 {
+        color: #721c24;
+        font-weight: 700;
+        margin: 0;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .view-controls {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .view-btn {
+        background: linear-gradient(135deg, #fef7f7 0%, #f8d7da 100%);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        color: #721c24;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+    
+    .view-btn:hover {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .view-btn.active {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    .exercises-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .exercise-card-modern {
+        background: linear-gradient(135deg, #ffffff 0%, #fef7f7 100%);
+        border-radius: 20px;
+        box-shadow: 
+            0 8px 25px rgba(220, 53, 69, 0.08),
+            0 0 0 1px rgba(220, 53, 69, 0.05);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        position: relative;
+        border: 1px solid rgba(220, 53, 69, 0.1);
+    }
+    
+    .exercise-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.02) 0%, transparent 50%);
+        border-radius: 20px;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .exercise-card-modern:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 
+            0 20px 40px rgba(220, 53, 69, 0.15),
+            0 0 0 1px rgba(220, 53, 69, 0.1);
+    }
+    
+    .exercise-card-modern:hover::before {
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, transparent 50%);
+    }
+    
+    .exercise-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 20px 15px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-badge.public {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+    }
+    
+    .status-badge.private {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+    }
+    
+    .action-btn {
+        background: rgba(220, 53, 69, 0.1);
+        border: none;
+        color: #721c24;
+        padding: 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .action-btn:hover {
+        background: rgba(220, 53, 69, 0.2);
+        transform: scale(1.1);
+    }
+    
+    .dropdown-menu {
+        background: white;
+        border: 1px solid rgba(220, 53, 69, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.15);
+        padding: 8px 0;
+        min-width: 160px;
+    }
+    
+    .dropdown-item {
+        padding: 10px 16px;
+        color: #721c24;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+    
+    .dropdown-item:hover {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .dropdown-item.danger {
+        color: #dc3545;
+    }
+    
+    .dropdown-item.danger:hover {
+        background: rgba(220, 53, 69, 0.1);
+    }
+    
+    .exercise-card-body {
+        padding: 0 20px 20px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .exercise-title {
+        color: #721c24;
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+    
+    .exercise-description {
+        color: #721c24;
+        font-size: 14px;
+        opacity: 0.8;
+        margin-bottom: 15px;
+        line-height: 1.4;
+    }
+    
+    .exercise-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #721c24;
+        font-size: 13px;
+    }
+    
+    .meta-item i {
+        color: #dc3545;
+        width: 14px;
+        text-align: center;
+    }
+    
+    .difficulty-easy {
+        color: #28a745;
+        font-weight: 600;
+    }
+    
+    .difficulty-medium {
+        color: #ffc107;
+        font-weight: 600;
+    }
+    
+    .difficulty-hard {
+        color: #dc3545;
+        font-weight: 600;
+    }
+    
+    .exercise-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .exercise-tag {
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .type-tag {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        color: #0d47a1;
+    }
+    
+    .time-tag {
+        background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+        color: #4a148c;
+    }
+    
+    .exercise-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px 20px;
+        border-top: 1px solid rgba(220, 53, 69, 0.1);
+        position: relative;
+        z-index: 2;
+    }
+    
+    .exercise-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .stat {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #721c24;
+        font-size: 12px;
+        opacity: 0.8;
+    }
+    
+    .stat i {
+        color: #dc3545;
+        width: 12px;
+        text-align: center;
+    }
+    
+    .exercise-actions-footer {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .exercise-actions-footer .btn {
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .exercise-actions-footer .btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Enhanced Pagination */
+    .pagination-container {
+        background: linear-gradient(135deg, #ffffff 0%, #fef7f7 100%);
+        border-radius: 20px;
+        padding: 25px;
+        margin-top: 30px;
+        box-shadow: 0 8px 30px rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.05);
+    }
+    
+    .pagination {
+        justify-content: center;
+        margin: 0 0 15px 0;
+        flex-wrap: wrap;
+    }
+    
+    .page-link {
+        border: none;
+        color: #721c24;
+        padding: 10px 16px;
+        margin: 2px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #fef7f7 0%, #f8d7da 100%);
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.1);
+        min-width: 40px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .page-link:hover {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+        text-decoration: none;
+    }
+    
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    .page-item.disabled .page-link {
+        background: #f8f9fa;
+        color: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+    
+    .pagination-info {
+        text-align: center;
+        color: #721c24;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0.8;
+        margin-top: 10px;
+    }
+    
+    /* Responsive Design for Cards */
+    @media (max-width: 1200px) {
+        .exercises-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .exercises-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .exercise-card-modern {
+            margin-bottom: 15px;
+        }
+        
+        .stats-container {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .stat-item {
+            min-width: 60px;
+            padding: 10px 15px;
+        }
+        
+        .stat-number {
+            font-size: 20px;
+        }
+        
+        .content-header {
+            flex-direction: column;
+            gap: 20px;
+            text-align: center;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .exercises-container {
+            padding: 20px;
+        }
+        
+        .exercise-card-modern {
+            border-radius: 15px;
+        }
+        
+        .exercise-card-header,
+        .exercise-card-body,
+        .exercise-card-footer {
+            padding: 15px;
+        }
+        
+        .exercise-title {
+            font-size: 16px;
+        }
+        
+        .exercise-description {
+            font-size: 13px;
+        }
+        
+        .pagination-container {
+            padding: 20px;
+        }
+        
+        .page-link {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Enhanced Header with Statistics -->
+<div class="content-header">
+    <div class="content-header-left">
+        <h3><i class="fas fa-dumbbell"></i> Exercise Management</h3>
+        <p>Create, manage and organize educational exercises</p>
+    </div>
+    <div class="content-header-right">
+        <div class="stats-container">
+            <div class="stat-item">
+                <span class="stat-number">{{ total_exercises }}</span>
+                <span class="stat-label">Total</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ public_exercises|default:0 }}</span>
+                <span class="stat-label">Public</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ recent_exercises|default:0 }}</span>
+                <span class="stat-label">This Week</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card search-filters mb-4">
+    <div class="card-header">
+        <h5><i class="fas fa-search"></i> Search & Filters</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ search_query }}" placeholder="Search by title, description...">
+            </div>
+            <div class="col-md-2">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-control" id="category" name="category">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="difficulty" class="form-label">Difficulty</label>
+                <select class="form-control" id="difficulty" name="difficulty">
+                    <option value="">All Levels</option>
+                    {% for difficulty in difficulties %}
+                        <option value="{{ difficulty.id }}" {% if difficulty_filter == difficulty.id|stringformat:"s" %}selected{% endif %}>
+                            {{ difficulty.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="type" class="form-label">Type</label>
+                <select class="form-control" id="type" name="type">
+                    <option value="">All Types</option>
+                    {% for type in types %}
+                        <option value="{{ type.id }}" {% if type_filter == type.id|stringformat:"s" %}selected{% endif %}>
+                            {{ type.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modern Exercise Cards Grid -->
+<div class="exercises-container">
+    <div class="exercises-header">
+        <h5><i class="fas fa-th-large"></i> Exercises Grid</h5>
+        <div class="view-controls">
+            <button class="view-btn active" data-view="grid" title="Grid View">
+                <i class="fas fa-th"></i>
+            </button>
+            <button class="view-btn" data-view="list" title="List View">
+                <i class="fas fa-list"></i>
+            </button>
+        </div>
+    </div>
+    
+    {% if page_obj %}
+        <div class="exercises-grid" id="exercisesGrid">
+            {% for exercise in page_obj %}
+            <div class="exercise-card-modern" data-exercise-id="{{ exercise.id }}">
+                <div class="exercise-card-header">
+                    <div class="exercise-status">
+                        {% if exercise.is_public %}
+                            <span class="status-badge public">
+                                <i class="fas fa-globe"></i> Public
+                            </span>
+                        {% else %}
+                            <span class="status-badge private">
+                                <i class="fas fa-lock"></i> Private
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="exercise-actions">
+                        <div class="dropdown">
+                            <button class="action-btn" data-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="{% url 'users:backoffice_exercise_detail' exercise.id %}" class="dropdown-item">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                <a href="{% url 'users:backoffice_exercise_edit' exercise.id %}" class="dropdown-item">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'users:backoffice_exercise_delete' exercise.id %}" class="dropdown-item danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="exercise-card-body">
+                    <div class="exercise-title-section">
+                        <h6 class="exercise-title">{{ exercise.title }}</h6>
+                        {% if exercise.description %}
+                            <p class="exercise-description">{{ exercise.description|truncatechars:100 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="exercise-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-tag"></i>
+                            <span>{{ exercise.category.name }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-signal"></i>
+                            <span class="difficulty-{{ exercise.difficulty.name|lower }}">{{ exercise.difficulty.name }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-star"></i>
+                            <span>{{ exercise.points }} pts</span>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-tags">
+                        <span class="exercise-tag type-tag">{{ exercise.exercise_type.name }}</span>
+                        <span class="exercise-tag time-tag">
+                            <i class="fas fa-clock"></i> {{ exercise.estimated_time }}min
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="exercise-card-footer">
+                    <div class="exercise-stats">
+                        <div class="stat">
+                            <i class="fas fa-calendar"></i>
+                            <span>{{ exercise.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-user"></i>
+                            <span>{{ exercise.created_by.username }}</span>
+                        </div>
+                    </div>
+                    <div class="exercise-actions-footer">
+                        <a href="{% url 'users:backoffice_exercise_detail' exercise.id %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'users:backoffice_exercise_edit' exercise.id %}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+            <!-- Pagination -->
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-dumbbell"></i>
+                <h4>No exercises found</h4>
+                <p class="text-muted">
+                    {% if search_query or category_filter or difficulty_filter or type_filter %}
+                        No exercises match your search criteria.
+                    {% else %}
+                        Start by creating your first exercise.
+                    {% endif %}
+                </p>
+                <a href="{% url 'users:backoffice_exercise_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Exercise
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Enhanced Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="pagination-container">
+    <nav aria-label="Exercises pagination">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if difficulty_filter %}&difficulty={{ difficulty_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}" title="First page">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if difficulty_filter %}&difficulty={{ difficulty_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}" title="Previous page">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-angle-double-left"></i>
+                    </span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-angle-left"></i>
+                    </span>
+                </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if difficulty_filter %}&difficulty={{ difficulty_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if difficulty_filter %}&difficulty={{ difficulty_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% elif num == page_obj.number|add:'-4' or num == page_obj.number|add:'4' %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if difficulty_filter %}&difficulty={{ difficulty_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}" title="Next page">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if difficulty_filter %}&difficulty={{ difficulty_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}" title="Last page">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-angle-right"></i>
+                    </span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-angle-double-right"></i>
+                    </span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    
+    <div class="pagination-info">
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} • Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} exercises</span>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // View Toggle Functionality
+    const viewButtons = document.querySelectorAll('.view-btn');
+    const exercisesGrid = document.getElementById('exercisesGrid');
+    
+    viewButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            
+            // Update active button
+            viewButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Toggle view
+            if (view === 'list') {
+                exercisesGrid.style.display = 'block';
+                exercisesGrid.classList.add('list-view');
+            } else {
+                exercisesGrid.style.display = 'grid';
+                exercisesGrid.classList.remove('list-view');
+            }
+        });
+    });
+    
+    // Dropdown functionality
+    const actionBtns = document.querySelectorAll('.action-btn');
+    actionBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const dropdown = this.nextElementSibling;
+            
+            // Close other dropdowns
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu !== dropdown) {
+                    menu.style.display = 'none';
+                }
+            });
+            
+            // Toggle current dropdown
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    });
+    
+    // Card hover effects
+    const exerciseCards = document.querySelectorAll('.exercise-card-modern');
+    exerciseCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Search functionality with debounce
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                // Add loading state
+                const form = this.closest('form');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+                }
+                
+                // Submit form after delay
+                setTimeout(() => {
+                    form.submit();
+                }, 500);
+            }, 300);
+        });
+    }
+    
+    // Filter animations
+    const filterSelects = document.querySelectorAll('select[name="category"], select[name="difficulty"], select[name="type"]');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            // Add loading animation to cards
+            exerciseCards.forEach(card => {
+                card.style.opacity = '0.5';
+                card.style.transform = 'scale(0.95)';
+            });
+            
+            // Submit form
+            setTimeout(() => {
+                this.closest('form').submit();
+            }, 200);
+        });
+    });
+    
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn, .page-link').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}px;
+                top: ${y}px;
+                background: rgba(220, 53, 69, 0.3);
+                border-radius: 50%;
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                pointer-events: none;
+                z-index: 1000;
+            `;
+            
+            this.style.position = 'relative';
+            this.style.overflow = 'hidden';
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+    
+    // Add CSS for ripple animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        .list-view {
+            display: block !important;
+        }
+        
+        .list-view .exercise-card-modern {
+            display: flex;
+            margin-bottom: 15px;
+            max-width: none;
+        }
+        
+        .list-view .exercise-card-header {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 15px;
+            min-width: 200px;
+        }
+        
+        .list-view .exercise-card-body {
+            flex: 1;
+            padding: 15px;
+        }
+        
+        .list-view .exercise-card-footer {
+            flex-direction: column;
+            justify-content: center;
+            min-width: 150px;
+            padding: 15px;
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}

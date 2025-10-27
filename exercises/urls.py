@@ -29,6 +29,10 @@ urlpatterns = [
     path('collections/<int:collection_id>/', views.collection_detail, name='collection-detail'),
     path('collections/<int:collection_id>/exercises/', views.collection_exercises, name='collection-exercises'),
     
+    # Favoris et Wishlist
+    path('favorites/', views.favorites_list, name='favorites-list'),
+    path('wishlist/', views.wishlist_list, name='wishlist-list'),
+    
     # API
     path('api/', include(router.urls)),
 ]

@@ -3,9 +3,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q
 from .models import User
 from .serializers import UserSerializer, UserRegistrationSerializer, UserLoginSerializer
 
@@ -171,6 +173,7 @@ def is_admin(user):
 def backoffice_dashboard(request):
     """Admin backoffice dashboard"""
     from quizzes.models import Quiz, QuizAttempt
+    from exercises.models import Exercise, ExerciseSubmission
     
     total_users = User.objects.count()
     total_students = User.objects.filter(user_type='student').count()
@@ -182,6 +185,13 @@ def backoffice_dashboard(request):
     active_quizzes = Quiz.objects.filter(is_active=True).count()
     total_quiz_attempts = QuizAttempt.objects.count()
     
+    # Exercise statistics
+    total_exercises = Exercise.objects.count()
+    public_exercises = Exercise.objects.filter(is_public=True).count()
+    total_exercise_submissions = ExerciseSubmission.objects.count()
+    correct_submissions = ExerciseSubmission.objects.filter(is_correct=True).count()
+    exercise_success_rate = (correct_submissions / total_exercise_submissions * 100) if total_exercise_submissions > 0 else 0
+    
     context = {
         'total_users': total_users,
         'total_students': total_students,
@@ -190,6 +200,11 @@ def backoffice_dashboard(request):
         'total_quizzes': total_quizzes,
         'active_quizzes': active_quizzes,
         'total_quiz_attempts': total_quiz_attempts,
+        'total_exercises': total_exercises,
+        'public_exercises': public_exercises,
+        'total_exercise_submissions': total_exercise_submissions,
+        'correct_submissions': correct_submissions,
+        'exercise_success_rate': exercise_success_rate,
     }
     return render(request, 'users/backoffice/dashboard.html', context)
 
@@ -496,3 +511,159 @@ def backoffice_quiz_delete(request, quiz_id):
         'attempts_count': quiz.attempts.count()
     }
     return render(request, 'users/backoffice/quiz_confirm_delete.html', context)
+
+
+# ==================== EXERCISES MANAGEMENT ====================
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_exercise_list(request):
+    """Admin exercise list view with search and pagination"""
+    from exercises.models import Exercise, ExerciseCategory, ExerciseType, DifficultyLevel
+    
+    search_query = request.GET.get('search', '')
+    category_filter = request.GET.get('category', '')
+    difficulty_filter = request.GET.get('difficulty', '')
+    type_filter = request.GET.get('type', '')
+    
+    exercises = Exercise.objects.all().order_by('-created_at')
+    
+    # Apply search filter
+    if search_query:
+        exercises = exercises.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(content__icontains=search_query)
+        )
+    
+    # Apply category filter
+    if category_filter:
+        exercises = exercises.filter(category_id=category_filter)
+    
+    # Apply difficulty filter
+    if difficulty_filter:
+        exercises = exercises.filter(difficulty_id=difficulty_filter)
+    
+    # Apply type filter
+    if type_filter:
+        exercises = exercises.filter(exercise_type_id=type_filter)
+    
+    # Pagination
+    paginator = Paginator(exercises, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get filter options
+    categories = ExerciseCategory.objects.all()
+    difficulties = DifficultyLevel.objects.all()
+    types = ExerciseType.objects.all()
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'category_filter': category_filter,
+        'difficulty_filter': difficulty_filter,
+        'type_filter': type_filter,
+        'categories': categories,
+        'difficulties': difficulties,
+        'types': types,
+        'total_exercises': exercises.count(),
+    }
+    return render(request, 'users/backoffice/exercise_list.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_exercise_detail(request, exercise_id):
+    """Admin exercise detail view"""
+    from exercises.models import Exercise, ExerciseSubmission
+    
+    exercise = get_object_or_404(Exercise, id=exercise_id)
+    
+    # Get recent submissions
+    recent_submissions = ExerciseSubmission.objects.filter(exercise=exercise).order_by('-submission_time')[:10]
+    
+    # Get statistics
+    total_submissions = ExerciseSubmission.objects.filter(exercise=exercise).count()
+    correct_submissions = ExerciseSubmission.objects.filter(exercise=exercise, is_correct=True).count()
+    success_rate = (correct_submissions / total_submissions * 100) if total_submissions > 0 else 0
+    
+    context = {
+        'exercise': exercise,
+        'recent_submissions': recent_submissions,
+        'total_submissions': total_submissions,
+        'correct_submissions': correct_submissions,
+        'success_rate': success_rate,
+    }
+    return render(request, 'users/backoffice/exercise_detail.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_exercise_create(request):
+    """Admin create exercise view"""
+    from exercises.models import ExerciseCategory, ExerciseType, DifficultyLevel
+    from exercises.forms import ExerciseForm
+    
+    if request.method == 'POST':
+        form = ExerciseForm(request.POST)
+        if form.is_valid():
+            exercise = form.save(commit=False)
+            exercise.created_by = request.user
+            exercise.save()
+            messages.success(request, f'Exercise "{exercise.title}" created successfully')
+            return redirect('users:backoffice_exercise_list')
+    else:
+        form = ExerciseForm()
+    
+    context = {
+        'form': form,
+        'categories': ExerciseCategory.objects.all(),
+        'types': ExerciseType.objects.all(),
+        'difficulties': DifficultyLevel.objects.all(),
+    }
+    return render(request, 'users/backoffice/exercise_create.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_exercise_edit(request, exercise_id):
+    """Admin edit exercise view"""
+    from exercises.models import Exercise
+    from exercises.forms import ExerciseForm
+    
+    exercise = get_object_or_404(Exercise, id=exercise_id)
+    
+    if request.method == 'POST':
+        form = ExerciseForm(request.POST, instance=exercise)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Exercise "{exercise.title}" updated successfully')
+            return redirect('users:backoffice_exercise_detail', exercise_id=exercise.id)
+    else:
+        form = ExerciseForm(instance=exercise)
+    
+    context = {
+        'form': form,
+        'exercise': exercise,
+    }
+    return render(request, 'users/backoffice/exercise_edit.html', context)
+
+
+@user_passes_test(is_admin, login_url='main:signin')
+def backoffice_exercise_delete(request, exercise_id):
+    """Admin delete exercise view"""
+    from exercises.models import Exercise, ExerciseSubmission
+    
+    exercise = get_object_or_404(Exercise, id=exercise_id)
+    
+    if request.method == 'POST':
+        title = exercise.title
+        exercise.delete()
+        messages.success(request, f'Exercise "{title}" deleted successfully')
+        return redirect('users:backoffice_exercise_list')
+    
+    # Get submission count
+    submissions_count = ExerciseSubmission.objects.filter(exercise=exercise).count()
+    
+    context = {
+        'exercise': exercise,
+        'submissions_count': submissions_count,
+    }
+    return render(request, 'users/backoffice/exercise_delete.html', context)

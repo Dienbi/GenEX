@@ -265,6 +265,21 @@
             <div class="col-lg-8">
                 <h1><i class="fas fa-brain me-3"></i>Exercices IA Intelligents</h1>
                 <p class="lead">Générez et résolvez des exercices universitaires avec l'intelligence artificielle. Apprenez, pratiquez et progressez avec des corrections automatiques personnalisées.</p>
+                
+                <!-- Navigation rapide -->
+                <div class="mt-4">
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'exercises:favorites-list' %}" class="btn btn-light btn-lg me-2">
+                            <i class="fas fa-heart"></i> Mes Favoris
+                        </a>
+                        <a href="{% url 'exercises:wishlist-list' %}" class="btn btn-light btn-lg me-2">
+                            <i class="fas fa-bookmark"></i> Ma Wishlist
+                        </a>
+                        <a href="{% url 'exercises:collections-list' %}" class="btn btn-light btn-lg">
+                            <i class="fas fa-folder"></i> Mes Collections
+                        </a>
+                    </div>
+                </div>
             </div>
             <div class="col-lg-4 text-center">
                 <div class="stats-card d-inline-block">
@@ -972,13 +987,17 @@ function createExerciseCard(exercise) {
                     
                     <!-- Actions secondaires -->
                     <div class="d-flex justify-content-between">
-                        <button class="btn btn-outline-danger btn-sm" onclick="toggleFavorite(${exercise.id})" 
-                                id="favoriteBtn${exercise.id}" title="Ajouter aux favoris">
-                            <i class="far fa-heart"></i>
+                        <button class="btn ${exercise.user_status && exercise.user_status.is_favorite ? 'btn-danger' : 'btn-outline-danger'} btn-sm" 
+                                onclick="toggleFavorite(${exercise.id})" 
+                                id="favoriteBtn${exercise.id}" 
+                                title="${exercise.user_status && exercise.user_status.is_favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+                            <i class="${exercise.user_status && exercise.user_status.is_favorite ? 'fas' : 'far'} fa-heart"></i>
                         </button>
-                        <button class="btn btn-outline-warning btn-sm" onclick="addToWishlist(${exercise.id})" 
-                                title="Ajouter à la liste de souhaits">
-                            <i class="fas fa-bookmark"></i>
+                        <button class="btn ${exercise.user_status && exercise.user_status.is_wishlist ? 'btn-warning' : 'btn-outline-warning'} btn-sm" 
+                                onclick="addToWishlist(${exercise.id})" 
+                                id="wishlistBtn${exercise.id}" 
+                                title="${exercise.user_status && exercise.user_status.is_wishlist ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}">
+                            <i class="${exercise.user_status && exercise.user_status.is_wishlist ? 'fas' : 'far'} fa-bookmark"></i>
                         </button>
                         <button class="btn btn-outline-info btn-sm" onclick="showCollectionModal(${exercise.id})" 
                                 title="Ajouter à une collection">
@@ -1278,27 +1297,46 @@ async function toggleFavorite(exerciseId) {
 }
 
 async function addToWishlist(exerciseId) {
+    const button = document.getElementById(`wishlistBtn${exerciseId}`);
+    const icon = button.querySelector('i');
+    
     try {
-        const response = await fetch(`${API_BASE}exercises/${exerciseId}/add_to_wishlist/`, {
-            method: 'POST',
+        // Vérifier si c'est déjà dans la wishlist
+        const isInWishlist = icon.classList.contains('fas');
+        
+        const response = await fetch(`${API_BASE}exercises/${exerciseId}/wishlist/`, {
+            method: isInWishlist ? 'DELETE' : 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                priority: 1,
-                notes: ''
-            })
+            }
         });
         
         if (response.ok) {
-            showSuccess('Exercice ajouté à la liste de souhaits');
+            const data = await response.json();
+            
+            // Mettre à jour l'icône
+            if (data.is_wishlist) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                button.classList.remove('btn-outline-warning');
+                button.classList.add('btn-warning');
+                button.title = 'Retirer de la wishlist';
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                button.classList.remove('btn-warning');
+                button.classList.add('btn-outline-warning');
+                button.title = 'Ajouter à la wishlist';
+            }
+            
+            showSuccess(data.message);
         } else {
-            showError('Erreur lors de l\'ajout à la liste de souhaits');
+            throw new Error('Erreur lors de la modification de la wishlist');
         }
     } catch (error) {
         console.error('Erreur:', error);
-        showError('Erreur lors de l\'ajout à la liste de souhaits');
+        showError('Erreur lors de la modification de la wishlist');
     }
 }
 

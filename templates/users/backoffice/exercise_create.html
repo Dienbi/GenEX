@@ -1,0 +1,572 @@
+{% extends 'users/backoffice/base.html' %}
+
+{% block title %}Create Exercise{% endblock %}
+{% block page_title %}Create New Exercise{% endblock %}
+{% block page_description %}Add a new exercise to the system{% endblock %}
+{% block nav_exercises %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Form Design */
+    .form-card {
+        background: linear-gradient(135deg, #ffffff 0%, #fef7f7 100%);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(220, 53, 69, 0.12);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        margin-bottom: 25px;
+    }
+    
+    .form-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(220, 53, 69, 0.18);
+    }
+    
+    .form-card .card-header {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        color: white;
+        border: none;
+        padding: 25px 30px;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .form-card .card-body {
+        padding: 30px;
+    }
+    
+    /* Form Controls */
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 15px 20px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+    
+    .form-control:focus {
+        border-color: #ff6b6b;
+        box-shadow: 0 0 0 0.2rem rgba(255, 107, 107, 0.25);
+        background: white;
+        transform: translateY(-2px);
+    }
+    
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        background: #fff5f5;
+    }
+    
+    .form-control.is-valid {
+        border-color: #28a745;
+        background: #f8fff9;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+    
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .form-check-input:checked {
+        background-color: #ff6b6b;
+        border-color: #ff6b6b;
+    }
+    
+    .form-check-label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-left: 10px;
+    }
+    
+    /* Section Headers */
+    .section-header {
+        background: linear-gradient(135deg, #fef7f7 0%, #f8d7da 100%);
+        padding: 20px 25px;
+        border-radius: 12px;
+        margin: 30px 0 20px;
+        border-left: 5px solid #ff6b6b;
+    }
+    
+    .section-header h6 {
+        color: #ff6b6b;
+        font-weight: 700;
+        margin: 0;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* Help Panel */
+    .help-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    
+    .help-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+    }
+    
+    .help-card .card-header {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        color: white;
+        border: none;
+        padding: 20px 25px;
+        border-radius: 15px 15px 0 0;
+    }
+    
+    .help-card .card-body {
+        padding: 25px;
+    }
+    
+    .help-card h6 {
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    
+    .help-card ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .help-card li {
+        padding: 8px 0;
+        color: #6c757d;
+        font-size: 14px;
+    }
+    
+    .help-card .badge {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 11px;
+        font-weight: 600;
+        margin: 2px;
+        display: inline-block;
+    }
+    
+    /* Action Buttons */
+    .form-actions {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 25px 30px;
+        border-radius: 15px;
+        margin-top: 30px;
+        border-top: 3px solid #ff6b6b;
+    }
+    
+    .btn {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        margin-right: 10px;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99,110,114,0.4);
+    }
+    
+    /* File Input */
+    .form-control[type="file"] {
+        padding: 10px 15px;
+        background: white;
+    }
+    
+    /* Textarea */
+    textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-card .card-body {
+            padding: 20px;
+        }
+        
+        .help-card .card-body {
+            padding: 20px;
+        }
+        
+        .form-actions {
+            padding: 20px;
+        }
+        
+        .btn {
+            width: 100%;
+            margin: 5px 0;
+        }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-card .card-body {
+            padding: 20px;
+        }
+        
+        .help-card .card-body {
+            padding: 20px;
+        }
+        
+        .form-actions {
+            padding: 20px;
+        }
+        
+        .btn {
+            width: 100%;
+            margin: 5px 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    
+    // Form validation
+    function validateForm() {
+        let isValid = true;
+        const requiredFields = form.querySelectorAll('[required]');
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        return isValid;
+    }
+    
+    // Real-time validation
+    const inputs = form.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.hasAttribute('required') && !this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            alert('Please fill in all required fields');
+            return false;
+        }
+        
+        // Show loading state
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        submitBtn.disabled = true;
+        
+        // Show success message before redirect
+        setTimeout(() => {
+            // The form will submit and redirect to the list page
+        }, 1000);
+    });
+    
+    // Add visual feedback for form controls
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.style.borderColor = '#ff6b6b';
+            this.style.boxShadow = '0 0 0 0.2rem rgba(255, 107, 107, 0.25)';
+        });
+        
+        input.addEventListener('blur', function() {
+            if (!this.classList.contains('is-invalid')) {
+                this.style.borderColor = '#e9ecef';
+                this.style.boxShadow = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'users:backoffice_exercise_list' %}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i> Back to List
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card form-card">
+            <div class="card-header">
+                <h5><i class="fas fa-plus"></i> Create New Exercise</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="section-header form-section">
+                        <h6><i class="fas fa-info-circle"></i> Basic Information</h6>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.title.id_for_label }}" class="form-label">Title *</label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="text-danger">{{ form.title.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.points.id_for_label }}" class="form-label">Points *</label>
+                                {{ form.points }}
+                                {% if form.points.errors %}
+                                    <div class="text-danger">{{ form.points.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger">{{ form.description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Category and Difficulty -->
+                    <div class="section-header form-section">
+                        <h6><i class="fas fa-tags"></i> Classification</h6>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.category.id_for_label }}" class="form-label">Category *</label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger">{{ form.category.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.difficulty.id_for_label }}" class="form-label">Difficulty *</label>
+                                {{ form.difficulty }}
+                                {% if form.difficulty.errors %}
+                                    <div class="text-danger">{{ form.difficulty.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.exercise_type.id_for_label }}" class="form-label">Type *</label>
+                                {{ form.exercise_type }}
+                                {% if form.exercise_type.errors %}
+                                    <div class="text-danger">{{ form.exercise_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="section-header form-section">
+                        <h6><i class="fas fa-file-text"></i> Exercise Content</h6>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.content.id_for_label }}" class="form-label">Exercise Content *</label>
+                                {{ form.content }}
+                                {% if form.content.errors %}
+                                    <div class="text-danger">{{ form.content.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">Write the exercise statement here</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.solution.id_for_label }}" class="form-label">Solution *</label>
+                                {{ form.solution }}
+                                {% if form.solution.errors %}
+                                    <div class="text-danger">{{ form.solution.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">Provide the correct answer</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Information -->
+                    <div class="section-header form-section">
+                        <h6><i class="fas fa-lightbulb"></i> Additional Information</h6>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.hints.id_for_label }}" class="form-label">Hints</label>
+                                {{ form.hints }}
+                                {% if form.hints.errors %}
+                                    <div class="text-danger">{{ form.hints.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">Optional hints to help users</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings -->
+                    <div class="section-header form-section">
+                        <h6><i class="fas fa-cog"></i> Settings</h6>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.estimated_time.id_for_label }}" class="form-label">Estimated Time (minutes) *</label>
+                                {{ form.estimated_time }}
+                                {% if form.estimated_time.errors %}
+                                    <div class="text-danger">{{ form.estimated_time.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <div class="form-check">
+                                    {{ form.is_public }}
+                                    <label for="{{ form.is_public.id_for_label }}" class="form-check-label">
+                                        {{ form.is_public.label }}
+                                    </label>
+                                </div>
+                                {% if form.is_public.errors %}
+                                    <div class="text-danger">{{ form.is_public.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Media -->
+                    <div class="section-header form-section">
+                        <h6><i class="fas fa-video"></i> Video Explanation</h6>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.explanation_video_type.id_for_label }}" class="form-label">Video Type</label>
+                                {{ form.explanation_video_type }}
+                                {% if form.explanation_video_type.errors %}
+                                    <div class="text-danger">{{ form.explanation_video_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.explanation_video_url.id_for_label }}" class="form-label">Video URL</label>
+                                {{ form.explanation_video_url }}
+                                {% if form.explanation_video_url.errors %}
+                                    <div class="text-danger">{{ form.explanation_video_url.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">URL to explanation video (YouTube, Vimeo, etc.)</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Create Exercise
+                        </button>
+                        <a href="{% url 'users:backoffice_exercise_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Panel -->
+    <div class="col-lg-4">
+        <div class="card help-card">
+            <div class="card-header">
+                <h5><i class="fas fa-question-circle"></i> Help</h5>
+            </div>
+            <div class="card-body">
+                <h6>Creating Effective Exercises</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> Write clear, concise instructions</li>
+                    <li><i class="fas fa-check text-success"></i> Provide detailed solutions</li>
+                    <li><i class="fas fa-check text-success"></i> Add helpful hints when needed</li>
+                    <li><i class="fas fa-check text-success"></i> Set appropriate difficulty levels</li>
+                    <li><i class="fas fa-check text-success"></i> Include explanations for learning</li>
+                </ul>
+                
+                <h6 class="mt-4">Categories Available</h6>
+                <ul class="list-unstyled">
+                    {% for category in categories %}
+                        <li><span class="badge badge-secondary">{{ category.name }}</span></li>
+                    {% endfor %}
+                </ul>
+                
+                <h6 class="mt-4">Difficulty Levels</h6>
+                <ul class="list-unstyled">
+                    {% for difficulty in difficulties %}
+                        <li><span class="badge badge-{% if difficulty.name == 'Easy' %}success{% elif difficulty.name == 'Medium' %}warning{% else %}danger{% endif %}">{{ difficulty.name }}</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-actions {
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+    margin-top: 20px;
+}
+
+.form-actions .btn {
+    margin-right: 10px;
+}
+</style>
+{% endblock %}

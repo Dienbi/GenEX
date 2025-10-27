@@ -12,7 +12,8 @@ from .models import (
     ExerciseCategory, ExerciseType, DifficultyLevel, Exercise,
     ExerciseAttempt, ExerciseSession, SessionExercise, AIExerciseGeneration,
     ExerciseSubmission, ExerciseCorrectionSession, ExerciseCollection,
-    ExerciseFavorite, ExerciseHistory, ExerciseWishlist, ExerciseInCollection
+    ExerciseFavorite, ExerciseHistory, ExerciseWishlist, ExerciseInCollection,
+    UserExerciseStatus
 )
 from .serializers import (
     ExerciseCategorySerializer, ExerciseTypeSerializer, DifficultyLevelSerializer,
@@ -21,7 +22,7 @@ from .serializers import (
     ExerciseGenerationRequestSerializer, ExerciseAttemptSubmissionSerializer,
     ExerciseRecommendationSerializer, ExerciseCollectionSerializer,
     ExerciseFavoriteSerializer, ExerciseHistorySerializer, ExerciseWishlistSerializer,
-    AdvancedCorrectionSerializer
+    AdvancedCorrectionSerializer, UserExerciseStatusSerializer, ExerciseWithStatusSerializer
 )
 from .ai_service import exercise_ai_service
 from .correction_service import exercise_correction_service
@@ -57,7 +58,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     
     def get_serializer_class(self):
         if self.action == 'list':
-            return ExerciseListSerializer
+            return ExerciseWithStatusSerializer
         return ExerciseSerializer
     
     def get_queryset(self):
@@ -287,41 +288,72 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         
         if request.method == 'POST':
             # Ajouter aux favoris
-            favorite, created = ExerciseFavorite.objects.get_or_create(
+            status_obj, created = UserExerciseStatus.objects.get_or_create(
                 user=request.user,
-                exercise=exercise
+                exercise=exercise,
+                defaults={'is_favorite': True}
             )
-            if created:
-                return Response({'message': 'Exercice ajouté aux favoris'}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'message': 'Exercice déjà dans les favoris'}, status=status.HTTP_200_OK)
+            if not created:
+                status_obj.is_favorite = True
+                status_obj.save()
+            
+            return Response({
+                'message': 'Exercice ajouté aux favoris',
+                'is_favorite': True
+            }, status=status.HTTP_201_CREATED)
         
         elif request.method == 'DELETE':
             # Retirer des favoris
             try:
-                favorite = ExerciseFavorite.objects.get(user=request.user, exercise=exercise)
-                favorite.delete()
-                return Response({'message': 'Exercice retiré des favoris'}, status=status.HTTP_200_OK)
-            except ExerciseFavorite.DoesNotExist:
-                return Response({'message': 'Exercice pas dans les favoris'}, status=status.HTTP_404_NOT_FOUND)
+                status_obj = UserExerciseStatus.objects.get(user=request.user, exercise=exercise)
+                status_obj.is_favorite = False
+                status_obj.save()
+                return Response({
+                    'message': 'Exercice retiré des favoris',
+                    'is_favorite': False
+                }, status=status.HTTP_200_OK)
+            except UserExerciseStatus.DoesNotExist:
+                return Response({
+                    'message': 'Exercice pas dans les favoris',
+                    'is_favorite': False
+                }, status=status.HTTP_200_OK)
     
-    @action(detail=True, methods=['post'])
-    def add_to_wishlist(self, request, pk=None):
-        """Ajouter un exercice à la liste de souhaits"""
+    @action(detail=True, methods=['post', 'delete'])
+    def wishlist(self, request, pk=None):
+        """Ajouter ou retirer un exercice de la wishlist"""
         exercise = self.get_object()
-        priority = request.data.get('priority', 1)
-        notes = request.data.get('notes', '')
         
-        wishlist_item, created = ExerciseWishlist.objects.get_or_create(
-            user=request.user,
-            exercise=exercise,
-            defaults={'priority': priority, 'notes': notes}
-        )
+        if request.method == 'POST':
+            # Ajouter à la wishlist
+            status_obj, created = UserExerciseStatus.objects.get_or_create(
+                user=request.user,
+                exercise=exercise,
+                defaults={'is_wishlist': True}
+            )
+            if not created:
+                status_obj.is_wishlist = True
+                status_obj.save()
+            
+            return Response({
+                'message': 'Exercice ajouté à la wishlist',
+                'is_wishlist': True
+            }, status=status.HTTP_201_CREATED)
         
-        if created:
-            return Response({'message': 'Exercice ajouté à la liste de souhaits'}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'message': 'Exercice déjà dans la liste de souhaits'}, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+            # Retirer de la wishlist
+            try:
+                status_obj = UserExerciseStatus.objects.get(user=request.user, exercise=exercise)
+                status_obj.is_wishlist = False
+                status_obj.save()
+                return Response({
+                    'message': 'Exercice retiré de la wishlist',
+                    'is_wishlist': False
+                }, status=status.HTTP_200_OK)
+            except UserExerciseStatus.DoesNotExist:
+                return Response({
+                    'message': 'Exercice pas dans la wishlist',
+                    'is_wishlist': False
+                }, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
     def add_to_collection(self, request, pk=None):
@@ -738,6 +770,54 @@ def collections_list(request):
     collections = ExerciseCollection.objects.filter(user=request.user)
     return render(request, 'exercises/collections_list.html', {
         'collections': collections
+    })
+
+
+def favorites_list(request):
+    """Liste des exercices favoris de l'utilisateur"""
+    if not request.user.is_authenticated:
+        return render(request, 'exercises/favorites_list.html', {
+            'exercises': [],
+            'error': 'Vous devez être connecté pour voir vos favoris'
+        })
+    
+    # Récupérer les exercices favoris avec leur statut
+    favorite_statuses = UserExerciseStatus.objects.filter(
+        user=request.user, 
+        is_favorite=True
+    ).select_related('exercise', 'exercise__category', 'exercise__difficulty', 'exercise__exercise_type')
+    
+    exercises = [status.exercise for status in favorite_statuses]
+    
+    return render(request, 'exercises/favorites_list.html', {
+        'exercises': exercises,
+        'favorite_statuses': favorite_statuses,
+        'page_title': 'Mes Exercices Favoris',
+        'empty_message': 'Aucun exercice favori pour le moment'
+    })
+
+
+def wishlist_list(request):
+    """Liste des exercices de la wishlist de l'utilisateur"""
+    if not request.user.is_authenticated:
+        return render(request, 'exercises/wishlist_list.html', {
+            'exercises': [],
+            'error': 'Vous devez être connecté pour voir votre wishlist'
+        })
+    
+    # Récupérer les exercices de la wishlist avec leur statut
+    wishlist_statuses = UserExerciseStatus.objects.filter(
+        user=request.user, 
+        is_wishlist=True
+    ).select_related('exercise', 'exercise__category', 'exercise__difficulty', 'exercise__exercise_type')
+    
+    exercises = [status.exercise for status in wishlist_statuses]
+    
+    return render(request, 'exercises/wishlist_list.html', {
+        'exercises': exercises,
+        'wishlist_statuses': wishlist_statuses,
+        'page_title': 'Ma Wishlist',
+        'empty_message': 'Aucun exercice dans votre wishlist pour le moment'
     })
 
 

@@ -398,3 +398,50 @@ class ExerciseWishlist(models.Model):
     
     def __str__(self):
         return f"Liste de souhaits - {self.user.username} - {self.exercise.title}"
+
+
+class UserExerciseStatus(models.Model):
+    """Statut des exercices pour chaque utilisateur (favoris, à faire plus tard, etc.)"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='exercise_statuses')
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='user_statuses')
+    
+    # Statuts
+    is_favorite = models.BooleanField(default=False, help_text="Exercice marqué comme favori")
+    is_wishlist = models.BooleanField(default=False, help_text="Exercice ajouté à la liste de souhaits")
+    is_completed = models.BooleanField(default=False, help_text="Exercice terminé")
+    is_in_progress = models.BooleanField(default=False, help_text="Exercice en cours")
+    
+    # Métadonnées
+    added_to_favorites_at = models.DateTimeField(null=True, blank=True)
+    added_to_wishlist_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    
+    # Score et notes
+    score = models.FloatField(null=True, blank=True, help_text="Score obtenu (0-100)")
+    notes = models.TextField(blank=True, help_text="Notes personnelles de l'utilisateur")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Statut d'exercice utilisateur"
+        verbose_name_plural = "Statuts d'exercices utilisateurs"
+        unique_together = ['user', 'exercise']
+        ordering = ['-updated_at']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.exercise.title} ({'Favori' if self.is_favorite else 'Normal'})"
+    
+    def save(self, *args, **kwargs):
+        # Mettre à jour les timestamps automatiquement
+        if self.is_favorite and not self.added_to_favorites_at:
+            self.added_to_favorites_at = timezone.now()
+        if self.is_wishlist and not self.added_to_wishlist_at:
+            self.added_to_wishlist_at = timezone.now()
+        if self.is_completed and not self.completed_at:
+            self.completed_at = timezone.now()
+        if self.is_in_progress and not self.started_at:
+            self.started_at = timezone.now()
+        
+        super().save(*args, **kwargs)

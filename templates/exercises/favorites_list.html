@@ -1,0 +1,441 @@
+{% extends 'exercises/base.html' %}
+{% load static %}
+
+{% block title %}Mes Exercices Favoris{% endblock %}
+
+{% block extra_css %}
+<style>
+    .favorites-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 30px;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .favorites-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .favorites-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .favorites-stats {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.1);
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #dc3545;
+        display: block;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .exercise-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(220, 53, 69, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .exercise-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    }
+    
+    .exercise-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(220, 53, 69, 0.15);
+    }
+    
+    .exercise-header {
+        display: flex;
+        justify-content: between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    
+    .exercise-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+    
+    .exercise-description {
+        color: #6c757d;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .exercise-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+        background: #f8f9fa;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        color: #495057;
+    }
+    
+    .meta-item i {
+        color: #dc3545;
+    }
+    
+    .difficulty-easy { color: #28a745; }
+    .difficulty-medium { color: #ffc107; }
+    .difficulty-hard { color: #dc3545; }
+    
+    .exercise-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-favorite {
+        background: #dc3545;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-favorite:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+    
+    .btn-start {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-start:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #dc3545;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .empty-state h3 {
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+    
+    .empty-state p {
+        color: #adb5bd;
+        margin-bottom: 30px;
+    }
+    
+    .btn-explore {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-explore:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .added-date {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="favorites-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-heart"></i> Mes Exercices Favoris</h1>
+                    <p>Retrouvez tous vos exercices préférés en un seul endroit</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{% url 'exercises:exercise-dashboard' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-arrow-left"></i> Retour aux exercices
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Statistiques -->
+        <div class="favorites-stats">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ exercises|length }}</span>
+                        <span class="stat-label">Exercices Favoris</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ favorite_statuses|length }}</span>
+                        <span class="stat-label">Total Favoris</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">0</span>
+                        <span class="stat-label">Terminés</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">0</span>
+                        <span class="stat-label">En Cours</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Liste des exercices -->
+        {% if exercises %}
+            <div class="row">
+                {% for exercise in exercises %}
+                <div class="col-lg-6 col-xl-4">
+                    <div class="exercise-card">
+                        <div class="added-date">
+                            <i class="fas fa-calendar-plus"></i>
+                            Ajouté le {{ exercise.created_at|date:"d/m/Y" }}
+                        </div>
+                        
+                        <div class="exercise-header">
+                            <div>
+                                <h3 class="exercise-title">{{ exercise.title }}</h3>
+                                {% if exercise.description %}
+                                    <p class="exercise-description">{{ exercise.description|truncatechars:100 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="exercise-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-tag"></i>
+                                <span>{{ exercise.category.name }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-signal"></i>
+                                <span class="difficulty-{{ exercise.difficulty.name|lower }}">{{ exercise.difficulty.name }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-star"></i>
+                                <span>{{ exercise.points }} pts</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>{{ exercise.estimated_time }}min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="exercise-actions">
+                            <a href="{% url 'exercises:exercise-solve' exercise.id %}" class="btn btn-start">
+                                <i class="fas fa-play"></i> Commencer
+                            </a>
+                            <a href="{% url 'exercises:exercise-detail' exercise.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                            <button class="btn btn-favorite" onclick="toggleFavorite({{ exercise.id }})" 
+                                    id="favoriteBtn{{ exercise.id }}" title="Retirer des favoris">
+                                <i class="fas fa-heart"></i> Favori
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-heart-broken"></i>
+                <h3>Aucun exercice favori</h3>
+                <p>Vous n'avez pas encore d'exercices favoris. Explorez les exercices disponibles et ajoutez vos préférés !</p>
+                <a href="{% url 'exercises:exercise-dashboard' %}" class="btn btn-explore">
+                    <i class="fas fa-search"></i> Explorer les exercices
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Fonction pour retirer des favoris
+async function toggleFavorite(exerciseId) {
+    const button = document.getElementById(`favoriteBtn${exerciseId}`);
+    const card = button.closest('.exercise-card');
+    
+    try {
+        const response = await fetch(`/api/exercises/${exerciseId}/favorite/`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Animation de suppression
+            card.style.transition = 'all 0.3s ease';
+            card.style.transform = 'translateX(-100%)';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.remove();
+                
+                // Vérifier s'il reste des exercices
+                const remainingCards = document.querySelectorAll('.exercise-card');
+                if (remainingCards.length === 0) {
+                    location.reload(); // Recharger pour afficher l'état vide
+                }
+            }, 300);
+            
+            showSuccess(data.message);
+        } else {
+            throw new Error('Erreur lors de la suppression des favoris');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors de la suppression des favoris');
+    }
+}
+
+// Fonction pour obtenir le cookie CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Fonctions d'alerte
+function showSuccess(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 3000);
+}
+
+function showError(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

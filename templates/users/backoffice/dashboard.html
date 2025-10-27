@@ -164,6 +164,30 @@
             <div class="number">{{ total_quiz_attempts }}</div>
             <div class="label">Quiz Attempts</div>
         </div>
+
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-dumbbell"></i></div>
+            <div class="number">{{ total_exercises }}</div>
+            <div class="label">Total Exercises</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-globe"></i></div>
+            <div class="number">{{ public_exercises }}</div>
+            <div class="label">Public Exercises</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-tasks"></i></div>
+            <div class="number">{{ total_exercise_submissions }}</div>
+            <div class="label">Exercise Submissions</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-chart-line"></i></div>
+            <div class="number">{{ exercise_success_rate|floatformat:1 }}%</div>
+            <div class="label">Success Rate</div>
+        </div>
     </div>
 
     <!-- Quick Actions -->
@@ -181,6 +205,12 @@
             </a>
             <a href="{% url 'users:backoffice_quiz_create' %}" class="btn-red">
                 <i class="fas fa-magic"></i> Create New Quiz
+            </a>
+            <a href="{% url 'users:backoffice_exercise_list' %}" class="btn-red">
+                <i class="fas fa-dumbbell"></i> Manage Exercises
+            </a>
+            <a href="{% url 'users:backoffice_exercise_create' %}" class="btn-red">
+                <i class="fas fa-plus"></i> Create New Exercise
             </a>
         </div>
     </div>
