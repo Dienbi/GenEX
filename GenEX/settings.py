@@ -190,7 +190,9 @@ GROQ_API_KEY = os.environ.get('GROQ_API_KEY', 'gsk_uoHPaIGgjA1Ck4nHV9LWWGdyb3FYd
 
 # Security settings for production
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # Render handles SSL termination, trust the X-Forwarded-Proto header
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = False  # Don't force redirect, Render handles this
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
