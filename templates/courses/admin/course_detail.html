@@ -1,0 +1,409 @@
+{% extends 'users/backoffice/base.html' %}
+
+{% block title %}{{ course.title }} - Administration{% endblock %}
+
+{% block nav_courses %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-course-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 30px;
+    }
+
+    .admin-course-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .admin-course-header .breadcrumb {
+        background: rgba(255,255,255,0.1);
+        padding: 10px 20px;
+        border-radius: 25px;
+        display: inline-block;
+        font-size: 0.9rem;
+    }
+
+    .admin-course-header .breadcrumb a {
+        color: white;
+        text-decoration: none;
+    }
+
+    .admin-course-header .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    .admin-course-content {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    .course-main-info {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .course-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .sidebar-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .sidebar-card h3 {
+        color: #dc3545;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .course-meta {
+        display: grid;
+        gap: 15px;
+    }
+
+    .meta-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .meta-item:last-child {
+        border-bottom: none;
+    }
+
+    .meta-label {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .meta-value {
+        color: #666;
+    }
+
+    .course-sections {
+        margin-top: 30px;
+    }
+
+    .section-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #dc3545;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .section-content {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .no-content {
+        text-align: center;
+        padding: 60px 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        color: #666;
+    }
+
+    .no-content i {
+        font-size: 3rem;
+        color: #dc3545;
+        margin-bottom: 20px;
+    }
+
+    .no-content h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-edit {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background: #218838;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #c82333;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+    .btn-back {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-back:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: #e9ecef;
+        border-radius: 6px;
+        margin: 10px 0;
+    }
+
+    .file-info i {
+        color: #dc3545;
+        font-size: 1.2rem;
+    }
+
+    .file-details {
+        flex: 1;
+    }
+
+    .file-name {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .file-size {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+
+    @media (max-width: 768px) {
+        .admin-course-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn-action {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Admin Course Header -->
+<div class="admin-course-header">
+    <div class="container">
+        <div class="breadcrumb">
+           
+            <a href="{% url 'courses:admin_course_list' %}">Cours</a> / 
+            {{ course.title }}
+        </div>
+        <h1><i class="fas fa-book"></i> {{ course.title }}</h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="admin-course-content">
+        <!-- Main Course Information -->
+        <div class="course-main-info">
+            <h2><i class="fas fa-info-circle"></i> Informations du Cours</h2>
+            
+            <div class="course-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Titre</span>
+                    <span class="meta-value">{{ course.title }}</span>
+                </div>
+                
+                <div class="meta-item">
+                    <span class="meta-label">Utilisateur</span>
+                    <span class="meta-value">{{ course.user.username }}</span>
+                </div>
+                
+                <div class="meta-item">
+                    <span class="meta-label">Langue</span>
+                    <span class="meta-value">{{ course.get_language_display }}</span>
+                </div>
+                
+                <div class="meta-item">
+                    <span class="meta-label">Généré par IA</span>
+                    <span class="meta-value">
+                        {% if course.is_generated %}
+                            <i class="fas fa-check text-success"></i> Oui
+                        {% else %}
+                            <i class="fas fa-times text-danger"></i> Non
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="meta-item">
+                    <span class="meta-label">Date de création</span>
+                    <span class="meta-value">{{ course.created_at|date:"d/m/Y H:i" }}</span>
+                </div>
+                
+                <div class="meta-item">
+                    <span class="meta-label">Dernière modification</span>
+                    <span class="meta-value">{{ course.updated_at|date:"d/m/Y H:i" }}</span>
+                </div>
+            </div>
+
+            <!-- PDF File -->
+            {% if course.pdf_file %}
+                <div class="file-info">
+                    <i class="fas fa-file-pdf"></i>
+                    <div class="file-details">
+                        <div class="file-name">{{ course.pdf_file.name|slice:"20:" }}</div>
+                        <div class="file-size">Fichier PDF</div>
+                    </div>
+                    <a href="{{ course.pdf_file.url }}" target="_blank" class="btn-action btn-edit">
+                        <i class="fas fa-download"></i> Télécharger
+                    </a>
+                </div>
+            {% endif %}
+
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{% url 'courses:admin_course_edit' course.pk %}" class="btn-action btn-edit">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+                <a href="{% url 'courses:admin_course_delete' course.pk %}" class="btn-action btn-delete">
+                    <i class="fas fa-trash"></i> Supprimer
+                </a>
+                <a href="{% url 'courses:admin_course_list' %}" class="btn-action btn-back">
+                    <i class="fas fa-arrow-left"></i> Retour à la liste
+                </a>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="course-sidebar">
+            <!-- Course Statistics -->
+            <div class="sidebar-card">
+                <h3><i class="fas fa-chart-bar"></i> Statistiques</h3>
+                <div class="course-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Sections</span>
+                        <span class="meta-value">{{ sections|length }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Dossiers</span>
+                        <span class="meta-value">{{ course.folders.count }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Folders -->
+            {% if course.folders.exists %}
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-folder"></i> Dossiers</h3>
+                    <div class="course-meta">
+                        {% for folder in course.folders.all %}
+                            <div class="meta-item">
+                                <span class="meta-label">{{ folder.name }}</span>
+                                <a href="{% url 'courses:folder_detail' folder.pk %}" class="btn-action btn-edit" style="padding: 5px 10px; font-size: 0.8rem;">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Quick Actions -->
+            <div class="sidebar-card">
+                <h3><i class="fas fa-bolt"></i> Actions Rapides</h3>
+                <div class="action-buttons" style="margin-top: 0;">
+                    <a href="{% url 'courses:admin_course_edit' course.pk %}" class="btn-action btn-edit" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                    <a href="{% url 'courses:admin_course_delete' course.pk %}" class="btn-action btn-delete" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Content -->
+    {% if sections %}
+        <div class="course-main-info">
+            <h2><i class="fas fa-list"></i> Contenu du Cours</h2>
+            <div class="course-sections">
+                {% for section in sections %}
+                    <div class="section-item">
+                        <div class="section-title">{{ section.title }}</div>
+                        <div class="section-content">{{ section.content|safe }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="course-main-info">
+            <div class="no-content">
+                <i class="fas fa-book-open"></i>
+                <h3>Aucun contenu disponible</h3>
+                <p>Ce cours n'a pas encore de contenu structuré.</p>
+                {% if course.pdf_file %}
+                    <p>Vous pouvez consulter le fichier PDF associé.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

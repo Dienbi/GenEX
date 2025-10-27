@@ -4,7 +4,13 @@ import json
 import wave
 import subprocess
 import tempfile
-from vosk import Model, KaldiRecognizer
+try:
+    from vosk import Model, KaldiRecognizer
+    VOSK_AVAILABLE = True
+except ImportError:
+    VOSK_AVAILABLE = False
+    Model = None
+    KaldiRecognizer = None
 from django.conf import settings
 import difflib
 
@@ -19,10 +25,9 @@ class PronunciationService:
         self.model_paths = None
     
     def _load_models(self):
-        """Load Vosk models for supported languages (lazy loading)"""
-        # Skip loading on production (Render) to save memory
-        if os.environ.get('RENDER'):
-            print("Skipping Vosk model loading on Render (memory constrained)")
+        """Load Vosk models for supported languages"""
+        if not VOSK_AVAILABLE:
+            print("Vosk not available. Pronunciation service disabled.")
             return
             
         # Models should be downloaded and placed in ml_models/vosk/

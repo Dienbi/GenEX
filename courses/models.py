@@ -28,9 +28,10 @@ class Course(models.Model):
     """Model to store AI-generated courses"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='courses')
     title = models.CharField(max_length=255, verbose_name="Titre du cours")
-    content = models.TextField(verbose_name="Contenu du cours")
+    content = models.TextField(verbose_name="Contenu du cours", blank=True, null=True)
     language = models.CharField(max_length=10, default='fr', verbose_name="Langue du cours")
     is_generated = models.BooleanField(default=True, verbose_name="Généré par IA")
+    pdf_file = models.FileField(upload_to='courses/pdfs/', blank=True, null=True, verbose_name="Fichier PDF")
     folders = models.ManyToManyField(Folder, related_name='courses', blank=True, verbose_name="Dossiers")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -131,6 +131,72 @@
         font-style: italic;
     }
     
+    /* Styles pour l'édition inline */
+    .edit-container {
+        width: 100%;
+    }
+    
+    .edit-input-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .edit-message-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 1rem;
+        color: #333;
+        padding: 0.5rem 0;
+    }
+    
+    .edit-message-input::placeholder {
+        color: #999;
+    }
+    
+    .edit-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-edit-cancel {
+        background: white;
+        border: 1px solid #e0e0e0;
+        color: #666;
+        padding: 0.5rem 1rem;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-edit-cancel:hover {
+        background: #f5f5f5;
+        border-color: #ccc;
+    }
+    
+    .btn-edit-send {
+        background: #333;
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-edit-send:hover {
+        background: #555;
+    }
+    
     /* Modal d'édition */
     .edit-modal {
         position: fixed;
@@ -1964,6 +2030,39 @@
         color: #a0aec0;
     }
     
+    /* Mode sombre pour l'édition inline */
+    [data-theme="dark"] .edit-input-container {
+        background: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    [data-theme="dark"] .edit-message-input {
+        color: #e0e0e0;
+    }
+    
+    [data-theme="dark"] .edit-message-input::placeholder {
+        color: #a0aec0;
+    }
+    
+    [data-theme="dark"] .btn-edit-cancel {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #a0aec0;
+    }
+    
+    [data-theme="dark"] .btn-edit-cancel:hover {
+        background: #4a5568;
+        border-color: #718096;
+    }
+    
+    [data-theme="dark"] .btn-edit-send {
+        background: #3182ce;
+    }
+    
+    [data-theme="dark"] .btn-edit-send:hover {
+        background: #2c5aa0;
+    }
+    
     [data-theme="dark"] .edit-modal-content {
         background: #2d3748;
         color: #e0e0e0;
@@ -3483,37 +3582,62 @@ function addMessage(type, content, messageData = null) {
 }
 
 function editMessage(messageId, currentContent) {
-    // Créer une modal d'édition
-    const modal = document.createElement('div');
-    modal.className = 'edit-modal';
-    modal.setAttribute('data-message-id', messageId);
-    modal.innerHTML = `
-        <div class="edit-modal-content">
-            <div class="edit-modal-header">
-                <h3>Modifier le message</h3>
-                <button class="close-edit-modal" onclick="closeEditModal()">&times;</button>
-            </div>
-            <div class="edit-modal-body">
-                <textarea id="edit-message-textarea" placeholder="Modifiez votre message...">${currentContent}</textarea>
-                <div class="edit-history" id="edit-history" style="display: none;">
-                    <h4>Historique des modifications</h4>
-                    <div class="history-content" id="history-content"></div>
-                </div>
-            </div>
-            <div class="edit-modal-footer">
-                <button class="btn btn-info" onclick="toggleEditHistory()">Historique</button>
-                <button class="btn btn-secondary" onclick="closeEditModal()">Annuler</button>
-                <button class="btn btn-primary" onclick="saveEditedMessage(${messageId})" title="Sauvegarder, supprimer les messages suivants et générer une nouvelle réponse">🔄 Sauvegarder & Reprendre</button>
+    // Trouver le message à modifier
+    const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+    if (!messageElement) return;
+    
+    // Créer l'interface d'édition inline
+    const editContainer = document.createElement('div');
+    editContainer.className = 'edit-container';
+    editContainer.setAttribute('data-message-id', messageId);
+    editContainer.innerHTML = `
+        <div class="edit-input-container">
+            <input type="text" id="edit-message-input" class="edit-message-input" value="${escapeHtml(currentContent)}" placeholder="Modifiez votre message...">
+            <div class="edit-buttons">
+                <button class="btn-edit-cancel" onclick="cancelEdit(${messageId})">Annuler</button>
+                <button class="btn-edit-send" onclick="saveEditedMessage(${messageId})">Envoyer</button>
             </div>
         </div>
     `;
     
-    document.body.appendChild(modal);
+    // Remplacer le contenu du message par l'interface d'édition
+    const contentDiv = messageElement.querySelector('.message-content');
+    const originalContent = contentDiv.innerHTML;
+    contentDiv.innerHTML = '';
+    contentDiv.appendChild(editContainer);
     
-    // Focus sur le textarea
+    // Stocker le contenu original pour pouvoir l'annuler
+    editContainer.setAttribute('data-original-content', originalContent);
+    
+    // Focus sur l'input
     setTimeout(() => {
-        document.getElementById('edit-message-textarea').focus();
+        const input = document.getElementById('edit-message-input');
+        if (input) {
+            input.focus();
+            input.select();
+            
+            // Ajouter l'événement pour la touche Entrée
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    saveEditedMessage(messageId);
+                }
+            });
+        }
     }, 100);
+}
+
+function cancelEdit(messageId) {
+    // Trouver le message à modifier
+    const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+    if (!messageElement) return;
+    
+    // Restaurer le contenu original
+    const editContainer = messageElement.querySelector('.edit-container');
+    if (editContainer) {
+        const originalContent = editContainer.getAttribute('data-original-content');
+        const contentDiv = messageElement.querySelector('.message-content');
+        contentDiv.innerHTML = originalContent;
+    }
 }
 
 function closeEditModal() {
@@ -3585,16 +3709,11 @@ function loadEditHistory() {
 }
 
 function saveEditedMessage(messageId) {
-    const textarea = document.getElementById('edit-message-textarea');
-    const newContent = textarea.value.trim();
+    const input = document.getElementById('edit-message-input');
+    const newContent = input.value.trim();
     
     if (!newContent) {
         alert('Le message ne peut pas être vide');
-        return;
-    }
-    
-    // Demander confirmation car cela va supprimer les messages suivants
-    if (!confirm('⚠️ Attention : Cette action va supprimer tous les messages qui suivent ce message et générer une nouvelle réponse. Êtes-vous sûr de vouloir continuer ?')) {
         return;
     }
     

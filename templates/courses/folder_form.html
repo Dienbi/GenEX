@@ -7,59 +7,59 @@
 
 {% block extra_css %}
 <style>
-           /* Variables CSS cohérentes avec le projet */
-           :root {
-               --primary-color: #dc3545;
-               --secondary-color: #6c757d;
-               --success-color: #28a745;
-               --info-color: #17a2b8;
-               --warning-color: #ffc107;
-               --danger-color: #dc3545;
-               --light-color: #f8f9fa;
-               --dark-color: #343a40;
-               --border-radius: 8px;
-               --box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-               --transition: all 0.3s ease;
-           }
-           
-           /* Intégration avec le template de base */
-           .page-header {
-               background: linear-gradient(135deg, var(--primary-color), #c82333);
-               color: white;
-               padding: 3rem 0;
-               margin-bottom: 2rem;
-               position: relative;
-               overflow: hidden;
-           }
-           
-           .page-header::before {
-               content: '';
-               position: absolute;
-               top: 0;
-               left: 0;
-               right: 0;
-               bottom: 0;
-               background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-               z-index: 1;
-           }
-           
-           .page-header-content {
-               position: relative;
-               z-index: 2;
-           }
-           
-           .page-title {
-               font-size: 2.5rem;
-               font-weight: 700;
-               margin-bottom: 0.5rem;
-           }
-           
-           .page-subtitle {
-               font-size: 1.1rem;
-               opacity: 0.9;
-               margin-bottom: 0;
-           }
+    /* Variables CSS cohérentes avec le projet */
+    :root {
+        --primary-color: #dc3545;
+        --secondary-color: #6c757d;
+        --success-color: #28a745;
+        --info-color: #17a2b8;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+        --border-radius: 8px;
+        --box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        --transition: all 0.3s ease;
+    }
     
+    /* Intégration avec le template de base */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color), #c82333);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+        z-index: 1;
+    }
+    
+    .page-header-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .page-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+
     /* Form Container */
     .form-container {
         max-width: 700px;
@@ -91,43 +91,121 @@
         margin-bottom: 0.5rem;
     }
     
+    .form-label.required::after {
+        content: " *";
+        color: var(--danger-color);
+        font-weight: bold;
+    }
+    
     .form-control {
         border: 2px solid #e9ecef;
         border-radius: 10px;
         padding: 0.75rem 1rem;
         transition: all 0.3s ease;
+        width: 100%;
     }
     
     .form-control:focus {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+    
+    .form-control.error {
+        border-color: var(--danger-color);
+        background-color: #fff5f5;
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    /* Style spécifique pour le champ couleur */
+    .color-input-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .color-input {
+        width: 80px !important;
+        height: 50px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        padding: 5px;
+    }
+    
+    .color-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+    
+    .color-presets {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    
+    .color-preset {
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .color-preset:hover {
+        transform: scale(1.1);
+        border-color: #333;
+    }
+    
+    .color-preset.active {
+        border-color: #333;
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     
     .color-preview {
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        border: 2px solid #e9ecef;
-        display: inline-block;
-        margin-left: 10px;
-        vertical-align: middle;
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        border: 3px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
     }
     
     .btn-submit {
-        background: linear-gradient(135deg, var(--primary-color), #0056b3);
+        background: linear-gradient(135deg, var(--primary-color), #c82333);
         border: none;
         color: white;
         padding: 0.75rem 2rem;
         border-radius: 10px;
         font-weight: 600;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
     }
     
-    .btn-submit:hover {
+    .btn-submit:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0,123,255,0.4);
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
         color: white;
+    }
+    
+    .btn-submit:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
     }
     
     .btn-cancel {
@@ -138,11 +216,64 @@
         border-radius: 10px;
         font-weight: 600;
         transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
     }
     
     .btn-cancel:hover {
         background: #5a6268;
         color: white;
+        text-decoration: none;
+    }
+    
+    .error-message {
+        display: flex;
+        align-items: center;
+        margin-top: 8px;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border: 2px solid #f5c6cb;
+        border-radius: 8px;
+        color: #721c24;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 2px 10px rgba(220, 53, 69, 0.2);
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .validation-summary {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 2px solid #ffc107;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    }
+    
+    .validation-summary h4 {
+        color: #856404;
+        margin-bottom: 15px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .validation-summary ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    
+    .validation-summary li {
+        color: #856404;
+        margin-bottom: 8px;
+        font-weight: 500;
     }
 </style>
 {% endblock %}
@@ -172,84 +303,254 @@
             </h2>
         </div>
                 
-                <!-- Formulaire -->
-                <div class="form-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <!-- Nom du dossier -->
-                        <div class="form-group">
-                            <label for="{{ form.name.id_for_label }}" class="form-label">
-                                <i class="fas fa-tag me-1"></i>
-                                {{ form.name.label }}
-                            </label>
-                            {{ form.name }}
-                            {% if form.name.errors %}
-                                <div class="text-danger mt-1">
-                                    {% for error in form.name.errors %}
-                                        <small>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Description -->
-                        <div class="form-group">
-                            <label for="{{ form.description.id_for_label }}" class="form-label">
-                                <i class="fas fa-align-left me-1"></i>
-                                {{ form.description.label }}
-                            </label>
-                            {{ form.description }}
-                            {% if form.description.errors %}
-                                <div class="text-danger mt-1">
-                                    {% for error in form.description.errors %}
-                                        <small>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Couleur -->
-                        <div class="form-group">
-                            <label for="{{ form.color.id_for_label }}" class="form-label">
-                                <i class="fas fa-palette me-1"></i>
-                                {{ form.color.label }}
-                            </label>
-                            <div class="d-flex align-items-center">
-                                {{ form.color }}
-                                <div class="color-preview" id="colorPreview" style="background-color: {{ form.color.value|default:'#007bff' }};"></div>
-                            </div>
-                            {% if form.color.errors %}
-                                <div class="text-danger mt-1">
-                                    {% for error in form.color.errors %}
-                                        <small>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Boutons -->
-                        <div class="d-flex gap-3 justify-content-end mt-4">
-                            <a href="{% url 'courses:folder_list' %}" class="btn btn-cancel">
-                                <i class="fas fa-times me-1"></i>
-                                Annuler
-                            </a>
-                            <button type="submit" class="btn btn-submit">
-                                <i class="fas fa-save me-1"></i>
-                                {{ submit_text }}
-                            </button>
-                        </div>
-                    </form>
+        <!-- Formulaire -->
+        <div class="form-body">
+            <!-- Messages de validation globale -->
+            {% if form.errors %}
+                <div class="validation-summary">
+                    <h4>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Veuillez corriger les erreurs suivantes
+                    </h4>
+                    <ul>
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
                 </div>
-            </div>
+            {% endif %}
+
+            <form method="post" id="folderForm">
+                {% csrf_token %}
+                
+                <!-- Nom du dossier -->
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}" class="form-label required">
+                        <i class="fas fa-tag me-1"></i>
+                        {{ form.name.label }}
+                    </label>
+                    {{ form.name }}
+                    <div id="nameError" class="error-message" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="nameErrorText"></span>
+                    </div>
+                    {% if form.name.errors %}
+                        {% for error in form.name.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <!-- Description -->
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">
+                        <i class="fas fa-align-left me-1"></i>
+                        {{ form.description.label }}
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.description.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Couleur -->
+                <div class="form-group">
+                    <label for="{{ form.color.id_for_label }}" class="form-label">
+                        <i class="fas fa-palette me-1"></i>
+                        {{ form.color.label }}
+                    </label>
+                    
+                    <div class="color-input-container">
+                        <!-- Input couleur natif -->
+                        {{ form.color }}
+                        
+                        <!-- Aperçu de la couleur -->
+                        <div class="color-preview" id="colorPreview" 
+                             style="background-color: {{ form.color.value|default:'#007bff' }};">
+                            Exemple
+                        </div>
+                    </div>
+                    
+                    <!-- Palettes de couleurs prédéfinies -->
+                    <div class="color-presets" id="colorPresets">
+                        <div class="color-preset" style="background-color: #007bff;" data-color="#007bff" title="Bleu"></div>
+                        <div class="color-preset" style="background-color: #dc3545;" data-color="#dc3545" title="Rouge"></div>
+                        <div class="color-preset" style="background-color: #28a745;" data-color="#28a745" title="Vert"></div>
+                        <div class="color-preset" style="background-color: #ffc107;" data-color="#ffc107" title="Jaune"></div>
+                        <div class="color-preset" style="background-color: #6f42c1;" data-color="#6f42c1" title="Violet"></div>
+                        <div class="color-preset" style="background-color: #e83e8c;" data-color="#e83e8c" title="Rose"></div>
+                        <div class="color-preset" style="background-color: #fd7e14;" data-color="#fd7e14" title="Orange"></div>
+                        <div class="color-preset" style="background-color: #20c997;" data-color="#20c997" title="Turquoise"></div>
+                        <div class="color-preset" style="background-color: #6c757d;" data-color="#6c757d" title="Gris"></div>
+                        <div class="color-preset" style="background-color: #343a40;" data-color="#343a40" title="Noir"></div>
+                    </div>
+                    
+                    <small class="form-text text-muted mt-2">
+                        <i class="fas fa-info-circle"></i>
+                        Cliquez sur le sélecteur de couleur ou choisissez une couleur prédéfinie
+                    </small>
+                    
+                    {% if form.color.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.color.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Boutons -->
+                <div class="d-flex gap-3 justify-content-end mt-4">
+                    <a href="{% url 'courses:folder_list' %}" class="btn btn-cancel">
+                        <i class="fas fa-times me-1"></i>
+                        Annuler
+                    </a>
+                    <button type="submit" class="btn btn-submit" id="submitBtn">
+                        <i class="fas fa-save me-1"></i>
+                        {{ submit_text }}
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
-// Mise à jour de l'aperçu de couleur
-document.getElementById('{{ form.color.id_for_label }}').addEventListener('input', function() {
-    document.getElementById('colorPreview').style.backgroundColor = this.value;
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('folderForm');
+    const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+    const colorInput = document.getElementById('{{ form.color.id_for_label }}');
+    const colorPreview = document.getElementById('colorPreview');
+    const submitBtn = document.getElementById('submitBtn');
+    const nameError = document.getElementById('nameError');
+    
+    let nameValid = false;
+    
+    // Fonction pour valider le nom
+    function validateName() {
+        const name = nameInput.value.trim();
+        
+        if (name.length === 0) {
+            showNameError('⚠️ Le nom du dossier est obligatoire');
+            nameValid = false;
+        } else if (name.length < 2) {
+            showNameError('⚠️ Le nom doit contenir au moins 2 caractères');
+            nameValid = false;
+        } else if (name.length > 100) {
+            showNameError('⚠️ Le nom ne doit pas dépasser 100 caractères');
+            nameValid = false;
+        } else {
+            hideNameError();
+            nameValid = true;
+        }
+        
+        updateSubmitButton();
+    }
+    
+    // Fonction pour mettre à jour le bouton de soumission
+    function updateSubmitButton() {
+        submitBtn.disabled = !nameValid;
+    }
+    
+    // Gestion des erreurs du nom
+    function showNameError(message) {
+        nameError.style.display = 'flex';
+        document.getElementById('nameErrorText').textContent = message;
+        nameInput.classList.add('error');
+    }
+    
+    function hideNameError() {
+        nameError.style.display = 'none';
+        nameInput.classList.remove('error');
+    }
+    
+    // Mise à jour de l'aperçu de couleur
+    function updateColorPreview(color) {
+        colorPreview.style.backgroundColor = color;
+        
+        // Changer la couleur du texte pour qu'il soit lisible
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        // Calcul de la luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        colorPreview.style.color = luminance > 0.5 ? '#000000' : '#FFFFFF';
+    }
+    
+    // Gestion des couleurs prédéfinies
+    const colorPresets = document.querySelectorAll('.color-preset');
+    colorPresets.forEach(preset => {
+        preset.addEventListener('click', function() {
+            const color = this.getAttribute('data-color');
+            colorInput.value = color;
+            updateColorPreview(color);
+            
+            // Mettre en surbrillance la couleur sélectionnée
+            colorPresets.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    
+    // Mise à jour en temps réel de la couleur
+    colorInput.addEventListener('input', function() {
+        updateColorPreview(this.value);
+        
+        // Désélectionner les couleurs prédéfinies si une couleur personnalisée est choisie
+        colorPresets.forEach(p => p.classList.remove('active'));
+    });
+    
+    // Événements pour la validation en temps réel
+    if (nameInput) {
+        nameInput.addEventListener('input', validateName);
+        nameInput.addEventListener('blur', validateName);
+        nameInput.addEventListener('focus', function() {
+            this.classList.remove('error');
+        });
+    }
+    
+    // Validation à la soumission du formulaire
+    form.addEventListener('submit', function(e) {
+        validateName();
+        
+        if (!nameValid) {
+            e.preventDefault();
+            
+            // Animation pour attirer l'attention sur l'erreur
+            nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            nameInput.focus();
+            
+            // Message général
+            alert('❌ Veuillez corriger les erreurs dans le formulaire avant de soumettre.');
+        }
+    });
+    
+    // Initialisation
+    updateColorPreview(colorInput.value);
+    validateName();
+    
+    // Sélectionner automatiquement la couleur prédéfinie correspondante
+    const currentColor = colorInput.value.toLowerCase();
+    colorPresets.forEach(preset => {
+        if (preset.getAttribute('data-color').toLowerCase() === currentColor) {
+            preset.classList.add('active');
+        }
+    });
+    
+    // Mise à jour initiale de l'aperçu
+    if (colorInput.value) {
+        updateColorPreview(colorInput.value);
+    }
 });
 </script>
 {% endblock %}
