@@ -329,9 +329,6 @@
                             <a href="{% url 'exercises:exercise-solve' exercise.id %}" class="btn btn-start">
                                 <i class="fas fa-play"></i> Commencer
                             </a>
-                            <a href="{% url 'exercises:exercise-detail' exercise.id %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-eye"></i> Voir
-                            </a>
                             <button class="btn btn-wishlist" onclick="toggleWishlist({{ exercise.id }})" 
                                     id="wishlistBtn{{ exercise.id }}" title="Retirer de la wishlist">
                                 <i class="fas fa-bookmark"></i> Wishlist
