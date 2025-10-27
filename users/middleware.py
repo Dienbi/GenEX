@@ -13,7 +13,7 @@ class AdminAccessMiddleware:
         
         # Paths that admins are NOT allowed to access
         self.restricted_paths = [
-            '/courses/',
+            '/courses/',  # Liste des cours (sauf cours individuels)
             '/exercises/',
             '/quizzes/',
             '/chatbot/',
@@ -28,6 +28,7 @@ class AdminAccessMiddleware:
             '/signin/',
             '/signout/',
             '/admin/',  # Django admin
+            '/courses/admin/',  # Administration des cours
             '/static/',
             '/media/',
         ]
@@ -42,8 +43,25 @@ class AdminAccessMiddleware:
                 return redirect('users:backoffice_dashboard')
             
             # Check if trying to access restricted path
-            is_restricted = any(path.startswith(restricted) for restricted in self.restricted_paths)
             is_allowed = any(path.startswith(allowed) for allowed in self.allowed_paths)
+            
+            # Allow admins to view individual courses (format: /courses/ID/)
+            # Pattern: /courses/123/ (commence par /courses/, se termine par /, et a un ID numérique)
+            import re
+            is_individual_course = (path.startswith('/courses/') and 
+                                  path.endswith('/') and 
+                                  path != '/courses/' and
+                                  re.match(r'^/courses/\d+/$', path))
+            
+            # Check if path is restricted (but allow individual courses)
+            is_restricted = False
+            for restricted in self.restricted_paths:
+                if path.startswith(restricted):
+                    # Si c'est /courses/, vérifier si c'est un cours individuel
+                    if restricted == '/courses/' and is_individual_course:
+                        continue  # Ne pas considérer comme restreint
+                    is_restricted = True
+                    break
             
             # Redirect admins away from restricted paths to backoffice
             if is_restricted and not is_allowed:

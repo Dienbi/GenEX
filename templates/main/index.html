@@ -227,7 +227,10 @@
         <div class="hero-buttons">
             {% if user.is_authenticated %}
                 <a href="{% url 'main:dashboard' %}" class="btn-white">Mon Dashboard</a>
+                {% comment %}
                 <a href="{% url 'voice_eval:home' %}" class="btn-outline-red">Évaluation Vocale</a>
+                {% endcomment %}
+                <a href="#" class="btn-outline-red">Évaluation Vocale (Bientôt)</a>
             {% else %}
                 <a href="{% url 'main:signup' %}" class="btn-white">Inscription Gratuite</a>
                 <a href="{% url 'main:about' %}" class="btn-outline-red">En Savoir Plus</a>
@@ -276,7 +279,10 @@
             </div>
             <h3>Exercices Intelligents IA</h3>
             <p>Générez des exercices personnalisés avec l'intelligence artificielle. Saisissez votre matière et obtenez des exercices adaptés à votre niveau.</p>
+            {% comment %}
             <a href="{% url 'exercises:exercise-dashboard' %}" class="feature-link">Découvrir →</a>
+            {% endcomment %}
+            <a href="#" class="feature-link">Bientôt disponible →</a>
         </div>
         
         <div class="feature-card">

@@ -352,8 +352,8 @@
             </a>
 
             <div class="sidebar-menu-title">Content Management</div>
-            <a href="#" class="disabled">
-                <i class="fas fa-book"></i> Courses (Coming Soon)
+            <a href="{% url 'courses:admin_course_list' %}" class="{% block nav_courses %}{% endblock %}">
+                <i class="fas fa-book"></i> Courses
             </a>
             <a href="{% url 'users:backoffice_quiz_list' %}" class="{% block nav_quizzes %}{% endblock %}">
                 <i class="fas fa-question-circle"></i> Quizzes

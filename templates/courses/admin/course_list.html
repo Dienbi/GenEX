@@ -1,0 +1,493 @@
+{% extends 'users/backoffice/base.html' %}
+
+{% block title %}Administration des Cours - GenEX{% endblock %}
+
+{% block nav_courses %}active{% endblock %}
+
+{% block page_title %}Administration des Cours{% endblock %}
+{% block page_description %}Gérez tous les cours de la plateforme GenEX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .admin-header h2 {
+        font-size: 28px;
+        color: #333;
+        margin: 0;
+    }
+    
+    .admin-stats {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        text-align: center;
+        min-width: 150px;
+    }
+    
+    .stat-number {
+        font-size: 32px;
+        font-weight: 700;
+        color: #dc3545;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .btn-create {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .search-box {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .search-input {
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        width: 300px;
+        transition: all 0.3s;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+    }
+    
+    .courses-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
+    }
+    
+    .table-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 20px;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .table-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .table {
+        width: 100%;
+        margin: 0;
+        border-collapse: collapse;
+    }
+    
+    .table th {
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        padding: 20px;
+        text-align: left;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .table td {
+        padding: 20px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+    
+    .table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .course-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    
+    .course-meta {
+        color: #666;
+        font-size: 13px;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .course-meta i {
+        color: #dc3545;
+        margin-right: 5px;
+    }
+    
+    .course-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-action {
+        padding: 8px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-edit {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-edit:hover {
+        background: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-delete:hover {
+        background: #c82333;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-view {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-view:hover {
+        background: #218838;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .no-courses {
+        text-align: center;
+        padding: 80px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .no-courses i {
+        font-size: 80px;
+        color: #dc3545;
+        margin-bottom: 20px;
+    }
+    
+    .no-courses h3 {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .no-courses p {
+        color: #666;
+        margin-bottom: 30px;
+    }
+    
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 13px;
+    }
+    
+    .file-info i {
+        color: #dc3545;
+    }
+    
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .admin-container {
+            margin: 30px auto;
+            padding: 0 15px;
+        }
+        
+        .admin-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .admin-stats {
+            justify-content: center;
+        }
+        
+        .action-bar {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .search-input {
+            width: 100%;
+        }
+        
+        .table {
+            font-size: 14px;
+        }
+        
+        .table th,
+        .table td {
+            padding: 15px 10px;
+        }
+        
+        .course-actions {
+            flex-direction: column;
+        }
+        
+        .btn-action {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Admin Content -->
+<div class="admin-container">
+    <!-- Header avec statistiques -->
+    <div class="admin-header">
+        <h2>Gestion des Cours</h2>
+        <div class="admin-stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_courses }}</div>
+                <div class="stat-label">Total Cours</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ courses|length }}</div>
+                <div class="stat-label">Affichés</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Barre d'actions -->
+    <div class="action-bar">
+        <a href="{% url 'courses:admin_course_create' %}" class="btn-create">
+            <i class="fas fa-plus-circle"></i> Nouveau Cours
+        </a>
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="Rechercher un cours..." id="searchInput">
+            <button class="btn-action btn-view" onclick="searchCourses()">
+                <i class="fas fa-search"></i> Rechercher
+            </button>
+        </div>
+    </div>
+    
+    <!-- Tableau des cours -->
+    {% if courses %}
+        <div class="courses-table">
+            <div class="table-header">
+                <h3 class="table-title">Liste des Cours ({{ courses|length }})</h3>
+            </div>
+            <table class="table">
+            <thead>
+                <tr>
+                    <th>Titre du Cours</th>
+                    <th>Utilisateur</th>
+                    <th>Fichier PDF</th>
+                    <th>Date de Création</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr>
+                        <td>
+                            <div class="course-title">{{ course.title }}</div>
+                            <div class="course-meta">
+                                <span><i class="fas fa-language"></i> {{ course.language|upper }}</span>
+                                {% if course.folder %}
+                                    <span><i class="fas fa-folder"></i> {{ course.folder.name }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="file-info">
+                                <i class="fas fa-user"></i>
+                                {{ course.user.username|default:"Anonyme" }}
+                            </div>
+                        </td>
+                        <td>
+                            {% if course.pdf_file %}
+                                <div class="file-info">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <a href="{{ course.pdf_file.url }}" target="_blank" style="color: #dc3545;">
+                                        {{ course.pdf_file.name|slice:"-30:" }}
+                                    </a>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">Aucun fichier</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="file-info">
+                                <i class="fas fa-calendar"></i>
+                                {{ course.created_at|date:"d/m/Y" }}
+                            </div>
+                            <div class="file-info">
+                                <i class="fas fa-clock"></i>
+                                {{ course.created_at|date:"H:i" }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge status-active">Actif</span>
+                        </td>
+                        <td>
+                            <div class="course-actions">
+                                <a href="{% url 'courses:admin_course_detail' course.pk %}" class="btn-action btn-view" title="Voir le cours">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                                <a href="{% url 'courses:admin_course_edit' course.pk %}" class="btn-action btn-edit" title="Modifier le cours">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </a>
+                                <a href="{% url 'courses:admin_course_delete' course.pk %}" class="btn-action btn-delete" title="Supprimer le cours">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="no-courses">
+            <i class="fas fa-book-open"></i>
+            <h3>Aucun cours trouvé</h3>
+            <p>Commencez par créer votre premier cours</p>
+            <a href="{% url 'courses:admin_course_create' %}" class="btn-create">
+                <i class="fas fa-plus-circle"></i> Créer le premier cours
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+
+<script>
+// Fonction de recherche
+function searchCourses() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.table tbody tr');
+    
+    rows.forEach(row => {
+        const title = row.querySelector('.course-title').textContent.toLowerCase();
+        const user = row.querySelector('.file-info').textContent.toLowerCase();
+        
+        if (title.includes(searchTerm) || user.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Recherche en temps réel
+document.getElementById('searchInput').addEventListener('input', searchCourses);
+
+// Confirmation de suppression
+document.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer ce cours ? Cette action est irréversible.')) {
+            e.preventDefault();
+        }
+    });
+});
+
+</script>
+{% endblock %}

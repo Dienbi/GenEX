@@ -21,7 +21,7 @@ from hashlib import md5
 import logging
 import json  # Ajouté pour gérer les données JSON dans course_summary
 from .models import Course, Folder
-from .forms import FolderForm
+from .forms import FolderForm, CourseCreateForm, CourseEditForm
 from .tts_service import TTSService
 
 # Configuration du logging
@@ -190,6 +190,11 @@ def generate_course_text(title, language="fr"):
 def parse_course_content(content):
     """Parse le contenu du cours pour créer une structure organisée"""
     sections = []
+    
+    # Gérer le cas où content est None ou vide
+    if not content:
+        return sections
+    
     lines = content.split('\n')
     current_section = None
     current_content = []
@@ -585,19 +590,45 @@ def postprocess_summary(summary, language):
 @login_required
 def course_detail(request, pk):
     from .models import Course
-    course = get_object_or_404(Course, pk=pk, user=request.user)
-    sections = parse_course_content(course.content)
-    context = {
-        'course': course,
-        'sections': sections
-    }
-    return render(request, 'courses/course_detail.html', context)
+    
+    # Récupérer le cours : soit créé par l'utilisateur, soit par un administrateur
+    try:
+        course = Course.objects.get(pk=pk)
+        # Vérifier si l'utilisateur peut accéder à ce cours
+        # - Si c'est son propre cours
+        # - Si c'est un cours créé par un superuser (accessible à tous)
+        if course.user == request.user or course.user.is_superuser:
+            # Parser le contenu du cours (gère le cas où content est None)
+            sections = parse_course_content(course.content) if course.content else []
+            
+            context = {
+                'course': course,
+                'sections': sections
+            }
+            return render(request, 'courses/course_detail.html', context)
+        else:
+            # L'utilisateur n'a pas le droit d'accéder à ce cours
+            from django.http import Http404
+            raise Http404("Course not found")
+    except Course.DoesNotExist:
+        from django.http import Http404
+        raise Http404("Course not found")
 
 @login_required
 def course_list(request):
     from .models import Course
-    # Exclure les cours qui sont assignés à des dossiers
-    courses = Course.objects.filter(user=request.user, folders__isnull=True).order_by('-created_at')
+    from django.contrib.auth.models import User
+    
+    # Récupérer tous les cours : ceux de l'utilisateur + ceux des administrateurs
+    user_courses = Course.objects.filter(user=request.user, folders__isnull=True)
+    admin_courses = Course.objects.filter(
+        user__is_superuser=True,  # Cours créés par les superutilisateurs
+        folders__isnull=True
+    ).exclude(user=request.user)  # Exclure les cours de l'utilisateur actuel s'il est admin
+    
+    # Combiner les deux querysets
+    courses = (user_courses | admin_courses).distinct().order_by('-created_at')
+    
     return render(request, 'courses/course_list.html', {'courses': courses})
 
 @login_required
@@ -639,7 +670,27 @@ def course_create(request):
                 folders = Folder.objects.filter(pk__in=folder_ids, user=request.user)
                 course.folders.set(folders)
             
-            messages.success(request, f"Le cours '{title}' a été généré avec succès !")
+            # Générer et sauvegarder le PDF automatiquement
+            try:
+                from .pdf_service import CoursePDFGenerator
+                
+                # Parser le contenu pour créer les sections
+                sections = parse_course_content(content)
+                
+                # Générer le PDF
+                pdf_generator = CoursePDFGenerator()
+                pdf_path = pdf_generator.save_course_pdf(course, sections)
+                
+                # Mettre à jour le cours avec le chemin du PDF
+                course.pdf_file = pdf_path
+                course.save()
+                
+                messages.success(request, f"Le cours '{title}' a été généré avec succès et sauvegardé en PDF !")
+                
+            except Exception as pdf_error:
+                logger.error(f"Erreur lors de la génération du PDF: {str(pdf_error)}")
+                messages.warning(request, f"Le cours '{title}' a été généré mais l'export PDF a échoué. Vous pourrez le générer manuellement.")
+            
             return redirect('courses:course_detail', pk=course.pk)
         except Exception as e:
             messages.error(request, f"Erreur lors de la génération du cours : {str(e)}")
@@ -657,13 +708,22 @@ def course_create(request):
 @login_required
 def course_delete(request, pk):
     from .models import Course
-    course = get_object_or_404(Course, pk=pk, user=request.user)
-    if request.method == 'POST':
-        course_title = course.title
-        course.delete()
-        messages.success(request, f"Le cours '{course_title}' a été supprimé.")
-        return redirect('courses:course_list')
-    return render(request, 'courses/course_confirm_delete.html', {'course': course})
+    try:
+        course = Course.objects.get(pk=pk)
+        # Vérifier si l'utilisateur peut accéder à ce cours
+        if course.user == request.user or course.user.is_superuser:
+            if request.method == 'POST':
+                course_title = course.title
+                course.delete()
+                messages.success(request, f"Le cours '{course_title}' a été supprimé.")
+                return redirect('courses:course_list')
+            return render(request, 'courses/course_confirm_delete.html', {'course': course})
+        else:
+            from django.http import Http404
+            raise Http404("Course not found")
+    except Course.DoesNotExist:
+        from django.http import Http404
+        raise Http404("Course not found")
 
 @login_required
 def course_summary(request, pk):
@@ -671,7 +731,13 @@ def course_summary(request, pk):
     from .models import Course
     if request.method == 'POST':
         try:
-            course = get_object_or_404(Course, pk=pk, user=request.user)
+            course = Course.objects.get(pk=pk)
+            # Vérifier si l'utilisateur peut accéder à ce cours
+            if not (course.user == request.user or course.user.is_superuser):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Course not found'
+                })
             if not course.content or len(course.content.strip()) < 100:
                 return JsonResponse({
                     'success': False,
@@ -853,42 +919,66 @@ def folder_delete(request, pk):
 @login_required
 def course_assign_folder(request, course_pk):
     """Assigner un cours à un ou plusieurs dossiers"""
-    course = get_object_or_404(Course, pk=course_pk, user=request.user)
-    user_folders = Folder.objects.filter(user=request.user)
-    
-    if request.method == 'POST':
-        folder_ids = request.POST.getlist('folders')
-        course.folders.set(folder_ids)
-        messages.success(request, f'Cours "{course.title}" assigné aux dossiers sélectionnés!')
-        return redirect('courses:course_detail', pk=course.pk)
-    
-    return render(request, 'courses/course_assign_folder.html', {
-        'course': course,
-        'folders': user_folders
-    })
+    try:
+        course = Course.objects.get(pk=course_pk)
+        # Vérifier si l'utilisateur peut accéder à ce cours
+        if course.user == request.user or course.user.is_superuser:
+            user_folders = Folder.objects.filter(user=request.user)
+            
+            if request.method == 'POST':
+                folder_ids = request.POST.getlist('folders')
+                course.folders.set(folder_ids)
+                messages.success(request, f'Cours "{course.title}" assigné aux dossiers sélectionnés!')
+                return redirect('courses:course_detail', pk=course.pk)
+            
+            return render(request, 'courses/course_assign_folder.html', {
+                'course': course,
+                'folders': user_folders
+            })
+        else:
+            from django.http import Http404
+            raise Http404("Course not found")
+    except Course.DoesNotExist:
+        from django.http import Http404
+        raise Http404("Course not found")
 
 @login_required
 def course_unassign_folder(request, course_pk, folder_pk):
     """Désaffecter un cours d'un dossier"""
-    course = get_object_or_404(Course, pk=course_pk, user=request.user)
-    folder = get_object_or_404(Folder, pk=folder_pk, user=request.user)
-    
-    if request.method == 'POST':
-        course.folders.remove(folder)
-        messages.success(request, f'Cours "{course.title}" retiré du dossier "{folder.name}"!')
-        return redirect('courses:folder_detail', pk=folder.pk)
-    
-    return render(request, 'courses/course_unassign_confirm.html', {
-        'course': course,
-        'folder': folder
-    })
+    try:
+        course = Course.objects.get(pk=course_pk)
+        folder = get_object_or_404(Folder, pk=folder_pk, user=request.user)
+        
+        # Vérifier si l'utilisateur peut accéder à ce cours
+        if course.user == request.user or course.user.is_superuser:
+            if request.method == 'POST':
+                course.folders.remove(folder)
+                messages.success(request, f'Cours "{course.title}" retiré du dossier "{folder.name}"!')
+                return redirect('courses:folder_detail', pk=folder.pk)
+            
+            return render(request, 'courses/course_unassign_confirm.html', {
+                'course': course,
+                'folder': folder
+            })
+        else:
+            from django.http import Http404
+            raise Http404("Course not found")
+    except Course.DoesNotExist:
+        from django.http import Http404
+        raise Http404("Course not found")
 
 @login_required
 def generate_section_audio(request, pk, section_index):
     """Génère l'audio pour une section spécifique du cours"""
     if request.method == 'POST':
         try:
-            course = get_object_or_404(Course, pk=pk, user=request.user)
+            course = Course.objects.get(pk=pk)
+            # Vérifier si l'utilisateur peut accéder à ce cours
+            if not (course.user == request.user or course.user.is_superuser):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Course not found'
+                })
             sections = parse_course_content(course.content)
             
             if section_index < 0 or section_index >= len(sections):
@@ -954,7 +1044,13 @@ def generate_section_audio(request, pk, section_index):
 def get_course_audio_list(request, pk):
     """Retourne la liste des sections du cours avec leurs audios disponibles"""
     try:
-        course = get_object_or_404(Course, pk=pk, user=request.user)
+        course = Course.objects.get(pk=pk)
+        # Vérifier si l'utilisateur peut accéder à ce cours
+        if not (course.user == request.user or course.user.is_superuser):
+            return JsonResponse({
+                'success': False,
+                'error': 'Course not found'
+            })
         sections = parse_course_content(course.content)
         
         tts_service = TTSService()
@@ -1004,3 +1100,184 @@ def get_course_audio_list(request, pk):
             'success': False,
             'error': f'Erreur lors de la récupération de la liste audio: {str(e)}'
         }, status=500)
+
+
+# ===== VUES D'ADMINISTRATION =====
+
+@login_required
+def admin_course_list(request):
+    """Vue pour lister tous les cours dans l'interface d'administration"""
+    courses = Course.objects.all().order_by('-created_at')
+    
+    context = {
+        'courses': courses,
+        'total_courses': courses.count(),
+    }
+    return render(request, 'courses/admin/course_list.html', context)
+
+
+@login_required
+def admin_course_create(request):
+    """Vue pour créer un nouveau cours dans l'interface d'administration"""
+    if request.method == 'POST':
+        form = CourseCreateForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            try:
+                # Créer le cours avec les données validées
+                course = form.save(commit=False)
+                course.user = request.user
+                course.language = 'fr'  # Par défaut en français
+                course.save()
+                
+                messages.success(request, f'Le cours "{course.title}" a été créé avec succès.')
+                return redirect('courses:admin_course_list')
+                
+            except Exception as e:
+                messages.error(request, f'Erreur lors de la création du cours: {str(e)}')
+        else:
+            # Afficher les erreurs de validation
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{form.fields[field].label}: {error}')
+    else:
+        form = CourseCreateForm()
+    
+    return render(request, 'courses/admin/course_form.html', {'form': form})
+
+
+@login_required
+def admin_course_edit(request, pk):
+    """Vue pour éditer un cours dans l'interface d'administration"""
+    course = get_object_or_404(Course, pk=pk)
+    
+    if request.method == 'POST':
+        form = CourseEditForm(request.POST, request.FILES, instance=course)
+        
+        if form.is_valid():
+            try:
+                # Sauvegarder les modifications
+                form.save()
+                
+                messages.success(request, f'Le cours "{course.title}" a été modifié avec succès.')
+                return redirect('courses:admin_course_list')
+                
+            except Exception as e:
+                messages.error(request, f'Erreur lors de la modification du cours: {str(e)}')
+        else:
+            # Afficher les erreurs de validation
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{form.fields[field].label}: {error}')
+    else:
+        form = CourseEditForm(instance=course)
+    
+    return render(request, 'courses/admin/course_form.html', {'form': form, 'course': course})
+
+
+@login_required
+def admin_course_detail(request, pk):
+    """Vue pour afficher les détails d'un cours dans l'interface d'administration"""
+    course = get_object_or_404(Course, pk=pk)
+    
+    # Parser le contenu du cours (gère le cas où content est None)
+    sections = parse_course_content(course.content) if course.content else []
+    
+    context = {
+        'course': course,
+        'sections': sections
+    }
+    return render(request, 'courses/admin/course_detail.html', context)
+
+@login_required
+def admin_course_delete(request, pk):
+    """Vue pour supprimer un cours dans l'interface d'administration"""
+    course = get_object_or_404(Course, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            course_title = course.title
+            course.delete()
+            messages.success(request, f'Le cours "{course_title}" a été supprimé avec succès.')
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la suppression du cours: {str(e)}')
+        
+        return redirect('courses:admin_course_list')
+    
+    return render(request, 'courses/admin/course_confirm_delete.html', {'course': course})
+
+@login_required
+def course_download_pdf(request, pk):
+    """Vue pour télécharger le PDF d'un cours"""
+    from .models import Course
+    from .pdf_service import generate_course_pdf_response
+    
+    try:
+        course = Course.objects.get(pk=pk)
+        # Vérifier si l'utilisateur peut accéder à ce cours
+        if not (course.user == request.user or course.user.is_superuser):
+            from django.http import Http404
+            raise Http404("Course not found")
+    except Course.DoesNotExist:
+        from django.http import Http404
+        raise Http404("Course not found")
+    
+    try:
+        # Parser le contenu du cours
+        sections = parse_course_content(course.content) if course.content else []
+        
+        if not sections:
+            messages.error(request, "Ce cours ne contient pas de contenu à exporter en PDF.")
+            return redirect('courses:course_detail', pk=course.pk)
+        
+        # Générer le nom du fichier
+        safe_title = "".join(c for c in course.title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        filename = f"{safe_title}.pdf"
+        
+        # Générer et retourner le PDF
+        return generate_course_pdf_response(course, sections, filename)
+        
+    except Exception as e:
+        logger.error(f"Erreur lors du téléchargement du PDF: {str(e)}")
+        messages.error(request, f"Erreur lors de la génération du PDF: {str(e)}")
+        return redirect('courses:course_detail', pk=course.pk)
+
+@login_required
+def course_regenerate_pdf(request, pk):
+    """Vue pour régénérer le PDF d'un cours"""
+    from .models import Course
+    from .pdf_service import CoursePDFGenerator
+    
+    try:
+        course = Course.objects.get(pk=pk)
+        # Vérifier si l'utilisateur peut accéder à ce cours
+        if not (course.user == request.user or course.user.is_superuser):
+            from django.http import Http404
+            raise Http404("Course not found")
+    except Course.DoesNotExist:
+        from django.http import Http404
+        raise Http404("Course not found")
+    
+    try:
+        # Parser le contenu du cours
+        sections = parse_course_content(course.content) if course.content else []
+        
+        if not sections:
+            messages.error(request, "Ce cours ne contient pas de contenu à exporter en PDF.")
+            return redirect('courses:course_detail', pk=course.pk)
+        
+        # Générer le PDF
+        pdf_generator = CoursePDFGenerator()
+        pdf_path = pdf_generator.save_course_pdf(course, sections)
+        
+        # Mettre à jour le cours avec le nouveau PDF
+        course.pdf_file = pdf_path
+        course.save()
+        
+        messages.success(request, "Le PDF du cours a été régénéré avec succès !")
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la régénération du PDF: {str(e)}")
+        messages.error(request, f"Erreur lors de la régénération du PDF: {str(e)}")
+    
+    return redirect('courses:course_detail', pk=course.pk)

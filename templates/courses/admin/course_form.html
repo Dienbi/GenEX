@@ -1,0 +1,779 @@
+{% extends 'users/backoffice/base.html' %}
+
+{% block title %}
+    {% if course %}Modifier le Cours{% else %}Nouveau Cours{% endif %} - GenEX
+{% endblock %}
+
+{% block nav_courses %}active{% endblock %}
+
+{% block page_title %}
+    {% if course %}Modifier le Cours{% else %}Nouveau Cours{% endif %}
+{% endblock %}
+{% block page_description %}
+    {% if course %}
+        Modifiez les informations du cours "{{ course.title }}"
+    {% else %}
+        Créez un nouveau cours pour la plateforme GenEX
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 50px 30px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 50px;
+        padding-bottom: 30px;
+        border-bottom: 3px solid #dc3545;
+        position: relative;
+    }
+
+    .form-header::after {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, #dc3545, #ff6b6b);
+        border-radius: 2px;
+    }
+
+    .form-header h1 {
+        color: #dc3545;
+        font-size: 36px;
+        margin-bottom: 15px;
+        font-weight: 800;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .form-header p {
+        color: #666;
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+    .form-group {
+        margin-bottom: 35px;
+        position: relative;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 12px;
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: #dc3545;
+        font-size: 18px;
+        font-weight: 900;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 16px 20px;
+        border: 3px solid #e9ecef;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #ffffff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #dc3545;
+        box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.15);
+        background: #fff;
+        transform: translateY(-2px);
+    }
+
+    .form-control.error {
+        border-color: #dc3545;
+        background: #fff5f5;
+        animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    .file-upload {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .file-input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .file-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
+        border: 3px dashed #dc3545;
+        border-radius: 15px;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+        min-height: 140px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .file-label::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: left 0.5s;
+    }
+
+    .file-label:hover::before {
+        left: 100%;
+    }
+
+    .file-label:hover {
+        background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%);
+        border-color: #c82333;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.2);
+    }
+
+    .file-label.dragover {
+        background: linear-gradient(135deg, #e6f3ff 0%, #cce7ff 100%);
+        border-color: #007bff;
+        transform: scale(1.02);
+    }
+
+    .file-label.error {
+        border-color: #dc3545;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+        animation: pulse-error 0.5s ease-in-out;
+    }
+
+    @keyframes pulse-error {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+    }
+
+    .file-icon {
+        font-size: 32px;
+        color: #dc3545;
+        margin-right: 20px;
+        animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-10px); }
+        60% { transform: translateY(-5px); }
+    }
+
+    .file-text {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .file-subtext {
+        font-size: 14px;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .file-info {
+        margin-top: 15px;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        font-size: 14px;
+        color: #495057;
+        line-height: 1.8;
+        border-left: 4px solid #dc3545;
+    }
+
+    .file-info i {
+        color: #dc3545;
+        margin-right: 10px;
+        font-size: 16px;
+    }
+
+    .current-file {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 2px solid #28a745;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+    }
+
+    .current-file i {
+        font-size: 24px;
+        color: #28a745;
+        margin-right: 20px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .current-file-name {
+        font-weight: 700;
+        color: #155724;
+        font-size: 16px;
+    }
+
+    .error-message {
+        display: flex;
+        align-items: center;
+        margin-top: 12px;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border: 2px solid #f5c6cb;
+        border-radius: 10px;
+        color: #721c24;
+        font-size: 15px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success-message {
+        display: flex;
+        align-items: center;
+        margin-top: 12px;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 2px solid #c3e6cb;
+        border-radius: 10px;
+        color: #155724;
+        font-size: 15px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .success-message i {
+        margin-right: 12px;
+        color: #28a745;
+        font-size: 18px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 50px;
+        padding-top: 40px;
+        border-top: 3px solid #e9ecef;
+        position: relative;
+    }
+
+    .form-actions::before {
+        content: '';
+        position: absolute;
+        top: -3px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #dc3545, #ff6b6b);
+        border-radius: 2px;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 18px 50px;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-submit::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-submit:hover::before {
+        left: 100%;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(220, 53, 69, 0.4);
+    }
+
+    .btn-submit:disabled {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .btn-submit:disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .btn-cancel {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        color: white;
+        padding: 18px 50px;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .btn-cancel:hover {
+        background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(108, 117, 125, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .form-help-text {
+        margin-top: 8px;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-left: 4px solid #2196f3;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #1565c0;
+        font-weight: 500;
+    }
+
+    .form-help-text i {
+        color: #2196f3;
+        margin-right: 8px;
+    }
+
+    .validation-summary {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 2px solid #ffc107;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    }
+
+    .validation-summary h4 {
+        color: #856404;
+        margin-bottom: 15px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .validation-summary ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    .validation-summary li {
+        color: #856404;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .form-container {
+            margin: 20px;
+            padding: 30px 20px;
+        }
+        
+        .form-header h1 {
+            font-size: 28px;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn-submit, .btn-cancel {
+            width: 100%;
+            text-align: center;
+            padding: 16px 30px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1>
+            <i class="fas fa-{% if course %}edit{% else %}plus-circle{% endif %}"></i>
+            {% if course %}Modifier le Cours{% else %}Nouveau Cours{% endif %}
+        </h1>
+        <p>
+            {% if course %}
+                Modifiez les informations du cours "{{ course.title }}"
+            {% else %}
+                Créez un nouveau cours pour la plateforme GenEX
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Messages de validation globale -->
+    {% if form.errors %}
+        <div class="validation-summary">
+            <h4>
+                <i class="fas fa-exclamation-triangle"></i>
+                Veuillez corriger les erreurs suivantes
+            </h4>
+            <ul>
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" id="courseForm">
+        {% csrf_token %}
+        
+        <!-- Titre du cours -->
+        <div class="form-group">
+            <label for="{{ form.title.id_for_label }}" class="form-label required">{{ form.title.label }}</label>
+            {{ form.title }}
+            <div id="titleError" class="error-message" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="titleErrorText"></span>
+            </div>
+            {% if form.title.help_text %}
+                <div class="form-help-text">
+                    <i class="fas fa-info-circle"></i>
+                    {{ form.title.help_text }}
+                </div>
+            {% endif %}
+            {% if form.title.errors %}
+                {% for error in form.title.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <!-- Fichier PDF -->
+        <div class="form-group">
+            <label for="{{ form.pdf_file.id_for_label }}" class="form-label required">{{ form.pdf_file.label }}</label>
+            
+            {% if course and course.pdf_file %}
+                <div class="current-file">
+                    <i class="fas fa-file-pdf"></i>
+                    <div>
+                        <div class="current-file-name">{{ course.pdf_file.name|slice:"-30:" }}</div>
+                        <div style="font-size: 12px; color: #666;">
+                            Fichier actuel - Télécharger: 
+                            <a href="{{ course.pdf_file.url }}" target="_blank" style="color: #dc3545;">
+                                {{ course.pdf_file.url|slice:"-30:" }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="file-upload">
+                {{ form.pdf_file }}
+                <label for="{{ form.pdf_file.id_for_label }}" class="file-label" id="fileLabel">
+                    <i class="fas fa-cloud-upload-alt file-icon"></i>
+                    <div>
+                        <div class="file-text">
+                            {% if course %}
+                                Cliquez pour changer le fichier PDF
+                            {% else %}
+                                Cliquez pour sélectionner un fichier PDF
+                            {% endif %}
+                        </div>
+                        <div class="file-subtext">
+                            ou glissez-déposez le fichier ici
+                        </div>
+                    </div>
+                </label>
+            </div>
+            
+            <div id="fileError" class="error-message" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="fileErrorText"></span>
+            </div>
+            
+            <div class="file-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Format accepté :</strong> PDF uniquement<br>
+                <i class="fas fa-weight-hanging"></i>
+                <strong>Taille maximale :</strong> 10 MB<br>
+                <i class="fas fa-file-pdf"></i>
+                <strong>Qualité recommandée :</strong> PDF de bonne qualité pour une meilleure conversion
+            </div>
+            
+            {% if form.pdf_file.errors %}
+                {% for error in form.pdf_file.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if form.pdf_file.help_text %}
+                <div class="form-help-text">
+                    <i class="fas fa-info-circle"></i>
+                    {{ form.pdf_file.help_text }}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Actions du formulaire -->
+        <div class="form-actions">
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-{% if course %}save{% else %}plus-circle{% endif %}"></i>
+                {% if course %}Mettre à jour le cours{% else %}Créer le cours{% endif %}
+            </button>
+            <a href="{% url 'courses:admin_course_list' %}" class="btn-cancel">
+                <i class="fas fa-times"></i>
+                Annuler
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('courseForm');
+    const titleInput = document.getElementById('{{ form.title.id_for_label }}');
+    const fileInput = document.getElementById('{{ form.pdf_file.id_for_label }}');
+    const fileLabel = document.getElementById('fileLabel');
+    const submitBtn = document.getElementById('submitBtn');
+    const titleError = document.getElementById('titleError');
+    const fileError = document.getElementById('fileError');
+    
+    let titleValid = false;
+    let fileValid = false;
+    
+    // Fonction pour valider le formulaire
+    function validateForm() {
+        validateTitle();
+        validateFile();
+        submitBtn.disabled = !(titleValid && fileValid);
+    }
+    
+    // Validation du titre
+    function validateTitle() {
+        const title = titleInput.value.trim();
+        
+        if (title.length === 0) {
+            showTitleError('⚠️ Le titre du cours est obligatoire');
+            titleValid = false;
+        } else if (title.length < 2) {
+            showTitleError('⚠️ Le titre doit contenir au moins 2 caractères');
+            titleValid = false;
+        } else {
+            hideTitleError();
+            titleValid = true;
+        }
+    }
+    
+    // Validation du fichier
+    function validateFile() {
+        const file = fileInput.files[0];
+        const hasExistingFile = {% if course and course.pdf_file %}true{% else %}false{% endif %};
+        
+        // Si modification de cours et fichier existe déjà, le fichier n'est pas obligatoire
+        if (hasExistingFile && !file) {
+            hideFileError();
+            fileValid = true;
+            return;
+        }
+        
+        // Si nouveau cours ou changement de fichier, validation nécessaire
+        if (!file) {
+            showFileError('📄 Le fichier PDF est obligatoire');
+            fileValid = false;
+            return;
+        }
+        
+        // Vérifier l'extension
+        if (!file.name.toLowerCase().endsWith('.pdf')) {
+            showFileError('📄 Veuillez sélectionner un fichier PDF valide');
+            fileValid = false;
+            return;
+        }
+        
+        // Vérifier la taille (10MB max)
+        if (file.size > 10 * 1024 * 1024) {
+            showFileError('📦 Le fichier PDF ne doit pas dépasser 10MB');
+            fileValid = false;
+            return;
+        }
+        
+        // Fichier valide
+        hideFileError();
+        fileValid = true;
+        
+        // Mettre à jour le label avec animation
+        fileLabel.innerHTML = `
+            <i class="fas fa-file-pdf file-icon" style="color: #28a745; animation: none;"></i>
+            <div>
+                <div class="file-text">${file.name}</div>
+                <div class="file-subtext">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+            </div>
+        `;
+        fileLabel.style.borderColor = '#28a745';
+        fileLabel.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+        fileLabel.classList.remove('error');
+    }
+    
+    // Gestion des erreurs titre
+    function showTitleError(message) {
+        titleError.style.display = 'flex';
+        document.getElementById('titleErrorText').textContent = message;
+        titleInput.classList.add('error');
+    }
+    
+    function hideTitleError() {
+        titleError.style.display = 'none';
+        titleInput.classList.remove('error');
+    }
+    
+    // Gestion des erreurs fichier
+    function showFileError(message) {
+        fileError.style.display = 'flex';
+        document.getElementById('fileErrorText').textContent = message;
+        fileLabel.classList.add('error');
+    }
+    
+    function hideFileError() {
+        fileError.style.display = 'none';
+        fileLabel.classList.remove('error');
+    }
+    
+    // Événements pour le titre
+    if (titleInput) {
+        titleInput.addEventListener('input', validateTitle);
+        titleInput.addEventListener('blur', validateTitle);
+    }
+    
+    // Événements pour le fichier
+    if (fileInput) {
+        fileInput.addEventListener('change', validateForm);
+    }
+    
+    // Drag and drop avec animations
+    if (fileLabel) {
+        fileLabel.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+        
+        fileLabel.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+        
+        fileLabel.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && fileInput) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+    }
+    
+    // Validation à la soumission du formulaire
+    form.addEventListener('submit', function(e) {
+        validateForm();
+        
+        if (!titleValid || !fileValid) {
+            e.preventDefault();
+            
+            // Animation pour attirer l'attention sur les erreurs
+            if (!titleValid) {
+                titleInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                titleInput.focus();
+            } else if (!fileValid) {
+                fileLabel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Message général
+            alert('❌ Veuillez corriger les erreurs dans le formulaire avant de soumettre.');
+        }
+    });
+    
+    // Validation initiale
+    validateForm();
+});
+</script>
+{% endblock %}

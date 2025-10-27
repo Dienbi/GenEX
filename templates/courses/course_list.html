@@ -1,6 +1,6 @@
 {% extends 'main/base.html' %}
 
-{% block title %}Mes Cours - GenEX{% endblock %}
+{% block title %}Cours Disponibles - GenEX{% endblock %}
 
 {% block nav_my_courses %}active{% endblock %}
 
@@ -108,6 +108,53 @@
         font-weight: 600;
     }
     
+    .course-card.admin-course {
+        border-left: 4px solid #28a745;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    }
+    
+    .course-card.admin-course h3 {
+        color: #28a745;
+    }
+    
+    .course-creator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .course-creator.admin-creator {
+        color: #28a745;
+        font-weight: 600;
+    }
+    
+    .course-creator i {
+        font-size: 16px;
+    }
+    
+    .course-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .badge-admin {
+        background: #28a745;
+        color: white;
+    }
+    
+    .badge-user {
+        background: #dc3545;
+        color: white;
+    }
+    
     .course-meta {
         color: #666;
         font-size: 14px;
@@ -188,15 +235,15 @@
 <!-- Hero Section -->
 <section class="courses-hero">
     <div class="container">
-        <h1><i class="fas fa-graduation-cap"></i> Mes Cours IA</h1>
-        <p>Découvrez et gérez vos cours générés par intelligence artificielle</p>
+        <h1><i class="fas fa-graduation-cap"></i> Cours Disponibles</h1>
+        <p>Découvrez tous les cours générés par intelligence artificielle - les vôtres et ceux des administrateurs</p>
     </div>
 </section>
 
 <!-- Courses Content -->
 <div class="courses-container">
     <div class="action-bar">
-        <h2>Tous mes cours ({{ courses.count }})</h2>
+        <h2>Tous les cours disponibles ({{ courses.count }})</h2>
         <div class="action-buttons">
             <a href="{% url 'courses:folder_create' %}" class="btn-create btn-create-folder">
                 <i class="fas fa-folder-plus"></i> Créer un dossier
@@ -210,19 +257,31 @@
     {% if courses %}
         <div class="courses-grid">
             {% for course in courses %}
-            <div class="course-card">
+            <div class="course-card {% if course.user.is_superuser %}admin-course{% endif %}">
+                <div class="course-creator {% if course.user.is_superuser %}admin-creator{% endif %}">
+                    <i class="fas {% if course.user.is_superuser %}fa-crown{% else %}fa-user{% endif %}"></i>
+                    <span>{{ course.user.username }}</span>
+                    <span class="course-badge {% if course.user.is_superuser %}badge-admin{% else %}badge-user{% endif %}">
+                        {% if course.user.is_superuser %}Admin{% else %}Utilisateur{% endif %}
+                    </span>
+                </div>
                 <h3>{{ course.title }}</h3>
                 <div class="course-meta">
                     <span><i class="fas fa-calendar"></i> {{ course.created_at|date:"d M Y" }}</span>
                     <span><i class="fas fa-clock"></i> {{ course.created_at|date:"H:i" }}</span>
+                    {% if course.language %}
+                    <span><i class="fas fa-language"></i> {{ course.language|upper }}</span>
+                    {% endif %}
                 </div>
                 <div class="course-actions">
                     <a href="{% url 'courses:course_detail' course.pk %}" class="btn-view">
                         <i class="fas fa-eye"></i> Voir le cours
                     </a>
+                    {% if course.user == user %}
                     <a href="{% url 'courses:course_delete' course.pk %}" class="btn-delete">
                         <i class="fas fa-trash"></i>
                     </a>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

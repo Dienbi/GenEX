@@ -1,0 +1,333 @@
+{% extends 'users/backoffice/base.html' %}
+
+{% block title %}Supprimer le Cours - GenEX{% endblock %}
+
+{% block nav_courses %}active{% endblock %}
+
+{% block page_title %}Suppression du Cours{% endblock %}
+{% block page_description %}Confirmez la suppression du cours sélectionné{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    .delete-card {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
+        text-align: center;
+    }
+    
+    .warning-icon {
+        font-size: 80px;
+        color: #dc3545;
+        margin-bottom: 30px;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .delete-title {
+        font-size: 28px;
+        color: #333;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+    
+    .delete-message {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+    
+    .course-info {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 30px 0;
+        text-align: left;
+    }
+    
+    .course-info h4 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .info-item i {
+        color: #dc3545;
+        width: 20px;
+    }
+    
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 30px 0;
+        text-align: left;
+    }
+    
+    .warning-box h4 {
+        color: #856404;
+        margin-bottom: 10px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .warning-box ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #856404;
+        font-size: 14px;
+    }
+    
+    .warning-box li {
+        margin-bottom: 5px;
+    }
+    
+    .delete-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 40px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-delete {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .confirmation-checkbox {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 30px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .confirmation-checkbox input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    
+    .confirmation-checkbox label {
+        font-weight: 500;
+        color: #333;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .delete-container {
+            margin: 30px auto;
+            padding: 0 15px;
+        }
+        
+        .delete-card {
+            padding: 30px 20px;
+        }
+        
+        .delete-actions {
+            flex-direction: column;
+        }
+        
+        .btn-delete,
+        .btn-cancel {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Delete Content -->
+<div class="delete-container">
+    <div class="delete-card">
+        <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h2 class="delete-title">Attention !</h2>
+        <p class="delete-message">
+            Vous êtes sur le point de supprimer définitivement le cours <strong>"{{ course.title }}"</strong>.
+            Cette action est irréversible et supprimera toutes les données associées.
+        </p>
+        
+        <!-- Informations du cours -->
+        <div class="course-info">
+            <h4><i class="fas fa-info-circle"></i> Informations du cours</h4>
+            <div class="info-item">
+                <i class="fas fa-book"></i>
+                <span><strong>Titre :</strong> {{ course.title }}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-user"></i>
+                <span><strong>Créé par :</strong> {{ course.user.username|default:"Anonyme" }}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-calendar"></i>
+                <span><strong>Date de création :</strong> {{ course.created_at|date:"d/m/Y à H:i" }}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-language"></i>
+                <span><strong>Langue :</strong> {{ course.language|upper }}</span>
+            </div>
+            {% if course.pdf_file %}
+                <div class="info-item">
+                    <i class="fas fa-file-pdf"></i>
+                    <span><strong>Fichier PDF :</strong> {{ course.pdf_file.name|slice:"-30:" }}</span>
+                </div>
+            {% endif %}
+            {% if course.folder %}
+                <div class="info-item">
+                    <i class="fas fa-folder"></i>
+                    <span><strong>Dossier :</strong> {{ course.folder.name }}</span>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Avertissement -->
+        <div class="warning-box">
+            <h4>
+                <i class="fas fa-exclamation-triangle"></i>
+                Données qui seront supprimées :
+            </h4>
+            <ul>
+                <li>Le cours et toutes ses sections</li>
+                <li>Les fichiers audio générés</li>
+                <li>Les résumés et analyses</li>
+                <li>L'historique des interactions</li>
+                <li>Les fichiers PDF associés</li>
+                <li>Toutes les données de progression</li>
+            </ul>
+        </div>
+        
+        <!-- Confirmation -->
+        <div class="confirmation-checkbox">
+            <input type="checkbox" id="confirmDelete" required>
+            <label for="confirmDelete">
+                Je comprends que cette action est irréversible et je confirme vouloir supprimer ce cours
+            </label>
+        </div>
+        
+        <!-- Actions -->
+        <div class="delete-actions">
+            <form method="post" id="deleteForm" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-delete" id="deleteButton" disabled>
+                    <i class="fas fa-trash"></i>
+                    Supprimer définitivement
+                </button>
+            </form>
+            <a href="{% url 'courses:admin_course_list' %}" class="btn-cancel">
+                <i class="fas fa-times"></i>
+                Annuler
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheckbox = document.getElementById('confirmDelete');
+    const deleteButton = document.getElementById('deleteButton');
+    const deleteForm = document.getElementById('deleteForm');
+    
+    // Activer/désactiver le bouton de suppression
+    confirmCheckbox.addEventListener('change', function() {
+        deleteButton.disabled = !this.checked;
+        
+        if (this.checked) {
+            deleteButton.style.opacity = '1';
+            deleteButton.style.cursor = 'pointer';
+        } else {
+            deleteButton.style.opacity = '0.5';
+            deleteButton.style.cursor = 'not-allowed';
+        }
+    });
+    
+    // Confirmation finale
+    deleteForm.addEventListener('submit', function(e) {
+        if (!confirm('Êtes-vous ABSOLUMENT sûr de vouloir supprimer ce cours ? Cette action ne peut pas être annulée !')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Animation d'avertissement
+    const warningIcon = document.querySelector('.warning-icon');
+    setInterval(() => {
+        warningIcon.style.color = warningIcon.style.color === 'rgb(220, 53, 69)' ? '#ff6b6b' : '#dc3545';
+    }, 1000);
+});
+</script>
+{% endblock %}

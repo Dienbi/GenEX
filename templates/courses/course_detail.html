@@ -197,6 +197,16 @@
     transform: translateY(-2px);
 }
 
+.btn-pdf {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-pdf:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
 /* Conteneur principal */
 .course-container {
     max-width: 1200px;
@@ -1562,6 +1572,60 @@
         justify-content: flex-end;
     }
 }
+
+/* Styles pour le contenu vide */
+.no-content-main {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin: 2rem 0;
+}
+
+.no-content-icon {
+    font-size: 4rem;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+.no-content-main h3 {
+    color: var(--dark-text);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.no-content-main p {
+    color: var(--medium-text);
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.pdf-alternative {
+    margin-top: 2rem;
+}
+
+.btn-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 12px 24px;
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.btn-pdf:hover {
+    background: var(--primary-dark);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
 </style>
 {% endblock %}
 
@@ -1595,6 +1659,15 @@
             <button onclick="generateSummary()" class="nav-btn btn-summary" id="summaryBtn">
                 <i class="fas fa-robot"></i> Résumé IA
             </button>
+            {% if course.pdf_file %}
+                <a href="{% url 'courses:course_download_pdf' course.pk %}" class="nav-btn btn-pdf" target="_blank">
+                    <i class="fas fa-file-pdf"></i> Télécharger PDF
+                </a>
+            {% else %}
+                <a href="{% url 'courses:course_regenerate_pdf' course.pk %}" class="nav-btn btn-pdf">
+                    <i class="fas fa-file-pdf"></i> Générer PDF
+                </a>
+            {% endif %}
                 <a href="{% url 'courses:course_assign_folder' course.pk %}" class="nav-btn btn-organize">
                     <i class="fas fa-folder-plus"></i> Organiser
                 </a>
@@ -1612,15 +1685,22 @@
         <div class="sidebar-card">
             <h3><i class="fas fa-list-ol"></i> Table des matières</h3>
             <nav class="chapter-list" id="tableOfContents">
-                {% for section in sections %}
-                <div class="chapter-item">
-                    <a href="#section-{{ forloop.counter }}"
-                       class="chapter-link level-{{ section.level }}"
-                       onclick="scrollToSection('section-{{ forloop.counter }}')">
-                        {{ section.title }}
-                    </a>
-                </div>
-                {% endfor %}
+                {% if sections %}
+                    {% for section in sections %}
+                    <div class="chapter-item">
+                        <a href="#section-{{ forloop.counter }}"
+                           class="chapter-link level-{{ section.level }}"
+                           onclick="scrollToSection('section-{{ forloop.counter }}')">
+                            {{ section.title }}
+                        </a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-content">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Aucun contenu disponible pour ce cours</p>
+                    </div>
+                {% endif %}
             </nav>
         </div>
         
@@ -1665,8 +1745,9 @@
 
     <!-- Main Content -->
     <main class="course-main">
-        {% for section in sections %}
-        <section id="section-{{ forloop.counter }}" class="course-section level-{{ section.level }}">
+        {% if sections %}
+            {% for section in sections %}
+            <section id="section-{{ forloop.counter }}" class="course-section level-{{ section.level }}">
             <div class="section-header">
                 <h2 class="section-title level-{{ section.level }}">
                     {{ section.title }}
@@ -1730,7 +1811,23 @@
                 </div>
             </div>
         </section>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <div class="no-content-main">
+                <div class="no-content-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h3>Aucun contenu disponible</h3>
+                <p>Ce cours n'a pas encore de contenu. Contactez l'administrateur pour plus d'informations.</p>
+                {% if course.pdf_file %}
+                <div class="pdf-alternative">
+                    <a href="{{ course.pdf_file.url }}" target="_blank" class="btn-pdf">
+                        <i class="fas fa-file-pdf"></i> Consulter le PDF
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
     </main>
 </div>
 
