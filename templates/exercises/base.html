@@ -1011,9 +1011,6 @@ function createExerciseCard(exercise) {
                         <button class="btn btn-primary btn-sm" onclick="startExercise(${exercise.id})">
                             <i class="fas fa-play"></i> Commencer
                         </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="viewExercise(${exercise.id})">
-                            <i class="fas fa-eye"></i> Voir
-                        </button>
                     </div>
                     
                     <!-- Actions secondaires -->
@@ -1263,12 +1260,6 @@ function startExercise(exerciseId) {
     window.location.href = `/exercises/${exerciseId}/solve/`;
 }
 
-// Voir un exercice
-function viewExercise(exerciseId) {
-    // Enregistrer la consultation dans l'historique
-    trackExerciseView(exerciseId);
-    window.location.href = `/exercises/${exerciseId}/`;
-}
 
 // Enregistrer la consultation d'un exercice
 async function trackExerciseView(exerciseId) {
