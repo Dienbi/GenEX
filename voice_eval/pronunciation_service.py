@@ -101,6 +101,10 @@ class PronunciationService:
         Returns:
             dict with 'success', 'text', and optional 'error'
         """
+        # Lazy load models on first use
+        if not self.models:
+            self._load_models()
+        
         if language not in self.models:
             return {
                 'success': False,

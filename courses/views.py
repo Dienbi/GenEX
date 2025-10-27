@@ -85,7 +85,7 @@ def preload_models():
 
 # Lancer le préchargement au démarrage (désactivé en production pour économiser la mémoire)
 # Le chargement se fera à la demande lors de la première utilisation
-if TRANSFORMERS_AVAILABLE and not os.environ.get('RENDER'):
+if TRANSFORMERS_AVAILABLE :
     # Uniquement en développement local, pas sur Render
     preload_models()
 
